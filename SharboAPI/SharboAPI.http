@@ -1,0 +1,6 @@
+@SharboAPI_HostAddress = http://localhost:5160
+
+GET {{SharboAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
