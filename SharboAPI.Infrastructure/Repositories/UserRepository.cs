@@ -1,4 +1,4 @@
-using SharboAPI.Domain.Abstractions;
+using SharboAPI.Application.Abstractions;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Repositories;

@@ -1,6 +1,6 @@
 using SharboAPI.Domain.Models;
 
-namespace SharboAPI.Domain.Abstractions;
+namespace SharboAPI.Application.Abstractions;
 
 public interface IUserRepository
 {

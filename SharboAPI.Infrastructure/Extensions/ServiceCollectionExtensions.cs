@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SharboAPI.Domain.Abstractions;
+using SharboAPI.Application.Abstractions;
 using SharboAPI.Infrastructure.Repositories;
 
 namespace SharboAPI.Infrastructure.Extensions;
