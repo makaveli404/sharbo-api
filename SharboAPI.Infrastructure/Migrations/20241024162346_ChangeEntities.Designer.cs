@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SharboAPI.Infrastructure;
 
@@ -10,9 +11,11 @@ using SharboAPI.Infrastructure;
 namespace SharboAPI.Infrastructure.Migrations
 {
     [DbContext(typeof(SharboDbContext))]
-    partial class SharboDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241024162346_ChangeEntities")]
+    partial class ChangeEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0-rc.1.24451.1");

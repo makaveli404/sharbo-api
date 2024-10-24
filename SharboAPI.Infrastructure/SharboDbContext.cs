@@ -7,7 +7,9 @@ public class SharboDbContext(DbContextOptions<SharboDbContext> options) : DbCont
 {
 	public DbSet<User> Users { get; set; }
 	public DbSet<Role> Roles { get; set; }
-	public DbSet<Event> Events { get; set; }
-	public DbSet<EventType> EventTypes { get; set; }
+	public DbSet<Entry> Entries { get; set; }
+	public DbSet<Meme> Memes { get; set; }
+	public DbSet<Quote> Quotes { get; set; }
+	public DbSet<Situation> Situations { get; set; }
 	public DbSet<Group> Groups { get; set; }
 }
