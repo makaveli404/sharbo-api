@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SharboAPI.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class ChangeEntities : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,11 +31,25 @@ namespace SharboAPI.Infrastructure.Migrations
                 {
                     EntryId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Image = table.Column<string>(type: "TEXT", nullable: true)
+                    Image = table.Column<string>(type: "TEXT", nullable: false),
+                    Text = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Memes", x => x.EntryId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Quotes",
+                columns: table => new
+                {
+                    EntryId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Text = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Quotes", x => x.EntryId);
                 });
 
             migrationBuilder.CreateTable(
@@ -72,7 +86,7 @@ namespace SharboAPI.Infrastructure.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastModificationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    LastModifedById = table.Column<Guid>(type: "TEXT", nullable: false)
+                    LastModifiedById = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -98,34 +112,10 @@ namespace SharboAPI.Infrastructure.Migrations
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Quotes",
-                columns: table => new
-                {
-                    EntryId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Text = table.Column<string>(type: "TEXT", nullable: true),
-                    AuthorId = table.Column<Guid>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Quotes", x => x.EntryId);
-                    table.ForeignKey(
-                        name: "FK_Quotes_Users_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                });
-
             migrationBuilder.CreateIndex(
-                name: "IX_Entries_LastModifedById",
+                name: "IX_Entries_LastModifiedById",
                 table: "Entries",
-                column: "LastModifedById");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Quotes_AuthorId",
-                table: "Quotes",
-                column: "AuthorId");
+                column: "LastModifiedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_EntryId",
@@ -133,9 +123,9 @@ namespace SharboAPI.Infrastructure.Migrations
                 column: "EntryId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Entries_Users_LastModifedById",
+                name: "FK_Entries_Users_LastModifiedById",
                 table: "Entries",
-                column: "LastModifedById",
+                column: "LastModifiedById",
                 principalTable: "Users",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
@@ -145,7 +135,7 @@ namespace SharboAPI.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Entries_Users_LastModifedById",
+                name: "FK_Entries_Users_LastModifiedById",
                 table: "Entries");
 
             migrationBuilder.DropTable(

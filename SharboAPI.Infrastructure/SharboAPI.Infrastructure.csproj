@@ -22,8 +22,4 @@
       <ProjectReference Include="..\SharboAPI.Domain\SharboAPI.Domain.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Migrations\" />
-    </ItemGroup>
-
 </Project>

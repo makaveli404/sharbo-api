@@ -26,15 +26,15 @@ namespace SharboAPI.Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("LastModifedById")
+                    b.Property<DateTime>("LastModificationDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("LastModificationDate")
+                    b.Property<Guid>("LastModifiedById")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LastModifedById");
+                    b.HasIndex("LastModifiedById");
 
                     b.ToTable("Entries");
                 });
@@ -67,6 +67,11 @@ namespace SharboAPI.Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("EntryId");
@@ -80,15 +85,10 @@ namespace SharboAPI.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<Guid?>("AuthorId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Text")
                         .HasColumnType("TEXT");
 
                     b.HasKey("EntryId");
-
-                    b.HasIndex("AuthorId");
 
                     b.ToTable("Quotes");
                 });
@@ -148,22 +148,13 @@ namespace SharboAPI.Infrastructure.Migrations
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Entry", b =>
                 {
-                    b.HasOne("SharboAPI.Domain.Models.User", "LastModifedBy")
+                    b.HasOne("SharboAPI.Domain.Models.User", "LastModifiedBy")
                         .WithMany()
-                        .HasForeignKey("LastModifedById")
+                        .HasForeignKey("LastModifiedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("LastModifedBy");
-                });
-
-            modelBuilder.Entity("SharboAPI.Domain.Models.Quote", b =>
-                {
-                    b.HasOne("SharboAPI.Domain.Models.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId");
-
-                    b.Navigation("Author");
+                    b.Navigation("LastModifiedBy");
                 });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.User", b =>
