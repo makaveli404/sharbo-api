@@ -6,4 +6,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\SharboAPI.Domain\SharboAPI.Domain.csproj" />
+    </ItemGroup>
+
 </Project>
