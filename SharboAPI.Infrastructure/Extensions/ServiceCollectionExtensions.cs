@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SharboAPI.Application.Abstractions;
+using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Infrastructure.Repositories;
 
 namespace SharboAPI.Infrastructure.Extensions;
@@ -31,7 +32,7 @@ public static class ServiceCollectionExtensions
 
 	public static IServiceCollection AddInfrastructure(this IServiceCollection services)
 	{
-		services.AddScoped<IUserRepository, UserRepository>();
+		services.AddScoped<IGroupRepository, GroupRepository>();
 		return services;
 	}
 }
