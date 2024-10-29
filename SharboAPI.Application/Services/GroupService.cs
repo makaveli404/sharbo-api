@@ -8,7 +8,7 @@ namespace SharboAPI.Application.Services;
 public class GroupService(IGroupRepository groupRepository) : IGroupService
 {
 	public async Task<Group?> GetById(Guid id, CancellationToken cancellationToken) => await groupRepository.GetById(id, cancellationToken);
-	public async Task AddAsync(GroupDto group, CancellationToken cancellationToken)
+	public async Task<Guid?> AddAsync(GroupDto group, CancellationToken cancellationToken)
 	{
 		var newGroup = new Group
 		{
@@ -18,7 +18,7 @@ public class GroupService(IGroupRepository groupRepository) : IGroupService
 			CreationDate = DateTime.Now
 		};
 
-		await groupRepository.AddAsync(newGroup, cancellationToken);
+		return await groupRepository.AddAsync(newGroup, cancellationToken);
 	}
 
 	public async Task UpdateAsync(Group group) => await groupRepository.UpdateAsync(group);

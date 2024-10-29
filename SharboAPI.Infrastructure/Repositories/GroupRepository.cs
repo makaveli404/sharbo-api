@@ -10,10 +10,11 @@ public class GroupRepository(SharboDbContext context) : IGroupRepository
 		return await context.Groups.FindAsync(id, cancellationToken);
 	}
 
-	public async Task AddAsync(Group group, CancellationToken cancellationToken)
+	public async Task<Guid?> AddAsync(Group group, CancellationToken cancellationToken)
 	{
-		await context.Groups.AddAsync(group, cancellationToken);
+		var result = await context.Groups.AddAsync(group, cancellationToken);
 		await context.SaveChangesAsync(cancellationToken);
+		return result.Entity?.Id;
 	}
 
 	public async Task UpdateAsync(Group group)

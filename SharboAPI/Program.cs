@@ -1,5 +1,6 @@
 using Microsoft.OpenApi.Models;
 using SharboAPI.Application.Extensions;
+using SharboAPI.Endpoints;
 using SharboAPI.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,8 @@ builder.Services.AddSwaggerGen(c =>
 	});
 });
 var app = builder.Build();
+
+app.MapGroupEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
