@@ -11,5 +11,5 @@ public class SharboDbContext(DbContextOptions<SharboDbContext> options) : DbCont
 	public DbSet<Meme> Memes { get; set; }
 	public DbSet<Quote> Quotes { get; set; }
 	public DbSet<Situation> Situations { get; set; }
-	public DbSet<Group?> Groups { get; set; }
+	public DbSet<Group> Groups { get; set; }
 }
