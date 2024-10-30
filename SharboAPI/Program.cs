@@ -1,7 +1,7 @@
 using Microsoft.OpenApi.Models;
 using SharboAPI.Application.Extensions;
 using SharboAPI.Endpoints;
-using SharboAPI.Infrastructure.Extensions;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +35,8 @@ if (app.Environment.IsDevelopment())
 		c.RoutePrefix = string.Empty;
 	});
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 app.MapControllers();
