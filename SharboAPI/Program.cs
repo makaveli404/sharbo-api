@@ -2,6 +2,7 @@ using Microsoft.OpenApi.Models;
 using SharboAPI.Application.Extensions;
 using SharboAPI.Endpoints;
 using Serilog;
+using SharboAPI.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
