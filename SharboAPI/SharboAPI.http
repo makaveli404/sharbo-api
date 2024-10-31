@@ -1,5 +1,16 @@
+@id = 1D4B2D2D-C3A4-4164-86DE-3E11DDC0F0CA
 
 ###
-@SharboAPI_HostAddress = http://localhost:5160
+POST https://localhost:7077/api/group/create
+Content-Type: application/json
+
+{
+  "Name": "NameTest",
+  "ImagePath": "ImagePathTest"
+}
 
 ###
+GET https://localhost:7077/api/group/{{id}}
+
+###
+PUT https://localhost:7077/api/group/{{id}}/update

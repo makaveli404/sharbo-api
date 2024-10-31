@@ -11,6 +11,9 @@ builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 builder.Services.AddOpenApi();
 
+builder.Host.UseSerilog((context, config) =>
+	config.ReadFrom.Configuration(context.Configuration));
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -32,7 +35,7 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI(c =>
 	{
-		c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+		c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sharbo API");
 		c.RoutePrefix = string.Empty;
 	});
 }

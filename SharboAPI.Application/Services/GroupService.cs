@@ -21,6 +21,7 @@ public class GroupService(IGroupRepository groupRepository) : IGroupService
 		return await groupRepository.AddAsync(newGroup, cancellationToken);
 	}
 
-	public async Task UpdateAsync(Group group) => await groupRepository.UpdateAsync(group);
+	public async Task<Group?> UpdateAsync(Guid groupId, UpdateGroupDto updatedGroup, CancellationToken cancellationToken) =>
+		await groupRepository.UpdateAsync(groupId, updatedGroup, cancellationToken);
 	public async Task DeleteAsync(Guid id, CancellationToken cancellationToken) => await groupRepository.DeleteAsync(id, cancellationToken);
 }

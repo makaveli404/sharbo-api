@@ -1,4 +1,5 @@
 using SharboAPI.Application.Abstractions.Repositories;
+using SharboAPI.Application.DTO.Group;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Repositories;
@@ -17,15 +18,32 @@ public class GroupRepository(SharboDbContext context) : IGroupRepository
 		return result.Entity?.Id;
 	}
 
-	public async Task UpdateAsync(Group group)
+	public async Task<Group?> UpdateAsync(Guid groupId, UpdateGroupDto updatedGroup, CancellationToken cancellationToken)
 	{
-		context.Groups.Update(group);
-		await context.SaveChangesAsync();
+		var group = await context.Groups.FindAsync(groupId, cancellationToken);
+
+		if (group is null)
+		{
+			return null;
+		}
+
+		group.Name = updatedGroup.Name;
+		group.ImagePath = updatedGroup.ImagePath;
+
+		var result = context.Groups.Update(group);
+		await context.SaveChangesAsync(cancellationToken);
+		return result.Entity;
 	}
 
 	public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
 	{
 		var group = await GetById(id, cancellationToken);
+
+		if (group is null)
+		{
+			return;
+		}
+
 		context.Groups.Remove(group);
 		await context.SaveChangesAsync(cancellationToken);
 	}

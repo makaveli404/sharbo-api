@@ -7,9 +7,7 @@ public static class GroupEndpoints
 {
 	public static void MapGroupEndpoints(this IEndpointRouteBuilder routes)
 	{
-		var group = routes.MapGroup("/api/group");
-
-		MapGroupsApi(group);
+		MapGroupsApi(routes);
 	}
 
 	private static async Task<IResult> GetGroupById(Guid id, IGroupService groupService, CancellationToken cancellationToken)
@@ -25,10 +23,19 @@ public static class GroupEndpoints
 		return result is not null ? TypedResults.Created($"{group}/{result}", result) : TypedResults.BadRequest();
 	}
 
-	private static RouteGroupBuilder MapGroupsApi(this RouteGroupBuilder route)
+	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroupDto updatedGroup, IGroupService groupService,
+		CancellationToken cancellationToken)
 	{
-		route.MapGet("/{id:guid}", GetGroupById);
-		route.MapPost("/create", CreateGroup);
-		return route;
+		var result = await groupService.UpdateAsync(id, updatedGroup, cancellationToken);
+		return result is not null ? TypedResults.Ok(result) : TypedResults.Ok();
+	}
+
+	private static void MapGroupsApi(this IEndpointRouteBuilder routes)
+	{
+		var group = routes.MapGroup("/api/group");
+
+		group.MapPost("/create", CreateGroup);
+		group.MapGet("/{id:guid}", GetGroupById);
+		group.MapPut("/{id:guid}/update", UpdateGroup);
 	}
 }
