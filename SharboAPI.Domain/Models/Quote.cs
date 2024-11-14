@@ -4,11 +4,9 @@ public class Quote
 {
 	public int EntryId { get; private set; }
 	public Entry Entry { get; private set; }
-
 	public string Text { get; private set; }
 
 	private Quote() {}
-
 
     // Factory methods
     public static Quote Create(Guid createdById,

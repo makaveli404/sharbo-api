@@ -4,12 +4,10 @@ public class Meme
 {
 	public int EntryId { get; private set; }
 	public Entry Entry { get; private set; }
-
 	public string ImagePath { get; private set; }
 	public string? Text { get; private set; }
 
 	private Meme() {}
-
 
     // Factory methods
     public static Meme Create(Guid createdById,

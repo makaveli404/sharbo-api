@@ -4,11 +4,9 @@ public class Situation
 {
 	public int EntryId { get; private set; }
     public Entry Entry { get; private set; }
-
     public string Text { get; private set; }
 
     private Situation() {}
-
 
     // Factory methods
     public static Situation Create(Guid createdById,
