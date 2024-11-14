@@ -27,8 +27,7 @@ public class GroupRepository(SharboDbContext context) : IGroupRepository
 			return null;
 		}
 
-		group.Name = updatedGroup.Name;
-		group.ImagePath = updatedGroup.ImagePath;
+		Group.Update(group, updatedGroup.Name, updatedGroup.modifiedById, updatedGroup.ImagePath);
 
 		var result = context.Groups.Update(group);
 		await context.SaveChangesAsync(cancellationToken);

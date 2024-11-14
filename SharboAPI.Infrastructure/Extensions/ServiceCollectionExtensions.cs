@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SharboAPI.Application.Abstractions;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Infrastructure.Repositories;
 
@@ -17,7 +17,10 @@ public static class ServiceCollectionExtensions
 		{
 			case "SQLite":
 				services.AddDbContext<SharboDbContext>(options =>
-					options.UseSqlite(configuration.GetConnectionString("SharboDbConnection")));
+					options
+						.UseSqlite(configuration.GetConnectionString("SharboDbConnection"))
+						.ConfigureWarnings(w => w.Ignore(RelationalEventId.NonTransactionalMigrationOperationWarning)));
+						
 				break;
 			case "PostgreSQL":
 				services.AddDbContext<SharboDbContext>(options =>

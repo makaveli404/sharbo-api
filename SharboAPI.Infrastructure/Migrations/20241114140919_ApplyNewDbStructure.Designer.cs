@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SharboAPI.Infrastructure;
 
@@ -10,27 +11,14 @@ using SharboAPI.Infrastructure;
 namespace SharboAPI.Infrastructure.Migrations
 {
     [DbContext(typeof(SharboDbContext))]
-    partial class SharboDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241114140919_ApplyNewDbStructure")]
+    partial class ApplyNewDbStructure
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0-rc.1.24451.1");
-
-            modelBuilder.Entity("EntryUser", b =>
-                {
-                    b.Property<int>("EntriesId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("ParticipantsId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("EntriesId", "ParticipantsId");
-
-                    b.HasIndex("ParticipantsId");
-
-                    b.ToTable("EntryParticipants", (string)null);
-                });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Entry", b =>
                 {
@@ -166,28 +154,18 @@ namespace SharboAPI.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("EntryId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Nickname")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("EntryId");
+
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("EntryUser", b =>
-                {
-                    b.HasOne("SharboAPI.Domain.Models.Entry", null)
-                        .WithMany()
-                        .HasForeignKey("EntriesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SharboAPI.Domain.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("ParticipantsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Entry", b =>
@@ -230,21 +208,17 @@ namespace SharboAPI.Infrastructure.Migrations
 
             modelBuilder.Entity("SharboAPI.Domain.Models.GroupParticipants", b =>
                 {
-                    b.HasOne("SharboAPI.Domain.Models.Group", "Group")
+                    b.HasOne("SharboAPI.Domain.Models.Group", null)
                         .WithMany("GroupParticipants")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SharboAPI.Domain.Models.User", "User")
+                    b.HasOne("SharboAPI.Domain.Models.User", null)
                         .WithMany("GroupParticipants")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Group");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Meme", b =>
@@ -278,6 +252,18 @@ namespace SharboAPI.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Entry");
+                });
+
+            modelBuilder.Entity("SharboAPI.Domain.Models.User", b =>
+                {
+                    b.HasOne("SharboAPI.Domain.Models.Entry", null)
+                        .WithMany("Participants")
+                        .HasForeignKey("EntryId");
+                });
+
+            modelBuilder.Entity("SharboAPI.Domain.Models.Entry", b =>
+                {
+                    b.Navigation("Participants");
                 });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Group", b =>

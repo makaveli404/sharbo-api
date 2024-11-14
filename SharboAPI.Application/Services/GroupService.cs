@@ -10,13 +10,14 @@ public class GroupService(IGroupRepository groupRepository) : IGroupService
 	public async Task<Group?> GetById(Guid id, CancellationToken cancellationToken) => await groupRepository.GetById(id, cancellationToken);
 	public async Task<Guid?> AddAsync(GroupDto group, CancellationToken cancellationToken)
 	{
-		var newGroup = new Group
-		{
-			Id = Guid.NewGuid(),
-			Name = group.Name,
-			ImagePath = group.ImagePath,
-			CreationDate = DateTime.Now
-		};
+		// Get user id from claim by HttpContextAccessor
+		var createdById = Guid.NewGuid();
+		// Temporary definition
+		List<GroupParticipants> groupParticipants = [
+			GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), true)
+		];
+
+		var newGroup = Group.Create(group.Name, createdById, groupParticipants, group.ImagePath);
 
 		return await groupRepository.AddAsync(newGroup, cancellationToken);
 	}
