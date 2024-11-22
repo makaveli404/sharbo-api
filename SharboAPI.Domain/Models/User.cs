@@ -12,10 +12,22 @@ public class User
 
 	// Factory methods
 	public static User Create(string nickname, string email)
-		=> new()
+	{
+		if (string.IsNullOrWhiteSpace(nickname))
+		{
+			throw new ArgumentNullException(nameof(nickname), "Nickname cannot be null or empty.");
+		}
+
+		if (string.IsNullOrWhiteSpace(email))
+		{
+			throw new ArgumentNullException(nameof(email), "Email cannot be null or empty.");
+		}
+
+		return new User
 		{
 			Id = Guid.NewGuid(),
 			Nickname = nickname,
 			Email = email
 		};
+	}
 }
