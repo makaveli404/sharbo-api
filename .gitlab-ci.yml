@@ -24,13 +24,13 @@ test:
   script:
     - dotnet restore
     - dotnet build
-    - dotnet test --collect:"XPlat Code Coverage" --logger
+    - dotnet test --collect:"XPlat Code Coverage"
     - dotnet tool install --global dotnet-reportgenerator-globaltool
     - export PATH="$PATH:/root/.dotnet/tools"
     - reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport -reportypes:cobertura
     - echo "Code Coverage:"
     - grep -oP '(?<=line-rate=")[0-9.]+(?=")' ./coveragereport/coverage.cobertura.xml
-  coverage: '/<coverage line="[^"]*" branch="[^"]*" methods="[^"]*" classes="[^"]*" lines-covered="[^"]*" lines-valid="(\d+)" line-rate="(\d\.\d+)"/'
+  coverage: '/Code coverage: /Total\s*\|\s*(\d+(?:\.\d+)?)/'
   artifacts:
     reports:
       junit: ./**/coverage.cobertura.xml
