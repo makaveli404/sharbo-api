@@ -25,6 +25,7 @@ test:
     - dotnet restore
     - dotnet build
     - dotnet test --no-build --verbosity normal
+    - coverage /Total\s*\|\s*(\d+(?:\.\d+)?)/
   artifacts:
     paths:
       - TestResults/
