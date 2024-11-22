@@ -24,17 +24,17 @@ test:
   script:
     - dotnet restore
     - dotnet build
-    - dotnet test --collect:"XPlat Code Coverage"
+    - dotnet test --collect:"XPlat Code Coverage" --logger:"junit;LogFilePath=SharboLog.xml"
     - dotnet tool install --global dotnet-reportgenerator-globaltool
     - export PATH="$PATH:/root/.dotnet/tools"
     - reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport -reporttypes:cobertura
     - COVERAGE_VALUE=$(grep -oPm 1 'line-rate="\K([0-9.]+)' "./coveragereport/Cobertura.xml")
-    - COVERAGE=$(echo "scale=2; $COVERAGE_VALUE * 100" | bc)
+    - COVERAGE=$(echo "$COVERAGE_VALUE" | awk '{printf "%.2f", $1 * 100}')
     - 'echo "TOTAL_COVERAGE=$COVERAGE%"'
   coverage: '/TOTAL_COVERAGE=(\d+.\d+)/'
   artifacts:
     reports:
-      junit: ./**/coverage.cobertura.xml
+      junit: ./**/SharboLog.xml
     paths:
       - coveragereport/Cobertura.xml
-      - ./**/coverage.cobertura.xml
+      - ./**/SharboLog.xml
