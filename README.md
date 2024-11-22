@@ -1,3 +1,4 @@
 # Sharbo Api
 
-https://gitlab.com/self-evolving/sharbo/sharbo-apibadges/main/coverage.svg
+
+[![coverage report](https://gitlab.com/self-evolving/sharbo/sharbo-api/badges/main/coverage.svg)](https://gitlab.com/self-evolving/sharbo/sharbo-api/-/commits/main)
