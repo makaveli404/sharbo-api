@@ -25,6 +25,8 @@ test:
     - dotnet restore
     - dotnet build
     - dotnet test --collect:"XPlat Code Coverage" --logger "junit;LogFilePath=SharboTests.xml"
+    - dotnet tool install --global dotnet-reportgenerator-globaltool
+    - export PATH="$PATH:/root/.dotnet/tools"
     - reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport
   coverage: '/<coverage line="[^"]*" branch="[^"]*" methods="[^"]*" classes="[^"]*" lines-covered="[^"]*" lines-valid="(\d+)" line-rate="(\d\.\d+)"/'
   artifacts:
