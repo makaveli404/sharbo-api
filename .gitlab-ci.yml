@@ -24,7 +24,7 @@ test:
   script:
     - dotnet restore
     - dotnet build
-    - dotnet test --logger "junit;LogFileName=SharboTests.xml"
+    - dotnet test --logger "junit;LogFilePath=SharboTests.xml"
   artifacts:
     reports:
       junit: ./SharboTests.xml
