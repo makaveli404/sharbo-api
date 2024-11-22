@@ -22,10 +22,9 @@ build:
 test:
   stage: test
   script:
-    - dotnet add package coverlet.msbuild
     - dotnet restore
     - dotnet build
-    - dotnet test --collect:"XPlat Code Coverage"
+    - dotnet test --no-build --verbosity normal
   artifacts:
-    reports:
-      cobertura: ./**/TestResults/**/coverage.cobertura.xml
+    paths:
+      - TestResults/
