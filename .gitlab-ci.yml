@@ -28,4 +28,4 @@ test:
     - dotnet test --collect:"XPlat Code Coverage"
   artifacts:
     reports:
-      cobertura: TestResults/*/coverage.cobertura.xml
+      cobertura: ./**/TestResults/**/coverage.cobertura.xml
