@@ -24,8 +24,7 @@ test:
   script:
     - dotnet restore
     - dotnet build
-    - dotnet test --no-build --verbosity normal
-    - coverage /Total\s*\|\s*(\d+(?:\.\d+)?)/
+    - dotnet test --logger "junit;LogFileName=SharboTests.xml"
   artifacts:
-    paths:
-      - TestResults/
+    reports:
+      junit: ./SharboTests.xml
