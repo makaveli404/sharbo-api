@@ -29,8 +29,8 @@ test:
     - export PATH="$PATH:/root/.dotnet/tools"
     - reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport -reportypes:cobertura
     - echo "Code Coverage:"
-    - grep -oP '(?<=line-rate=")[0-9.]+(?=")' ./coveragereport/coverage.cobertura.xml
-  coverage: '/Code coverage: /Total\s*\|\s*(\d+(?:\.\d+)?)/'
+    - grep -oP '(?<=line-rate=")[0-9.]+(?=")' ./coveragereport/Cobertura.xml
+  coverage: '/<coverage line="[^"]*" branch="[^"]*" methods="[^"]*" classes="[^"]*" lines-covered="[^"]*" lines-valid="(\d+)" line-rate="(\d\.\d+)"/'
   artifacts:
     reports:
       junit: ./**/coverage.cobertura.xml
