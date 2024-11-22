@@ -29,7 +29,7 @@ test:
     - export PATH="$PATH:/root/.dotnet/tools"
     - reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport -reporttypes:cobertura
     - | 
-      grep -oP '(?<=<coverage line-rate=")[0-9.]+' ./coveragereport/coverage.cobertura.xml | awk '{printf "Code coverage: %.2f\n", $1 * 100
+      grep -oP '(?<=<coverage line-rate=")[0-9.]+' ./coveragereport/Cobertura.xml | awk '{printf "Code coverage: %.2f\n", $1 * 100
   coverage: '/Code coverage: \d+(?:\.\d+)?/'
   artifacts:
     reports:
