@@ -28,6 +28,8 @@ test:
     - dotnet tool install --global dotnet-reportgenerator-globaltool
     - export PATH="$PATH:/root/.dotnet/tools"
     - reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport
+    - echo "Code Coverage:"
+    - grep -oP '(?<=line-rate=")[0-9.]+(?=")' ./SharboAPI.Domain.Tests/SharboTests.xml
   coverage: '/<coverage line="[^"]*" branch="[^"]*" methods="[^"]*" classes="[^"]*" lines-covered="[^"]*" lines-valid="(\d+)" line-rate="(\d\.\d+)"/'
   artifacts:
     reports:
