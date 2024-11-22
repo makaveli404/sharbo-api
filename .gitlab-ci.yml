@@ -27,4 +27,4 @@ test:
     - dotnet test --logger "junit;LogFilePath=SharboTests.xml"
   artifacts:
     reports:
-      junit: ./SharboTests.xml
+      junit: SharboTests.xml
