@@ -24,8 +24,11 @@ test:
   script:
     - dotnet restore
     - dotnet build
-    - dotnet test --logger "junit;LogFilePath=SharboTests.xml"
-  coverage: '/Code coverage: /Total\s*\|\s*(\d+(?:\.\d+)?)/'
+    - dotnet test --collect:"XPlat Code Coverage" --logger "junit;LogFilePath=SharboTests.xml"
+    - reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport
+  coverage: '/<coverage line="[^"]*" branch="[^"]*" methods="[^"]*" classes="[^"]*" lines-covered="[^"]*" lines-valid="(\d+)" line-rate="(\d\.\d+)"/'
   artifacts:
     reports:
       junit: ./SharboAPI.Domain.Tests/SharboTests.xml
+    paths:
+      - coveragereport
