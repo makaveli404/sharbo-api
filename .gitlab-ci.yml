@@ -5,10 +5,13 @@ stages:
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+  DOTNET_IMAGE: "mcr.microsoft.com/dotnet/sdk:9.0"
+
+default:
+  image: $DOTNET_IMAGE
 
 build:
   stage: build
-  image: mcr.microsoft.com/dotnet/sdk:9.0
   script:
     - dotnet restore
     - dotnet build --configuration Release
@@ -18,6 +21,20 @@ build:
 
 test:
   stage: test
-  image: mcr.microsoft.com/dotnet/sdk:9.0
   script:
-    - dotnet test --no-build --verbosity normal
+    - dotnet restore
+    - dotnet build
+    - dotnet test --collect:"XPlat Code Coverage" --logger:"junit;LogFilePath=SharboLog.xml"
+    - dotnet tool install --global dotnet-reportgenerator-globaltool
+    - export PATH="$PATH:/root/.dotnet/tools"
+    - reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport -reporttypes:cobertura
+    - COVERAGE_VALUE=$(grep -oPm 1 'line-rate="\K([0-9.]+)' "./coveragereport/Cobertura.xml")
+    - COVERAGE=$(echo "$COVERAGE_VALUE" | awk '{printf "%.2f", $1 * 100}')
+    - 'echo "TOTAL_COVERAGE=$COVERAGE%"'
+  coverage: '/TOTAL_COVERAGE=(\d+.\d+)/'
+  artifacts:
+    reports:
+      junit: ./**/SharboLog.xml
+    paths:
+      - coveragereport/Cobertura.xml
+      - ./**/SharboLog.xml
