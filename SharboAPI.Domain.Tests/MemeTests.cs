@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using FluentAssertions;
 using SharboAPI.Domain.Models;
 using Xunit;

@@ -1,4 +1,3 @@
-using System;
 using FluentAssertions;
 using SharboAPI.Domain.Models;
 using Xunit;
