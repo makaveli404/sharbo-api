@@ -1,12 +1,15 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SharboAPI.Application.Extensions;
 using SharboAPI.Endpoints;
 using Serilog;
+using SharboAPI.Infrastructure;
 using SharboAPI.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDatabaseConfiguration(builder.Configuration);
+var configuration = builder.Configuration;
+
 builder.Services.AddInfrastructure();
 builder.Services.AddApplication();
 builder.Services.AddOpenApi();
@@ -16,6 +19,8 @@ builder.Host.UseSerilog((context, config) =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddDatabaseConfiguration(configuration);
+
 builder.Services.AddSwaggerGen(c =>
 {
 	c.SwaggerDoc("v1", new OpenApiInfo
@@ -25,6 +30,7 @@ builder.Services.AddSwaggerGen(c =>
 		Description = "Sharbo API"
 	});
 });
+
 var app = builder.Build();
 
 app.MapGroupEndpoints();
@@ -40,9 +46,30 @@ if (app.Environment.IsDevelopment())
 	});
 }
 
+using var scope = app.Services.CreateScope();
+ApplyMigration<SharboDbContext>(scope);
+
 app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+static void ApplyMigration<TDbContext>(IServiceScope scope)
+	where TDbContext : DbContext
+{
+	try
+	{
+		Log.Information("Applying migrations.");
+		using var context = scope.ServiceProvider.GetRequiredService<TDbContext>();
+
+		context.Database.Migrate();
+		Log.Information("Finished migrations.");
+	}
+	catch (Exception ex)
+	{
+		Log.Error(ex, $"Failed to apply migrations for {typeof(TDbContext).Name}.");
+		throw;
+	}
+}

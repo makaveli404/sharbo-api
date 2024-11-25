@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: sharboapi
+    build: .
+    ports:
+      - "7023:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    networks:
+      - sharbo-network
+    depends_on:
+      - db
+
+  db:
+    container_name: pg-sharbodb
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=123456789!
+      - POSTGRES_USER=sharbo_user
+      - POSTGRES_DB=sharbodb
+    networks:
+      - sharbo-network
+
+networks:
+  sharbo-network:
+    driver: bridge

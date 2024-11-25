@@ -18,7 +18,7 @@
 
     <ItemGroup>
       <Content Update="appsettings.Production.json">
-        <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
     </ItemGroup>
 
