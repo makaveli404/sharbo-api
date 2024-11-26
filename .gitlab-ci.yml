@@ -28,8 +28,6 @@ build:
 test:
   image: $DOTNET_IMAGE
   stage: test
-  services:
-    - docker:dind
   script:
     - dotnet restore
     - dotnet build
@@ -51,6 +49,8 @@ test:
 release:
   image: $DOCKER_IMAGE
   stage: release
+  services:
+    - docker:dind
   script:
     - docker build -t $CONTAINER_RELEASE_IMAGE_VERSION .
     - docker tag $CONTAINER_RELEASE_IMAGE_VERSION $CONTAINER_RELEASE_IMAGE_VERSION
