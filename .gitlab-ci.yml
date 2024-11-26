@@ -13,7 +13,7 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
   DOTNET_IMAGE: "mcr.microsoft.com/dotnet/sdk:9.0"
-  DOCKER_IMAGE: "docker:image"
+  DOCKER_IMAGE: "docker:latest"
 
 build:
   image: $DOTNET_IMAGE
