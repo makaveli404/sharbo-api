@@ -20,6 +20,7 @@ variables:
   DOTNET_IMAGE: "mcr.microsoft.com/dotnet/sdk:9.0"
 
 build:
+  image: $DOTNET_IMAGE
   stage: build
   script:
     - dotnet restore
@@ -29,6 +30,7 @@ build:
       - bin/
 
 test:
+  image: $DOTNET_IMAGE
   stage: test
   script:
     - dotnet restore
