@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Infrastructure.Repositories;
 
@@ -11,7 +12,13 @@ public static class ServiceCollectionExtensions
 {
 	public static IServiceCollection AddDatabaseConfiguration(this IServiceCollection services, IConfiguration configuration)
 	{
+		Log.Information("Trying to get database provider.");
 		var databaseProvider = configuration.GetValue<string>("DatabaseProvider");
+
+		if (string.IsNullOrEmpty(databaseProvider))
+		{
+			throw new Exception("DatabaseProvider is not configured. Please ensure it exists in appsettings or environment variables.");
+		}
 
 		switch (databaseProvider)
 		{
@@ -20,11 +27,15 @@ public static class ServiceCollectionExtensions
 					options
 						.UseSqlite(configuration.GetConnectionString("SharboDbConnection"))
 						.ConfigureWarnings(w => w.Ignore(RelationalEventId.NonTransactionalMigrationOperationWarning)));
-						
+
 				break;
 			case "PostgreSQL":
+				Log.Information("SharboDbConnection: " + configuration.GetConnectionString("SharboDbConnection"));
 				services.AddDbContext<SharboDbContext>(options =>
-					options.UseNpgsql(configuration.GetConnectionString("SharboDbConnection")));
+				{
+					options.UseNpgsql(configuration.GetConnectionString("SharboDbConnection"))
+						.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+				});
 				break;
 			default:
 				throw new Exception("Unsupported database provider: " + databaseProvider);
