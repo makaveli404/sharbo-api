@@ -12,9 +12,10 @@ public class UserTests
 		// Arrange
 		const string nickname = "TestUser";
 		const string email = "testuser@example.com";
+		const string password = "123456789";
 
 		// Act
-		var user = User.Create(nickname, email);
+		var user = User.Create(nickname, email, password);
 
 		// Assert
 		user.Should().NotBeNull();
@@ -32,9 +33,10 @@ public class UserTests
 		// Arrange
 		string nickname = null;
 		const string email = "testuser@example.com";
+		const string password = "123456789";
 
 		// Act
-		var act = () => User.Create(nickname, email);
+		var act = () => User.Create(nickname, email, password);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>();
@@ -46,9 +48,10 @@ public class UserTests
 		// Arrange
 		const string nickname = "TestUser";
 		string email = null;
+		string password = "123456789";
 
 		// Act
-		var act = () => User.Create(nickname, email);
+		var act = () => User.Create(nickname, email, password);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>();

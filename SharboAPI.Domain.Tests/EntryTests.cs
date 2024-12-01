@@ -13,8 +13,8 @@ public class EntryTests
         var creatorId = Guid.NewGuid();
         var participants = new List<User>
         {
-            User.Create("User1", "user1@example.com"),
-            User.Create("User2", "user2@example.com")
+            User.Create("User1", "user1@example.com", "123456789"),
+            User.Create("User2", "user2@example.com", "123456789")
         };
 
         // Act
@@ -36,15 +36,15 @@ public class EntryTests
         var creatorId = Guid.NewGuid();
         var initialParticipants = new List<User>
         {
-            User.Create("User1", "user1@example.com")
+            User.Create("User1", "user1@example.com", "123456789")
         };
         var entry = Entry.Create(creatorId, initialParticipants);
 
         var modifierId = Guid.NewGuid();
         var updatedParticipants = new List<User>
         {
-            User.Create("User2", "user2@example.com"),
-            User.Create("User3", "user3@example.com")
+            User.Create("User2", "user2@example.com", "123456789"),
+            User.Create("User3", "user3@example.com", "123456789")
         };
 
         // Act
@@ -64,7 +64,7 @@ public class EntryTests
         var modifierId = Guid.NewGuid();
         var participants = new List<User>
         {
-            User.Create("User1", "user1@example.com")
+            User.Create("User1", "user1@example.com", "123456789")
         };
 
         // Act

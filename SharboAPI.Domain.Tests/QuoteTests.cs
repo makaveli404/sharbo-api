@@ -13,8 +13,8 @@ public class QuoteTests
         var createdById = Guid.NewGuid();
         var participants = new List<User>
         {
-            User.Create("User1", "user1@example.com"),
-            User.Create("User2", "user2@example.com")
+            User.Create("User1", "user1@example.com", "123456789"),
+            User.Create("User2", "user2@example.com", "123456789")
         };
         const string text = "This is a test quote.";
 
@@ -36,15 +36,15 @@ public class QuoteTests
         var createdById = Guid.NewGuid();
         var initialParticipants = new List<User>
         {
-            User.Create("User1", "user1@example.com")
+            User.Create("User1", "user1@example.com", "123456789")
         };
         var quote = Quote.Create(createdById, initialParticipants, "Initial quote text.");
 
         var modifiedById = Guid.NewGuid();
         var updatedParticipants = new List<User>
         {
-            User.Create("User2", "user2@example.com"),
-            User.Create("User3", "user3@example.com")
+            User.Create("User2", "user2@example.com", "123456789"),
+            User.Create("User3", "user3@example.com", "123456789")
         };
         const string updatedText = "This is the updated quote text.";
 
@@ -65,7 +65,7 @@ public class QuoteTests
         var modifiedById = Guid.NewGuid();
         var participants = new List<User>
         {
-            User.Create("User1", "user1@example.com")
+            User.Create("User1", "user1@example.com", "123456789")
         };
         const string text = "Updated quote text.";
 

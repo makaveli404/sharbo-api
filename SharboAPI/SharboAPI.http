@@ -14,3 +14,13 @@ GET https://localhost:7077/api/group/{{id}}
 
 ###
 PUT https://localhost:7077/api/group/{{id}}/update
+
+###
+POST https://localhost:7077/api/user/create
+Content-Type: application/json
+
+{
+  "Nickname": "test1",
+  "Email": "test1",
+  "Password": "test1"
+}
