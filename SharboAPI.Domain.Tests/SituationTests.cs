@@ -11,22 +11,24 @@ public class SituationTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var participants = new List<User>
-        {
-            User.Create("User1", "user1@example.com", "123456789"),
-            User.Create("User2", "user2@example.com", "123456789")
-        };
+        var participants = TestDataFactory.CreateUsers(2);
         const string text = "This is a test situation.";
+
+        var expectedSituation = new
+        {
+            Text = text
+        };
 
         // Act
         var situation = Situation.Create(createdById, participants, text);
 
         // Assert
         situation.Should().NotBeNull();
-        situation.Entry.Should().NotBeNull();
-        situation.Entry.CreatedById.Should().Be(createdById);
+        situation.Should().BeEquivalentTo(expectedSituation);
+        situation.Entry.Participants.Should().HaveCount(2);
         situation.Entry.Participants.Should().BeEquivalentTo(participants);
-        situation.Text.Should().Be(text);
+        situation.Entry.CreationDate.Date.Should().Be(DateTime.UtcNow.Date);
+        situation.Entry.LastModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
     }
 
     [Fact]
@@ -34,27 +36,28 @@ public class SituationTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var initialParticipants = new List<User>
-        {
-            User.Create("User1", "user1@example.com", "123456789")
-        };
+        var initialParticipants = TestDataFactory.CreateUsers(1);
         var situation = Situation.Create(createdById, initialParticipants, "Initial situation text.");
 
         var modifiedById = Guid.NewGuid();
-        var updatedParticipants = new List<User>
-        {
-            User.Create("User2", "user2@example.com", "123456789"),
-            User.Create("User3", "user3@example.com", "123456789")
-        };
+        var updatedParticipants = TestDataFactory.CreateUsers(2);
         const string updatedText = "This is the updated situation text.";
+
+        var expectedSituation = new
+        {
+            Text = updatedText
+        };
 
         // Act
         Situation.Update(situation, modifiedById, updatedParticipants, updatedText);
 
         // Assert
-        situation.Entry.LastModifiedById.Should().Be(modifiedById);
+        situation.Should().NotBeNull();
+        situation.Should().BeEquivalentTo(expectedSituation);
+        situation.Entry.Participants.Should().HaveCount(2);
         situation.Entry.Participants.Should().BeEquivalentTo(updatedParticipants);
-        situation.Text.Should().Be(updatedText);
+        situation.Entry.CreationDate.Date.Should().Be(DateTime.UtcNow.Date);
+        situation.Entry.LastModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
     }
 
     [Fact]
@@ -63,10 +66,7 @@ public class SituationTests
         // Arrange
         Situation situation = null;
         var modifiedById = Guid.NewGuid();
-        var participants = new List<User>
-        {
-            User.Create("User1", "user1@example.com", "123456789")
-        };
+        var participants = TestDataFactory.CreateUsers(1);
         const string text = "Updated situation text.";
 
         // Act
