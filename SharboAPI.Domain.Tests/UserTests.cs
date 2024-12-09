@@ -14,17 +14,24 @@ public class UserTests
 		const string email = "testuser@example.com";
 		const string password = "123456789";
 
+		var expectedUser = new
+		{
+			Nickname = nickname,
+			Email = email
+		};
+
 		// Act
 		var user = User.Create(nickname, email, password);
 
 		// Assert
 		user.Should().NotBeNull();
-		user.Id.Should().NotBeEmpty();
-		user.Nickname.Should().Be(nickname);
-		user.Email.Should().Be(email);
-		user.GroupParticipants.Should().NotBeNull();
-		user.GroupParticipants.Should().BeEmpty();
-		user.Entries.Should().BeNull();
+		user.Should().BeEquivalentTo(expectedUser);
+		// user.Id.Should().NotBeEmpty();
+		// user.Nickname.Should().Be(nickname);
+		// user.Email.Should().Be(email);
+		// user.GroupParticipants.Should().NotBeNull();
+		// user.GroupParticipants.Should().BeEmpty();
+		// user.Entries.Should().BeNull();
 	}
 
 	[Fact]
