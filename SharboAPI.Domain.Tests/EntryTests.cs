@@ -29,12 +29,9 @@ public class EntryTests
         entry.Should().BeEquivalentTo(expectedEntry, options => options
             .Excluding(e => e.Name == nameof(entry.CreationDate))
             .Excluding(e => e.Name == nameof(entry.LastModificationDate)));
-
         entry.CreationDate.Date.Should().Be(today);
         entry.LastModificationDate.Date.Should().Be(today);
     }
-
-
 
     [Fact]
     public void Update_ShouldUpdateEntryCorrectly()
@@ -72,11 +69,12 @@ public class EntryTests
     public void Update_ShouldThrowException_WhenEntityIsNull()
     {
         // Arrange
+        Entry? entry = null;
         var participants = TestDataFactory.CreateUsers(1);
         var modifierId = Guid.NewGuid();
 
         // Act
-        var act = () => Entry.Update(null, modifierId, participants);
+        var act = () => Entry.Update(entry, modifierId, participants);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

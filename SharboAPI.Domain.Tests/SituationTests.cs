@@ -64,7 +64,7 @@ public class SituationTests
     public void Update_ShouldThrowException_WhenEntityIsNull()
     {
         // Arrange
-        Situation situation = null;
+        Situation? situation = null;
         var modifiedById = Guid.NewGuid();
         var participants = TestDataFactory.CreateUsers(1);
         const string text = "Updated situation text.";

@@ -55,7 +55,7 @@ public class QuoteTests
     public void Update_ShouldThrowException_WhenEntityIsNull()
     {
         // Arrange
-        Quote quote = null;
+        Quote? quote = null;
         var modifiedById = Guid.NewGuid();
         var participants = TestDataFactory.CreateUsers(1);
         const string text = "Updated quote text.";

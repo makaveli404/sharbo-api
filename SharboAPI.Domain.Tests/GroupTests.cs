@@ -38,7 +38,6 @@ public class GroupTests
         group.ModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
     }
 
-
     [Fact]
     public void Update_ShouldUpdateGroupCorrectly()
     {

@@ -27,7 +27,6 @@ public class MemeTests
         // Assert
         meme.Should().NotBeNull();
         meme.Should().BeEquivalentTo(expectedMeme);
-        // meme.Entry.Participants.Should().BeEquivalentTo(participants);
     }
 
     [Fact]
@@ -60,7 +59,7 @@ public class MemeTests
     public void Update_ShouldThrowException_WhenEntityIsNull()
     {
         // Arrange
-        Meme meme = null;
+        Meme? meme = null;
         var modifiedById = Guid.NewGuid();
         var participants = TestDataFactory.CreateUsers(1);
         const string imagePath = "updated_image.jpg";
