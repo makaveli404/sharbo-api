@@ -6,15 +6,19 @@ namespace SharboAPI.Domain.Tests;
 
 public class EntryTests
 {
-	[Fact]
+    [Fact]
     public void Create_ShouldInitializeEntryCorrectly()
     {
         // Arrange
         var creatorId = Guid.NewGuid();
-        var participants = new List<User>
+        var participants = TestDataFactory.CreateUsers();
+        var today = DateTime.UtcNow.Date;
+
+        var expectedEntry = new
         {
-            User.Create("User1", "user1@example.com"),
-            User.Create("User2", "user2@example.com")
+            CreatedById = creatorId,
+            LastModifiedById = creatorId,
+            Participants = participants
         };
 
         // Act
@@ -22,11 +26,11 @@ public class EntryTests
 
         // Assert
         entry.Should().NotBeNull();
-        entry.CreatedById.Should().Be(creatorId);
-        entry.LastModifiedById.Should().Be(creatorId);
-        entry.Participants.Should().BeEquivalentTo(participants);
-        entry.CreationDate.Date.Should().Be(DateTime.UtcNow.Date);
-        entry.LastModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
+        entry.Should().BeEquivalentTo(expectedEntry, options => options
+            .Excluding(e => e.Name == nameof(entry.CreationDate))
+            .Excluding(e => e.Name == nameof(entry.LastModificationDate)));
+        entry.CreationDate.Date.Should().Be(today);
+        entry.LastModificationDate.Date.Should().Be(today);
     }
 
     [Fact]
@@ -34,38 +38,40 @@ public class EntryTests
     {
         // Arrange
         var creatorId = Guid.NewGuid();
-        var initialParticipants = new List<User>
-        {
-            User.Create("User1", "user1@example.com")
-        };
+        var initialParticipants = TestDataFactory.CreateUsers(1);
         var entry = Entry.Create(creatorId, initialParticipants);
-
         var modifierId = Guid.NewGuid();
-        var updatedParticipants = new List<User>
-        {
-            User.Create("User2", "user2@example.com"),
-            User.Create("User3", "user3@example.com")
-        };
+        var updatedParticipants = TestDataFactory.CreateUsers(2);
+        var today = DateTime.UtcNow.Date;
 
         // Act
         Entry.Update(entry, modifierId, updatedParticipants);
 
         // Assert
-        entry.LastModifiedById.Should().Be(modifierId);
-        entry.Participants.Should().BeEquivalentTo(updatedParticipants);
-        entry.LastModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
+        var expectedEntry = new
+        {
+            CreatedById = creatorId,
+            LastModifiedById = modifierId,
+            Participants = updatedParticipants
+        };
+
+        entry.Should().NotBeNull();
+        entry.Should().BeEquivalentTo(expectedEntry, options => options
+            .Excluding(e => e.Name == nameof(entry.CreationDate))
+            .Excluding(e => e.Name == nameof(entry.LastModificationDate)));
+
+        entry.CreationDate.Date.Should().Be(today);
+        entry.LastModificationDate.Date.Should().Be(today);
     }
+
 
     [Fact]
     public void Update_ShouldThrowException_WhenEntityIsNull()
     {
         // Arrange
-        Entry entry = null;
+        Entry? entry = null;
+        var participants = TestDataFactory.CreateUsers(1);
         var modifierId = Guid.NewGuid();
-        var participants = new List<User>
-        {
-            User.Create("User1", "user1@example.com")
-        };
 
         // Act
         var act = () => Entry.Update(entry, modifierId, participants);

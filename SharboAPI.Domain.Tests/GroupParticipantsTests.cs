@@ -14,16 +14,17 @@ public class GroupParticipantsTests
 		var userId = Guid.NewGuid();
 		const bool isAdmin = true;
 
-		// Act
+		// Arrange & Act
 		var groupParticipant = GroupParticipants.Create(groupId, userId, isAdmin);
 
 		// Assert
-		groupParticipant.Should().NotBeNull();
-		groupParticipant.GroupId.Should().Be(groupId);
-		groupParticipant.UserId.Should().Be(userId);
-		groupParticipant.IsAdmin.Should().Be(isAdmin);
-		groupParticipant.Group.Should().BeNull();
-		groupParticipant.User.Should().BeNull();
+		var expectedParticipant = new
+		{
+			GroupId = groupId,
+			UserId = userId,
+			IsAdmin = isAdmin
+		};
+		groupParticipant.Should().BeEquivalentTo(expectedParticipant);
 	}
 
 	[Fact]

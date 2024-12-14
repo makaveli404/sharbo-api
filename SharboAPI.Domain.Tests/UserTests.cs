@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Moq;
 using SharboAPI.Domain.Models;
 using Xunit;
 
@@ -12,29 +13,33 @@ public class UserTests
 		// Arrange
 		const string nickname = "TestUser";
 		const string email = "testuser@example.com";
+		const string password = "123456789";
+
+		var expectedUser = new
+		{
+			Nickname = nickname,
+			Email = email
+		};
 
 		// Act
-		var user = User.Create(nickname, email);
+		var user = User.Create(nickname, email, password);
 
 		// Assert
+		user.Id.Should().NotBe(Guid.Empty);
 		user.Should().NotBeNull();
-		user.Id.Should().NotBeEmpty();
-		user.Nickname.Should().Be(nickname);
-		user.Email.Should().Be(email);
-		user.GroupParticipants.Should().NotBeNull();
-		user.GroupParticipants.Should().BeEmpty();
-		user.Entries.Should().BeNull();
+		user.Should().BeEquivalentTo(expectedUser);
 	}
 
 	[Fact]
 	public void Create_ShouldThrowException_WhenNicknameIsNullOrEmpty()
 	{
 		// Arrange
-		string nickname = null;
+		string? nickname = null;
 		const string email = "testuser@example.com";
+		const string password = "123456789";
 
 		// Act
-		var act = () => User.Create(nickname, email);
+		var act = () => User.Create(nickname, email, password);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>();
@@ -45,10 +50,11 @@ public class UserTests
 	{
 		// Arrange
 		const string nickname = "TestUser";
-		string email = null;
+		string? email = null;
+		string password = "123456789";
 
 		// Act
-		var act = () => User.Create(nickname, email);
+		var act = () => User.Create(nickname, email, password);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>();

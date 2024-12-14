@@ -13,21 +13,27 @@ public static class GroupEndpoints
 	private static async Task<IResult> GetGroupById(Guid id, IGroupService groupService, CancellationToken cancellationToken)
 	{
 		var result = await groupService.GetById(id, cancellationToken);
-		return result is not null ? TypedResults.Ok(result) : TypedResults.NotFound();
+		return result is not null
+			? TypedResults.Ok(result)
+			: TypedResults.NotFound();
 	}
 
 	private static async Task<IResult> CreateGroup(GroupDto group, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.AddAsync(group, cancellationToken);
-		return result is not null ? TypedResults.Created($"{group}/{result}", result) : TypedResults.BadRequest();
+		return result is not null
+			? TypedResults.Created($"{group}/{result}", result)
+			: TypedResults.BadRequest();
 	}
 
 	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroupDto updatedGroup, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.UpdateAsync(id, updatedGroup, cancellationToken);
-		return result is not null ? TypedResults.Ok(result) : TypedResults.Ok();
+		return result is not null
+			? TypedResults.Ok(result)
+			: TypedResults.Ok();
 	}
 
 	private static void MapGroupsApi(this IEndpointRouteBuilder routes)

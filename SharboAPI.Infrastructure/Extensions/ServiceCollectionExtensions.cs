@@ -47,6 +47,7 @@ public static class ServiceCollectionExtensions
 	public static IServiceCollection AddInfrastructure(this IServiceCollection services)
 	{
 		services.AddScoped<IGroupRepository, GroupRepository>();
+		services.AddScoped<IUserRepository, UserRepository>();
 		return services;
 	}
 }

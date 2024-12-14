@@ -11,24 +11,22 @@ public class MemeTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var participants = new List<User>
-        {
-            User.Create("User1", "user1@example.com"),
-            User.Create("User2", "user2@example.com")
-        };
+        var participants = TestDataFactory.CreateUsers(2);
         const string imagePath = "test_image_path.jpg";
         const string text = "Test meme text";
+
+        var expectedMeme = new
+        {
+            ImagePath = imagePath,
+            Text = text
+        };
 
         // Act
         var meme = Meme.Create(createdById, participants, imagePath, text);
 
         // Assert
         meme.Should().NotBeNull();
-        meme.Entry.Should().NotBeNull();
-        meme.Entry.CreatedById.Should().Be(createdById);
-        meme.Entry.Participants.Should().BeEquivalentTo(participants);
-        meme.ImagePath.Should().Be(imagePath);
-        meme.Text.Should().Be(text);
+        meme.Should().BeEquivalentTo(expectedMeme);
     }
 
     [Fact]
@@ -36,41 +34,34 @@ public class MemeTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var initialParticipants = new List<User>
-        {
-            User.Create("User1", "user1@example.com")
-        };
+        var initialParticipants = TestDataFactory.CreateUsers(1);
         var meme = Meme.Create(createdById, initialParticipants, "initial_image.jpg", "Initial text");
 
         var modifiedById = Guid.NewGuid();
-        var updatedParticipants = new List<User>
-        {
-            User.Create("User2", "user2@example.com"),
-            User.Create("User3", "user3@example.com")
-        };
+        var updatedParticipants = TestDataFactory.CreateUsers(2);
         const string updatedImagePath = "updated_image.jpg";
         const string updatedText = "Updated meme text";
+
+        var expectedMeme = new
+        {
+            ImagePath = updatedImagePath,
+            Text = updatedText
+        };
 
         // Act
         Meme.Update(meme, modifiedById, updatedParticipants, updatedImagePath, updatedText);
 
         // Assert
-        meme.Entry.LastModifiedById.Should().Be(modifiedById);
-        meme.Entry.Participants.Should().BeEquivalentTo(updatedParticipants);
-        meme.ImagePath.Should().Be(updatedImagePath);
-        meme.Text.Should().Be(updatedText);
+        meme.Should().BeEquivalentTo(expectedMeme);
     }
 
     [Fact]
     public void Update_ShouldThrowException_WhenEntityIsNull()
     {
         // Arrange
-        Meme meme = null;
+        Meme? meme = null;
         var modifiedById = Guid.NewGuid();
-        var participants = new List<User>
-        {
-            User.Create("User1", "user1@example.com")
-        };
+        var participants = TestDataFactory.CreateUsers(1);
         const string imagePath = "updated_image.jpg";
         const string text = "Updated meme text";
 

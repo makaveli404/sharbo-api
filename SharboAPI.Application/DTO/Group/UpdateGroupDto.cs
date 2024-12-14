@@ -1,3 +1,3 @@
 namespace SharboAPI.Application.DTO.Group;
 
-public record UpdateGroupDto(Guid modifiedById, string Name, string ImagePath);
+public record UpdateGroupDto(Guid ModifiedById, string Name, string ImagePath);

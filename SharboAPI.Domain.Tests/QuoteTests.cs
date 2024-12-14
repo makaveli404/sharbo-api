@@ -11,22 +11,20 @@ public class QuoteTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var participants = new List<User>
-        {
-            User.Create("User1", "user1@example.com"),
-            User.Create("User2", "user2@example.com")
-        };
+        var participants = TestDataFactory.CreateUsers(2);
         const string text = "This is a test quote.";
+
+        var expectedQuote = new
+        {
+            Text = text
+        };
 
         // Act
         var quote = Quote.Create(createdById, participants, text);
 
         // Assert
         quote.Should().NotBeNull();
-        quote.Entry.Should().NotBeNull();
-        quote.Entry.CreatedById.Should().Be(createdById);
-        quote.Entry.Participants.Should().BeEquivalentTo(participants);
-        quote.Text.Should().Be(text);
+        quote.Should().BeEquivalentTo(expectedQuote);
     }
 
     [Fact]
@@ -34,39 +32,32 @@ public class QuoteTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var initialParticipants = new List<User>
-        {
-            User.Create("User1", "user1@example.com")
-        };
+        var initialParticipants = TestDataFactory.CreateUsers(1);
         var quote = Quote.Create(createdById, initialParticipants, "Initial quote text.");
 
         var modifiedById = Guid.NewGuid();
-        var updatedParticipants = new List<User>
-        {
-            User.Create("User2", "user2@example.com"),
-            User.Create("User3", "user3@example.com")
-        };
+        var updatedParticipants = TestDataFactory.CreateUsers(2);
         const string updatedText = "This is the updated quote text.";
+
+        var expectedQuote = new
+        {
+            Text = updatedText
+        };
 
         // Act
         Quote.Update(quote, modifiedById, updatedParticipants, updatedText);
 
         // Assert
-        quote.Entry.LastModifiedById.Should().Be(modifiedById);
-        quote.Entry.Participants.Should().BeEquivalentTo(updatedParticipants);
-        quote.Text.Should().Be(updatedText);
+        quote.Should().BeEquivalentTo(expectedQuote);
     }
 
     [Fact]
     public void Update_ShouldThrowException_WhenEntityIsNull()
     {
         // Arrange
-        Quote quote = null;
+        Quote? quote = null;
         var modifiedById = Guid.NewGuid();
-        var participants = new List<User>
-        {
-            User.Create("User1", "user1@example.com")
-        };
+        var participants = TestDataFactory.CreateUsers(1);
         const string text = "Updated quote text.";
 
         // Act

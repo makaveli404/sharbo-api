@@ -12,25 +12,28 @@ public class GroupTests
         // Arrange
         const string name = "Test Group";
         var createdById = Guid.NewGuid();
-        var participants = new List<GroupParticipants>
-        {
-            GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), true),
-            GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), false)
-        };
+        var participants = TestDataFactory.CreateGroupParticipants(2);
         const string imagePath = "test_image.jpg";
+
+        var expectedGroup = new
+        {
+            Name = name,
+            ImagePath = imagePath,
+            CreatedById = createdById,
+            LastModifiedById = createdById,
+            GroupParticipants = participants
+        };
 
         // Act
         var group = Group.Create(name, createdById, participants, imagePath);
 
         // Assert
         group.Should().NotBeNull();
-        group.Id.Should().NotBeEmpty();
-        group.Name.Should().Be(name);
-        group.ImagePath.Should().Be(imagePath);
-        group.CreatedById.Should().Be(createdById);
-        group.LastModifiedById.Should().Be(createdById);
+        group.Should().BeEquivalentTo(expectedGroup, options => options
+            .ExcludingMissingMembers()
+            .Excluding(g => g.GroupParticipants));
         group.GroupParticipants.Should().HaveCount(2);
-        group.GroupParticipants.Should().BeEquivalentTo(participants, options => options.Excluding(p => p.Group));
+        group.GroupParticipants.Should().BeEquivalentTo(participants);
         group.CreationDate.Date.Should().Be(DateTime.UtcNow.Date);
         group.ModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
     }
@@ -40,30 +43,34 @@ public class GroupTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var initialParticipants = new List<GroupParticipants>
-        {
-            GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), true)
-        };
+        var initialParticipants = TestDataFactory.CreateGroupParticipants(1);
         var group = Group.Create("Initial Group", createdById, initialParticipants, "initial_image.jpg");
 
         const string updatedName = "Updated Group";
         var modifiedById = Guid.NewGuid();
-        var updatedParticipants = new List<GroupParticipants>
-        {
-            GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), false),
-            GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), true)
-        };
+        var updatedParticipants = TestDataFactory.CreateGroupParticipants(2);
         const string updatedImagePath = "updated_image.jpg";
+
+        var expectedGroup = new
+        {
+            Name = updatedName,
+            ImagePath = updatedImagePath,
+            CreatedById = createdById,
+            LastModifiedById = modifiedById,
+            GroupParticipants = updatedParticipants
+        };
 
         // Act
         Group.Update(group, updatedName, modifiedById, updatedImagePath, updatedParticipants);
 
         // Assert
-        group.Name.Should().Be(updatedName);
-        group.ImagePath.Should().Be(updatedImagePath);
-        group.LastModifiedById.Should().Be(modifiedById);
+        group.Should().NotBeNull();
+        group.Should().BeEquivalentTo(expectedGroup, options => options
+            .ExcludingMissingMembers()
+            .Excluding(g => g.GroupParticipants));
         group.GroupParticipants.Should().HaveCount(2);
-        group.GroupParticipants.Should().BeEquivalentTo(updatedParticipants, options => options.Excluding(p => p.Group));
+        group.GroupParticipants.Should().BeEquivalentTo(updatedParticipants);
+        group.CreationDate.Date.Should().Be(DateTime.UtcNow.Date);
         group.ModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
     }
 
@@ -72,24 +79,33 @@ public class GroupTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var initialParticipants = new List<GroupParticipants>
-        {
-            GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), true)
-        };
+        var initialParticipants = TestDataFactory.CreateGroupParticipants(1);
         var group = Group.Create("Initial Group", createdById, initialParticipants);
 
         const string updatedName = "Updated Group";
         var modifiedById = Guid.NewGuid();
         const string updatedImagePath = "updated_image.jpg";
 
+        var expectedGroup = new
+        {
+            Name = updatedName,
+            ImagePath = updatedImagePath,
+            CreatedById = createdById,
+            LastModifiedById = modifiedById,
+            GroupParticipants = initialParticipants
+        };
+
         // Act
         Group.Update(group, updatedName, modifiedById, updatedImagePath);
 
         // Assert
-        group.Name.Should().Be(updatedName);
-        group.ImagePath.Should().Be(updatedImagePath);
-        group.LastModifiedById.Should().Be(modifiedById);
-        group.GroupParticipants.Should().BeEquivalentTo(initialParticipants, options => options.Excluding(p => p.Group)); // No change
+        group.Should().NotBeNull();
+        group.Should().BeEquivalentTo(expectedGroup, options => options
+            .ExcludingMissingMembers()
+            .Excluding(g => g.GroupParticipants));
+        group.GroupParticipants.Should().HaveCount(1);
+        group.GroupParticipants.Should().BeEquivalentTo(initialParticipants);
+        group.CreationDate.Date.Should().Be(DateTime.UtcNow.Date);
         group.ModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
     }
 
@@ -100,10 +116,7 @@ public class GroupTests
         Group group = null;
         const string updatedName = "Updated Group";
         var modifiedById = Guid.NewGuid();
-        var participants = new List<GroupParticipants>
-        {
-            GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), true)
-        };
+        var participants = TestDataFactory.CreateGroupParticipants(1);
 
         // Act
         var act = () => Group.Update(group, updatedName, modifiedById, participants: participants);

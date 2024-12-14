@@ -34,6 +34,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 app.MapGroupEndpoints();
+app.MapUserEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
