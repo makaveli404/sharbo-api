@@ -1,3 +1,5 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -48,6 +50,12 @@ public static class ServiceCollectionExtensions
 	{
 		services.AddScoped<IGroupRepository, GroupRepository>();
 		services.AddScoped<IUserRepository, UserRepository>();
+
+		FirebaseApp.Create(new AppOptions
+		{
+			Credential = GoogleCredential.FromFile("firebase.json")
+		});
+
 		return services;
 	}
 }
