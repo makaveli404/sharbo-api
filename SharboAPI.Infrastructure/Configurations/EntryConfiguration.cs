@@ -9,18 +9,20 @@ public class EntryConfiguration : IEntityTypeConfiguration<Entry>
     public void Configure(EntityTypeBuilder<Entry> builder)
     {
         builder
-            .HasMany(e => e.Participants)
-            .WithMany(u => u.Entries)
-            .UsingEntity(e => e.ToTable("EntryParticipants"));
-
-        builder
             .HasOne(e => e.CreatedBy)
             .WithMany()
-            .HasForeignKey(e => e.CreatedById);
+            .HasForeignKey(e => e.CreatedByEmail)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder
             .HasOne(e => e.LastModifiedBy)
             .WithMany()
-            .HasForeignKey(e => e.LastModifiedById);
+            .HasForeignKey(e => e.LastModifiedByEmail)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasMany(e => e.Participants)
+            .WithMany(u => u.Entries)
+            .UsingEntity(e => e.ToTable("EntryParticipants"));
     }
 }

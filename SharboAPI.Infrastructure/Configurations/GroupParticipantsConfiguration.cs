@@ -8,12 +8,12 @@ public class GroupParticipantsConfiguration : IEntityTypeConfiguration<GroupPart
 {
     public void Configure(EntityTypeBuilder<GroupParticipants> builder)
     {
-        builder.HasKey(gc => new { gc.GroupId, gc.UserId });
+        builder.HasKey(gc => new { gc.GroupId, gc.UserEmail });
 
         builder
             .HasOne(gp => gp.User)
             .WithMany(u => u.GroupParticipants)
-            .HasForeignKey(gp => gp.UserId)
+            .HasForeignKey(gp => gp.UserEmail)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder

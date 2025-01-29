@@ -2,5 +2,5 @@
 
 public interface IAuthenticationService
 {
-    Task<Guid> RegisterAsync(string nickname, string email, string password, CancellationToken cancellationToken);
+    Task<string> RegisterAsync(string nickname, string email, string password, CancellationToken cancellationToken);
 }

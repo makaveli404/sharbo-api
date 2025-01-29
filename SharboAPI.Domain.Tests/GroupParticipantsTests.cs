@@ -11,17 +11,17 @@ public class GroupParticipantsTests
 	{
 		// Arrange
 		var groupId = Guid.NewGuid();
-		var userId = Guid.NewGuid();
+		var userEmail = "email";
 		const bool isAdmin = true;
 
 		// Arrange & Act
-		var groupParticipant = GroupParticipants.Create(groupId, userId, isAdmin);
+		var groupParticipant = GroupParticipants.Create(groupId, userEmail, isAdmin);
 
 		// Assert
 		var expectedParticipant = new
 		{
 			GroupId = groupId,
-			UserId = userId,
+			UserEmail = userEmail,
 			IsAdmin = isAdmin
 		};
 		groupParticipant.Should().BeEquivalentTo(expectedParticipant);
@@ -32,9 +32,9 @@ public class GroupParticipantsTests
 	{
 		// Arrange
 		var groupId = Guid.NewGuid();
-		var userId = Guid.NewGuid();
+		var userEmail = "email";
 		const bool initialIsAdmin = false;
-		var groupParticipant = GroupParticipants.Create(groupId, userId, initialIsAdmin);
+		var groupParticipant = GroupParticipants.Create(groupId, userEmail, initialIsAdmin);
 
 		// Act
 		GroupParticipants.UpdateAdminStatus(groupParticipant, true);

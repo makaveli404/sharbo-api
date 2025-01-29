@@ -10,7 +10,7 @@ public class QuoteTests
     public void Create_ShouldInitializeQuoteCorrectly()
     {
         // Arrange
-        var createdById = Guid.NewGuid();
+        var createdByEmail = "email";
         var participants = TestDataFactory.CreateUsers(2);
         const string text = "This is a test quote.";
 
@@ -20,7 +20,7 @@ public class QuoteTests
         };
 
         // Act
-        var quote = Quote.Create(createdById, participants, text);
+        var quote = Quote.Create(createdByEmail, participants, text);
 
         // Assert
         quote.Should().NotBeNull();
@@ -31,11 +31,11 @@ public class QuoteTests
     public void Update_ShouldUpdateQuoteCorrectly()
     {
         // Arrange
-        var createdById = Guid.NewGuid();
+        var createdByEmail = "email";
         var initialParticipants = TestDataFactory.CreateUsers(1);
-        var quote = Quote.Create(createdById, initialParticipants, "Initial quote text.");
+        var quote = Quote.Create(createdByEmail, initialParticipants, "Initial quote text.");
 
-        var modifiedById = Guid.NewGuid();
+        var modifiedByEmail = "email";
         var updatedParticipants = TestDataFactory.CreateUsers(2);
         const string updatedText = "This is the updated quote text.";
 
@@ -45,7 +45,7 @@ public class QuoteTests
         };
 
         // Act
-        Quote.Update(quote, modifiedById, updatedParticipants, updatedText);
+        Quote.Update(quote, modifiedByEmail, updatedParticipants, updatedText);
 
         // Assert
         quote.Should().BeEquivalentTo(expectedQuote);
@@ -56,12 +56,12 @@ public class QuoteTests
     {
         // Arrange
         Quote? quote = null;
-        var modifiedById = Guid.NewGuid();
+        var modifiedByEmail = "email";
         var participants = TestDataFactory.CreateUsers(1);
         const string text = "Updated quote text.";
 
         // Act
-        var act = () => Quote.Update(quote, modifiedById, participants, text);
+        var act = () => Quote.Update(quote, modifiedByEmail, participants, text);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

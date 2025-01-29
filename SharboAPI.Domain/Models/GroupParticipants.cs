@@ -4,18 +4,18 @@ public class GroupParticipants
 {
     public Guid GroupId { get; private set; }
     public Group Group { get; private set; }
-    public Guid UserId { get; private set; }
+    public string UserEmail { get; private set; }
     public User User { get; private set; }
     public bool IsAdmin { get; private set; }
 
     private GroupParticipants() {}
 
     // Factory methods
-    public static GroupParticipants Create(Guid groupId, Guid userId, bool isAdmin)
+    public static GroupParticipants Create(Guid groupId, string userEmail, bool isAdmin)
         => new()
         {
             GroupId = groupId,
-            UserId = userId,
+            UserEmail = userEmail,
             IsAdmin = isAdmin
         };
 

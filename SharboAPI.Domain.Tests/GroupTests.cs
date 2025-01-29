@@ -11,7 +11,7 @@ public class GroupTests
     {
         // Arrange
         const string name = "Test Group";
-        var createdById = Guid.NewGuid();
+        var createdByEmail = "email";
         var participants = TestDataFactory.CreateGroupParticipants(2);
         const string imagePath = "test_image.jpg";
 
@@ -19,13 +19,13 @@ public class GroupTests
         {
             Name = name,
             ImagePath = imagePath,
-            CreatedById = createdById,
-            LastModifiedById = createdById,
+            CreatedById = createdByEmail,
+            LastModifiedById = createdByEmail,
             GroupParticipants = participants
         };
 
         // Act
-        var group = Group.Create(name, createdById, participants, imagePath);
+        var group = Group.Create(name, createdByEmail, participants, imagePath);
 
         // Assert
         group.Should().NotBeNull();
@@ -42,12 +42,12 @@ public class GroupTests
     public void Update_ShouldUpdateGroupCorrectly()
     {
         // Arrange
-        var createdById = Guid.NewGuid();
+        var createdByEmail = "email";
         var initialParticipants = TestDataFactory.CreateGroupParticipants(1);
-        var group = Group.Create("Initial Group", createdById, initialParticipants, "initial_image.jpg");
+        var group = Group.Create("Initial Group", createdByEmail, initialParticipants, "initial_image.jpg");
 
         const string updatedName = "Updated Group";
-        var modifiedById = Guid.NewGuid();
+        var modifiedByEmail = "email";
         var updatedParticipants = TestDataFactory.CreateGroupParticipants(2);
         const string updatedImagePath = "updated_image.jpg";
 
@@ -55,13 +55,13 @@ public class GroupTests
         {
             Name = updatedName,
             ImagePath = updatedImagePath,
-            CreatedById = createdById,
-            LastModifiedById = modifiedById,
+            CreatedById = createdByEmail,
+            LastModifiedById = modifiedByEmail,
             GroupParticipants = updatedParticipants
         };
 
         // Act
-        Group.Update(group, updatedName, modifiedById, updatedImagePath, updatedParticipants);
+        Group.Update(group, updatedName, modifiedByEmail, updatedImagePath, updatedParticipants);
 
         // Assert
         group.Should().NotBeNull();
@@ -78,25 +78,25 @@ public class GroupTests
     public void Update_ShouldNotChangeParticipants_WhenParticipantsAreNull()
     {
         // Arrange
-        var createdById = Guid.NewGuid();
+        var createdByEmail = "email";
         var initialParticipants = TestDataFactory.CreateGroupParticipants(1);
-        var group = Group.Create("Initial Group", createdById, initialParticipants);
+        var group = Group.Create("Initial Group", createdByEmail, initialParticipants);
 
         const string updatedName = "Updated Group";
-        var modifiedById = Guid.NewGuid();
+        var modifiedByEmail = "email";
         const string updatedImagePath = "updated_image.jpg";
 
         var expectedGroup = new
         {
             Name = updatedName,
             ImagePath = updatedImagePath,
-            CreatedById = createdById,
-            LastModifiedById = modifiedById,
+            CreatedById = createdByEmail,
+            LastModifiedById = modifiedByEmail,
             GroupParticipants = initialParticipants
         };
 
         // Act
-        Group.Update(group, updatedName, modifiedById, updatedImagePath);
+        Group.Update(group, updatedName, modifiedByEmail, updatedImagePath);
 
         // Assert
         group.Should().NotBeNull();
@@ -115,11 +115,11 @@ public class GroupTests
         // Arrange
         Group group = null;
         const string updatedName = "Updated Group";
-        var modifiedById = Guid.NewGuid();
+        var modifiedByEmail = "email";
         var participants = TestDataFactory.CreateGroupParticipants(1);
 
         // Act
-        var act = () => Group.Update(group, updatedName, modifiedById, participants: participants);
+        var act = () => Group.Update(group, updatedName, modifiedByEmail, participants: participants);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

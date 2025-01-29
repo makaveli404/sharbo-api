@@ -7,11 +7,11 @@ namespace SharboAPI.Infrastructure.Services;
 
 public sealed class FirebaseService : IFirebaseService
 {
-    public async Task<List<(string Uid, string Email)>> GetAllAsync(List<User> domainUsers, CancellationToken cancellationToken)
+    public async Task<List<(string uid, string email)>> GetAllAsync(List<User> domainUsers, CancellationToken cancellationToken)
     {
         try
         {
-            List<(string Uid, string Email)> users = [];
+            List<(string uid, string email)> users = [];
             List<EmailIdentifier> identifiers = domainUsers
                 .Select(u => new EmailIdentifier(u.Email))
                 .ToList();
@@ -32,7 +32,26 @@ public sealed class FirebaseService : IFirebaseService
         }
     }
 
-    public async Task<(string Uid, string Email)> GetByEmailAsync(string email, CancellationToken cancellation)
+    public async Task<(string uid, string email)> GetByIdAsync(string id, CancellationToken cancellation)
+    {
+        try
+        {
+            var userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(id, cancellation);
+            return (userRecord.Uid, userRecord.Email);
+        }
+
+        catch (Exception ex)
+        {
+            if (ex is FirebaseAuthException)
+            {
+                throw new InternalServerErrorException($"Firebase error has occurred: {ex.Message}");
+            }
+
+            throw new InternalServerErrorException($"Unexpected error: {ex.Message}");
+        }
+    }
+
+    public async Task<(string uid, string email)> GetByEmailAsync(string email, CancellationToken cancellation)
     {
         try
         {
@@ -81,7 +100,7 @@ public sealed class FirebaseService : IFirebaseService
         try
         {
             var userRecord = await FirebaseAuth.DefaultInstance.GetUserByEmailAsync(email, cancellationToken);
-            return true;
+            return userRecord is not null;
         }
 
         catch (Exception ex)

@@ -11,33 +11,30 @@ public sealed class AuthenticationService(IUserRepository userRepository, IFireb
 {
     private readonly SharboDbContext _context = serviceProvider.GetRequiredService<SharboDbContext>();  
 
-    public async Task<Guid> RegisterAsync(string nickname, string email, string password, CancellationToken cancellationToken)
+    public async Task<string> RegisterAsync(string nickname, string email, string password, CancellationToken cancellationToken)
     {
         var isUserExist = await firebaseService.IsUserExistAsync(email, cancellationToken);
         if (isUserExist)
         {
-            throw new BadRequestException($"User with given e-mail: {email} already exists");
+            throw new BadRequestException($"User with given e-mail: { email } already exists");
         }
 
         var isDomainUserExist = await userRepository.IsUserExistByEmailAsync(email, cancellationToken);
         if (isDomainUserExist)
-        {
-            // TODO: send e-mail about ambiguous failure to administration by email-sending provider
+        {   
             throw new InternalServerErrorException("Account cannot be created because of user existence");
         }
 
-        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            await firebaseService.RegisterAsync(email, password, cancellationToken);
+            var userId = await firebaseService.RegisterAsync(email, password, cancellationToken);
 
-            var newUser = User.Create(nickname, email, password);
-            var newUserId = await userRepository.AddAsync(newUser, cancellationToken);
-
-            // TODO: send e-mail about account creation to user by email-sending provider
+            var newUser = User.Create(nickname, email);
+            await userRepository.AddAsync(newUser, cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
-            return newUserId;
+            return userId;
         }
 
         catch (Exception ex)
@@ -46,5 +43,4 @@ public sealed class AuthenticationService(IUserRepository userRepository, IFireb
             throw;
         }
     }
-
 }

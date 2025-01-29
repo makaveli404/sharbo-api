@@ -10,42 +10,52 @@ public sealed class UserService(IAuthenticationService authenticationService, IF
 {
 	public async Task<List<UserDetailsDto>> GetAllAsync(CancellationToken cancellationToken)
 	{
-		// TODO: Implement pagination, soritng & filtering with Sieve
 		var domainUsers = await userRepository.GetAllAsync(cancellationToken);
 		var firebaseUsers = await firebaseService.GetAllAsync([.. domainUsers], cancellationToken);
 
 		var users = domainUsers.Select(domainUser =>
 		{
-            var (Uid, Email) = firebaseUsers.FirstOrDefault(fu => fu.Email == domainUser.Email);
+            var (uid, email) = firebaseUsers.FirstOrDefault(fu => fu.email == domainUser.Email);
 
-            if (Email is null)
+            if (email is null)
             {
 				throw new NotFoundException($"No user with e-mail: { domainUser.Email } found");
             }
 
-			return new UserDetailsDto(domainUser.Id, Uid, Email, domainUser.Nickname);
+			return new UserDetailsDto(uid, email, domainUser.Nickname);
         });
 
 		return [.. users];
 	}
 
-    public async Task<UserDetailsDto> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<UserDetailsDto> GetByIdAsync(string id, CancellationToken cancellationToken)
     {
+		var (uid, email) = await firebaseService.GetByIdAsync(id, cancellationToken);
+
+		if(email is null)
+		{
+			throw new NotFoundException($"No user with ID: { id } found");
+		}
+
 		var domainUser = await userRepository
-			.GetByIdAsync(id, cancellationToken)
-			?? throw new NotFoundException($"No user with ID: { id } found");
+			.GetByEmailAsync(email, cancellationToken)
+			?? throw new NotFoundException($"No user with e-mail: { email } found");
 
-		var (Uid, Email) = await firebaseService.GetByEmailAsync(domainUser.Email, cancellationToken);
-
-		return new(domainUser.Id, Uid, Email, domainUser.Nickname);
+        return new(uid, email, domainUser.Nickname);
     }
 
-    public Task<UserDetailsDto> GetById(Guid Id)
+    public async Task<UserDetailsDto> GetByEmailAsync(string userEmail, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var domainUser = await userRepository
+            .GetByEmailAsync(userEmail, cancellationToken)
+            ?? throw new NotFoundException($"No user with e-mail: {userEmail} found");
+
+        var (uid, email) = await firebaseService.GetByEmailAsync(userEmail, cancellationToken);
+
+        return new(uid, email, domainUser.Nickname);
     }
 
-	public async Task<Guid> AddAsync(string nickname, string email, string password, CancellationToken cancellationToken)
+    public async Task<string> AddAsync(string nickname, string email, string password, CancellationToken cancellationToken)
 	{
 		var userId = await authenticationService.RegisterAsync(nickname, email, password, cancellationToken);
 		return userId;

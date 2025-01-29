@@ -10,24 +10,24 @@ public class Meme
 	private Meme() {}
 
     // Factory methods
-    public static Meme Create(Guid createdById,
+    public static Meme Create(string createdByEmail,
                               List<User> participants,
                               string imagePath,
                               string? text = null)
         => new()
         {
-            Entry = Entry.Create(createdById, participants),
+            Entry = Entry.Create(createdByEmail, participants),
             ImagePath = imagePath,
             Text = text
         };
 
     public static void Update(Meme entity,
-                              Guid modifiedById,
+                              string modifiedByEmail,
                               List<User> participants,
                               string imagePath,
                               string? text = null)
     {
-        Entry.Update(entity.Entry, modifiedById, participants);
+        Entry.Update(entity.Entry, modifiedByEmail, participants);
         entity.ImagePath = imagePath;
         entity.Text = text;
     }

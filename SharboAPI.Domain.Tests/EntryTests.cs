@@ -10,19 +10,19 @@ public class EntryTests
     public void Create_ShouldInitializeEntryCorrectly()
     {
         // Arrange
-        var creatorId = Guid.NewGuid();
+        var creatorEmail = "email";
         var participants = TestDataFactory.CreateUsers();
         var today = DateTime.UtcNow.Date;
 
         var expectedEntry = new
         {
-            CreatedById = creatorId,
-            LastModifiedById = creatorId,
+            CreatedByEmail = creatorEmail,
+            LastModifiedByEmail = creatorEmail,
             Participants = participants
         };
 
         // Act
-        var entry = Entry.Create(creatorId, participants);
+        var entry = Entry.Create(creatorEmail, participants);
 
         // Assert
         entry.Should().NotBeNull();
@@ -37,21 +37,21 @@ public class EntryTests
     public void Update_ShouldUpdateEntryCorrectly()
     {
         // Arrange
-        var creatorId = Guid.NewGuid();
+        var creatorEmail = "email";
         var initialParticipants = TestDataFactory.CreateUsers(1);
-        var entry = Entry.Create(creatorId, initialParticipants);
-        var modifierId = Guid.NewGuid();
+        var entry = Entry.Create(creatorEmail, initialParticipants);
+        var modifierEmail = "email";
         var updatedParticipants = TestDataFactory.CreateUsers(2);
         var today = DateTime.UtcNow.Date;
 
         // Act
-        Entry.Update(entry, modifierId, updatedParticipants);
+        Entry.Update(entry, modifierEmail, updatedParticipants);
 
         // Assert
         var expectedEntry = new
         {
-            CreatedById = creatorId,
-            LastModifiedById = modifierId,
+            CreatedByEmail = creatorEmail,
+            LastModifiedByEmail = modifierEmail,
             Participants = updatedParticipants
         };
 
@@ -71,10 +71,10 @@ public class EntryTests
         // Arrange
         Entry? entry = null;
         var participants = TestDataFactory.CreateUsers(1);
-        var modifierId = Guid.NewGuid();
+        var modifierEmail = "email";
 
         // Act
-        var act = () => Entry.Update(entry, modifierId, participants);
+        var act = () => Entry.Update(entry, modifierEmail, participants);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

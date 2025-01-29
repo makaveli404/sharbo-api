@@ -9,7 +9,7 @@ public static class TestDataFactory
 		var users = new List<User>();
 		for (var i = 1; i <= count; i++)
 		{
-			users.Add(User.Create($"User{i}", $"user{i}@example.com", "123456789"));
+			users.Add(User.Create($"User{i}", $"user{i}@example.com"));
 		}
 
 		return users;
@@ -20,7 +20,7 @@ public static class TestDataFactory
 		var groupParticipants = new List<GroupParticipants>();
 		for (var i = 1; i <= count; i++)
 		{
-			groupParticipants.Add(GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), false));
+			groupParticipants.Add(GroupParticipants.Create(Guid.NewGuid(), "email", false));
 		}
 
 		return groupParticipants;

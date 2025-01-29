@@ -9,21 +9,21 @@ public class Situation
     private Situation() {}
 
     // Factory methods
-    public static Situation Create(Guid createdById,
+    public static Situation Create(string createdByEmail,
                                    List<User> participants,
                                    string text)
         => new()
         {
-            Entry = Entry.Create(createdById, participants),
+            Entry = Entry.Create(createdByEmail, participants),
             Text = text
         };
 
     public static void Update(Situation entity,
-                              Guid modifiedById,
+                              string modifiedByEmail,
                               List<User> participants,
                               string text)
     {
-        Entry.Update(entity.Entry, modifiedById, participants);
+        Entry.Update(entity.Entry, modifiedByEmail, participants);
         entity.Text = text;
     }
 }

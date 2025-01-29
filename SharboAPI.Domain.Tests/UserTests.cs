@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Moq;
 using SharboAPI.Domain.Models;
 using Xunit;
 
@@ -13,7 +12,6 @@ public class UserTests
 		// Arrange
 		const string nickname = "TestUser";
 		const string email = "testuser@example.com";
-		const string password = "123456789";
 
 		var expectedUser = new
 		{
@@ -22,10 +20,9 @@ public class UserTests
 		};
 
 		// Act
-		var user = User.Create(nickname, email, password);
+		var user = User.Create(nickname, email);
 
 		// Assert
-		user.Id.Should().NotBe(Guid.Empty);
 		user.Should().NotBeNull();
 		user.Should().BeEquivalentTo(expectedUser);
 	}
@@ -36,10 +33,9 @@ public class UserTests
 		// Arrange
 		string? nickname = null;
 		const string email = "testuser@example.com";
-		const string password = "123456789";
 
 		// Act
-		var act = () => User.Create(nickname, email, password);
+		var act = () => User.Create(nickname, email);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>();
@@ -51,10 +47,9 @@ public class UserTests
 		// Arrange
 		const string nickname = "TestUser";
 		string? email = null;
-		string password = "123456789";
 
 		// Act
-		var act = () => User.Create(nickname, email, password);
+		var act = () => User.Create(nickname, email);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>();
