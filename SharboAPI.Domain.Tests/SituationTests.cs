@@ -10,7 +10,7 @@ public class SituationTests
     public void Create_ShouldInitializeSituationCorrectly()
     {
         // Arrange
-        var createdById = Guid.NewGuid();
+        var createdByEmail = "email";
         var participants = TestDataFactory.CreateUsers(2);
         const string text = "This is a test situation.";
 
@@ -20,7 +20,7 @@ public class SituationTests
         };
 
         // Act
-        var situation = Situation.Create(createdById, participants, text);
+        var situation = Situation.Create(createdByEmail, participants, text);
 
         // Assert
         situation.Should().NotBeNull();
@@ -35,11 +35,11 @@ public class SituationTests
     public void Update_ShouldUpdateSituationCorrectly()
     {
         // Arrange
-        var createdById = Guid.NewGuid();
+        var createdByEmail = "email";
         var initialParticipants = TestDataFactory.CreateUsers(1);
-        var situation = Situation.Create(createdById, initialParticipants, "Initial situation text.");
+        var situation = Situation.Create(createdByEmail, initialParticipants, "Initial situation text.");
 
-        var modifiedById = Guid.NewGuid();
+        var modifiedByEmail = "email";
         var updatedParticipants = TestDataFactory.CreateUsers(2);
         const string updatedText = "This is the updated situation text.";
 
@@ -49,7 +49,7 @@ public class SituationTests
         };
 
         // Act
-        Situation.Update(situation, modifiedById, updatedParticipants, updatedText);
+        Situation.Update(situation, modifiedByEmail, updatedParticipants, updatedText);
 
         // Assert
         situation.Should().NotBeNull();
@@ -65,12 +65,12 @@ public class SituationTests
     {
         // Arrange
         Situation? situation = null;
-        var modifiedById = Guid.NewGuid();
+        var modifiedByEmail = "email";
         var participants = TestDataFactory.CreateUsers(1);
         const string text = "Updated situation text.";
 
         // Act
-        var act = () => Situation.Update(situation, modifiedById, participants, text);
+        var act = () => Situation.Update(situation, modifiedByEmail, participants, text);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

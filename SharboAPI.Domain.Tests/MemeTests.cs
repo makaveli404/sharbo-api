@@ -10,7 +10,7 @@ public class MemeTests
     public void Create_ShouldInitializeMemeCorrectly()
     {
         // Arrange
-        var createdById = Guid.NewGuid();
+        var createdByEmail = "email";
         var participants = TestDataFactory.CreateUsers(2);
         const string imagePath = "test_image_path.jpg";
         const string text = "Test meme text";
@@ -22,7 +22,7 @@ public class MemeTests
         };
 
         // Act
-        var meme = Meme.Create(createdById, participants, imagePath, text);
+        var meme = Meme.Create(createdByEmail, participants, imagePath, text);
 
         // Assert
         meme.Should().NotBeNull();
@@ -33,11 +33,11 @@ public class MemeTests
     public void Update_ShouldUpdateMemeCorrectly()
     {
         // Arrange
-        var createdById = Guid.NewGuid();
+        var createdByEmail = "email";
         var initialParticipants = TestDataFactory.CreateUsers(1);
-        var meme = Meme.Create(createdById, initialParticipants, "initial_image.jpg", "Initial text");
+        var meme = Meme.Create(createdByEmail, initialParticipants, "initial_image.jpg", "Initial text");
 
-        var modifiedById = Guid.NewGuid();
+        var modifiedByEmail = "email";
         var updatedParticipants = TestDataFactory.CreateUsers(2);
         const string updatedImagePath = "updated_image.jpg";
         const string updatedText = "Updated meme text";
@@ -49,7 +49,7 @@ public class MemeTests
         };
 
         // Act
-        Meme.Update(meme, modifiedById, updatedParticipants, updatedImagePath, updatedText);
+        Meme.Update(meme, modifiedByEmail, updatedParticipants, updatedImagePath, updatedText);
 
         // Assert
         meme.Should().BeEquivalentTo(expectedMeme);
@@ -60,13 +60,13 @@ public class MemeTests
     {
         // Arrange
         Meme? meme = null;
-        var modifiedById = Guid.NewGuid();
+        var modifiedByEmail = "email";
         var participants = TestDataFactory.CreateUsers(1);
         const string imagePath = "updated_image.jpg";
         const string text = "Updated meme text";
 
         // Act
-        var act = () => Meme.Update(meme, modifiedById, participants, imagePath, text);
+        var act = () => Meme.Update(meme, modifiedByEmail, participants, imagePath, text);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

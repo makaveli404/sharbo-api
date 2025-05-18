@@ -11,8 +11,8 @@ using SharboAPI.Infrastructure;
 namespace SharboAPI.Infrastructure.Migrations
 {
     [DbContext(typeof(SharboDbContext))]
-    [Migration("20241201130214_UserChange")]
-    partial class UserChange
+    [Migration("20250129123658_Init_DeleteUnusedPropsFromUsersAndChangePK")]
+    partial class Init_DeleteUnusedPropsFromUsersAndChangePK
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,12 +25,12 @@ namespace SharboAPI.Infrastructure.Migrations
                     b.Property<int>("EntriesId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("ParticipantsId")
+                    b.Property<string>("ParticipantsEmail")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("EntriesId", "ParticipantsId");
+                    b.HasKey("EntriesId", "ParticipantsEmail");
 
-                    b.HasIndex("ParticipantsId");
+                    b.HasIndex("ParticipantsEmail");
 
                     b.ToTable("EntryParticipants", (string)null);
                 });
@@ -41,7 +41,8 @@ namespace SharboAPI.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("CreatedById")
+                    b.Property<string>("CreatedByEmail")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreationDate")
@@ -50,14 +51,15 @@ namespace SharboAPI.Infrastructure.Migrations
                     b.Property<DateTime>("LastModificationDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("LastModifiedById")
+                    b.Property<string>("LastModifiedByEmail")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("CreatedByEmail");
 
-                    b.HasIndex("LastModifiedById");
+                    b.HasIndex("LastModifiedByEmail");
 
                     b.ToTable("Entries");
                 });
@@ -68,7 +70,8 @@ namespace SharboAPI.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("CreatedById")
+                    b.Property<string>("CreatedByEmail")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreationDate")
@@ -77,7 +80,8 @@ namespace SharboAPI.Infrastructure.Migrations
                     b.Property<string>("ImagePath")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("LastModifiedById")
+                    b.Property<string>("LastModifiedByEmail")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("ModificationDate")
@@ -89,9 +93,9 @@ namespace SharboAPI.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("CreatedByEmail");
 
-                    b.HasIndex("LastModifiedById");
+                    b.HasIndex("LastModifiedByEmail");
 
                     b.ToTable("Groups");
                 });
@@ -101,15 +105,15 @@ namespace SharboAPI.Infrastructure.Migrations
                     b.Property<Guid>("GroupId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<string>("UserEmail")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("GroupId", "UserId");
+                    b.HasKey("GroupId", "UserEmail");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserEmail");
 
                     b.ToTable("GroupParticipants");
                 });
@@ -161,23 +165,14 @@ namespace SharboAPI.Infrastructure.Migrations
 
             modelBuilder.Entity("SharboAPI.Domain.Models.User", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Nickname")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
+                    b.HasKey("Email");
 
                     b.ToTable("Users");
                 });
@@ -192,7 +187,7 @@ namespace SharboAPI.Infrastructure.Migrations
 
                     b.HasOne("SharboAPI.Domain.Models.User", null)
                         .WithMany()
-                        .HasForeignKey("ParticipantsId")
+                        .HasForeignKey("ParticipantsEmail")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -201,13 +196,13 @@ namespace SharboAPI.Infrastructure.Migrations
                 {
                     b.HasOne("SharboAPI.Domain.Models.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById")
+                        .HasForeignKey("CreatedByEmail")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SharboAPI.Domain.Models.User", "LastModifiedBy")
                         .WithMany()
-                        .HasForeignKey("LastModifiedById")
+                        .HasForeignKey("LastModifiedByEmail")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -220,13 +215,13 @@ namespace SharboAPI.Infrastructure.Migrations
                 {
                     b.HasOne("SharboAPI.Domain.Models.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById")
+                        .HasForeignKey("CreatedByEmail")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SharboAPI.Domain.Models.User", "LastModifiedBy")
                         .WithMany()
-                        .HasForeignKey("LastModifiedById")
+                        .HasForeignKey("LastModifiedByEmail")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -245,7 +240,7 @@ namespace SharboAPI.Infrastructure.Migrations
 
                     b.HasOne("SharboAPI.Domain.Models.User", "User")
                         .WithMany("GroupParticipants")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("UserEmail")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

@@ -1,10 +1,14 @@
+using SharboAPI.Application.Abstractions.Repositories;
+using SharboAPI.Application.Abstractions.Services;
+using SharboAPI.Infrastructure.Services;
+using SharboAPI.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Google.Apis.Auth.OAuth2;
+using FirebaseAdmin;
 using Serilog;
-using SharboAPI.Application.Abstractions.Repositories;
-using SharboAPI.Infrastructure.Repositories;
 
 namespace SharboAPI.Infrastructure.Extensions;
 
@@ -48,6 +52,14 @@ public static class ServiceCollectionExtensions
 	{
 		services.AddScoped<IGroupRepository, GroupRepository>();
 		services.AddScoped<IUserRepository, UserRepository>();
+		services.AddScoped<IFirebaseService, FirebaseService>();
+		services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+		FirebaseApp.Create(new AppOptions
+		{
+			Credential = GoogleCredential.FromFile("firebase.json")
+		});
+
 		return services;
 	}
 }

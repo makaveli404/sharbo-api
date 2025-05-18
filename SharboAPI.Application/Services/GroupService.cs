@@ -11,13 +11,13 @@ public class GroupService(IGroupRepository groupRepository) : IGroupService
 	public async Task<Guid?> AddAsync(GroupDto group, CancellationToken cancellationToken)
 	{
 		// Get user id from claim by HttpContextAccessor
-		var createdById = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
+		var email = "andret2137@b-instructor.com";
 		// Temporary definition
 		List<GroupParticipants> groupParticipants = [
-			GroupParticipants.Create(Guid.NewGuid(), createdById, true)
+			GroupParticipants.Create(Guid.NewGuid(), email, true)
 		];
 
-		var newGroup = Group.Create(group.Name, createdById, groupParticipants, group.ImagePath);
+		var newGroup = Group.Create(group.Name, email, groupParticipants, group.ImagePath);
 
 		return await groupRepository.AddAsync(newGroup, cancellationToken);
 	}

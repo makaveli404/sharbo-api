@@ -23,7 +23,7 @@ public static class GroupEndpoints
 	{
 		var result = await groupService.AddAsync(group, cancellationToken);
 		return result is not null
-			? TypedResults.Created($"{group}/{result}", result)
+			? TypedResults.CreatedAtRoute(routeName: nameof(GetGroupById), routeValues: new { id = result }, value: group)
 			: TypedResults.BadRequest();
 	}
 
@@ -40,8 +40,10 @@ public static class GroupEndpoints
 	{
 		var group = routes.MapGroup("/api/group");
 
-		group.MapPost("/create", CreateGroup);
-		group.MapGet("/{id:guid}", GetGroupById);
-		group.MapPut("/{id:guid}/update", UpdateGroup);
+		group.MapPost("/", CreateGroup);
+		group
+			.MapGet("/{id:guid}", GetGroupById)
+			.WithName(nameof(GetGroupById));
+		group.MapPut("/{id:guid}", UpdateGroup);
 	}
 }
