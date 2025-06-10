@@ -50,6 +50,9 @@ if (app.Environment.IsDevelopment())
 using var scope = app.Services.CreateScope();
 ApplyMigration<SharboDbContext>(scope);
 
+var seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
+await seeder.Seed();
+
 app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();

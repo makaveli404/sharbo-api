@@ -11,7 +11,9 @@ public class SharboDbContext(DbContextOptions<SharboDbContext> options) : DbCont
 	public DbSet<Quote> Quotes { get; set; }
 	public DbSet<Situation> Situations { get; set; }
 	public DbSet<Group> Groups { get; set; }
-	public DbSet<GroupParticipants> GroupParticipants { get; set; }
+	public DbSet<GroupParticipant> GroupParticipants { get; set; }
+	public DbSet<Role> Roles { get; set; }
+	public DbSet<GroupParticipantRole> GroupParticipantRoles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

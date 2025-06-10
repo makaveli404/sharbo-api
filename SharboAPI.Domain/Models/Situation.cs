@@ -1,29 +1,44 @@
 namespace SharboAPI.Domain.Models;
 
-public class Situation
+public class Situation : Entry
 {
-	public int EntryId { get; private set; }
-    public Entry Entry { get; private set; }
     public string Text { get; private set; }
 
     private Situation() {}
 
-    // Factory methods
-    public static Situation Create(Guid createdById,
-                                   List<User> participants,
-                                   string text)
-        => new()
+    #region Factory_Methods
+    public static Situation Create(Guid createdById, string text)
+    {
+        Situation situation = new()
         {
-            Entry = Entry.Create(createdById, participants),
             Text = text
         };
 
-    public static void Update(Situation entity,
-                              Guid modifiedById,
-                              List<User> participants,
-                              string text)
+        Entry.Set(situation, createdById);
+        return situation;
+    }
+
+    public static Situation Create(GroupParticipant createdBy, string text)
     {
-        Entry.Update(entity.Entry, modifiedById, participants);
+        Situation situation = new()
+        {
+            Text = text
+        };
+
+        Entry.Set(situation, createdBy);
+        return situation;
+    }
+
+    public static void Update(Situation entity, Guid modifiedById, string text)
+    {
+        Entry.Update(entity, modifiedById);
         entity.Text = text;
     }
+
+    public static void Update(Situation entity, GroupParticipant modifiedBy, string text)
+    {
+        Entry.Update(entity, modifiedBy);
+        entity.Text = text;
+    }
+    #endregion
 }

@@ -1,29 +1,44 @@
 namespace SharboAPI.Domain.Models;
 
-public class Quote
+public class Quote : Entry
 {
-	public int EntryId { get; private set; }
-	public Entry Entry { get; private set; }
 	public string Text { get; private set; }
 
 	private Quote() {}
 
-    // Factory methods
-    public static Quote Create(Guid createdById,
-                               List<User> participants,
-                               string text)
-    => new()
+    #region Factory_Methods
+    public static Quote Create(Guid createdById, string text)
     {
-        Entry = Entry.Create(createdById, participants),
-        Text = text
-    };
+        Quote quote = new()
+        {
+            Text = text
+        };
 
-    public static void Update(Quote entity,
-                              Guid modifiedById,
-                              List<User> participants,
-                              string text)
+        Entry.Set(quote, createdById);
+        return quote;
+    }
+
+    public static Quote Create(GroupParticipant createdBy, string text)
     {
-        Entry.Update(entity.Entry, modifiedById, participants);
+        Quote quote = new()
+        {
+            Text = text
+        };
+
+        Entry.Set(quote, createdBy);
+        return quote;
+    }
+
+    public static void Update(Quote entity, Guid modifiedById, string text)
+    {
+        Entry.Update(entity, modifiedById);
         entity.Text = text;
     }
+
+    public static void Update(Quote entity, GroupParticipant modifiedBy, string text)
+    {
+        Entry.Update(entity, modifiedBy);
+        entity.Text = text;
+    }
+    #endregion
 }

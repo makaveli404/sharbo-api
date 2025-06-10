@@ -8,6 +8,6 @@ public class SituationConfiguration : IEntityTypeConfiguration<Situation>
 {
     public void Configure(EntityTypeBuilder<Situation> builder)
     {
-        builder.HasNoKey();
+        builder.ToTable("Situations");
     }
 }

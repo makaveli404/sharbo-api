@@ -41,6 +41,8 @@ public static class ServiceCollectionExtensions
 				throw new Exception("Unsupported database provider: " + databaseProvider);
 		}
 
+		services.AddTransient<Seeder>();
+
 		return services;
 	}
 
@@ -48,6 +50,7 @@ public static class ServiceCollectionExtensions
 	{
 		services.AddScoped<IGroupRepository, GroupRepository>();
 		services.AddScoped<IUserRepository, UserRepository>();
+		services.AddScoped<IRoleRepository, RoleRepository>();
 		return services;
 	}
 }

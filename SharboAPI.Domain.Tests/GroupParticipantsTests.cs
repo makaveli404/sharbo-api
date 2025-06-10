@@ -1,58 +1,55 @@
-using FluentAssertions;
-using SharboAPI.Domain.Models;
-using Xunit;
+using SharboAPI.Domain.Enums;
 
 namespace SharboAPI.Domain.Tests;
 
 public class GroupParticipantsTests
 {
 	[Fact]
-	public void Create_ShouldInitializeGroupParticipantsCorrectly()
+	public void Create_ShouldInitializeCorrectly_WhenGroupParticipantRolesIsNull()
 	{
 		// Arrange
 		var groupId = Guid.NewGuid();
 		var userId = Guid.NewGuid();
-		const bool isAdmin = true;
+		List<GroupParticipantRole>? roles = null;
+		List<GroupParticipantRole> expectedRoles = [];
 
-		// Arrange & Act
-		var groupParticipant = GroupParticipants.Create(groupId, userId, isAdmin);
+        // Arrange & Act
+        var groupParticipant = GroupParticipant.Create(groupId, userId, roles);
 
 		// Assert
 		var expectedParticipant = new
 		{
 			GroupId = groupId,
 			UserId = userId,
-			IsAdmin = isAdmin
-		};
+            GroupParticipantRoles = expectedRoles
+        };
+
 		groupParticipant.Should().BeEquivalentTo(expectedParticipant);
 	}
 
-	[Fact]
-	public void UpdateAdminStatus_ShouldUpdateAdminFlagCorrectly()
-	{
-		// Arrange
-		var groupId = Guid.NewGuid();
-		var userId = Guid.NewGuid();
-		const bool initialIsAdmin = false;
-		var groupParticipant = GroupParticipants.Create(groupId, userId, initialIsAdmin);
+    [Fact]
+    public void Create_ShouldInitializeCorrectly_WhenGroupParticipantRolesIsGiven()
+    {
+        // Arrange
+        var groupId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        List<GroupParticipantRole> roles = [
+            GroupParticipantRole.Create(Role.Create(RoleType.Participant, "Participant")),
+            GroupParticipantRole.Create(Role.Create(RoleType.Moderator, "Moderator")),
+            GroupParticipantRole.Create(Role.Create(RoleType.Admin, "Admin"))
+        ];
 
-		// Act
-		GroupParticipants.UpdateAdminStatus(groupParticipant, true);
+        // Arrange & Act
+        var groupParticipant = GroupParticipant.Create(groupId, userId, roles);
 
-		// Assert
-		groupParticipant.IsAdmin.Should().BeTrue();
-	}
+        // Assert
+        var expectedParticipant = new
+        {
+            GroupId = groupId,
+            UserId = userId,
+            GroupParticipantRoles = roles
+        };
 
-	[Fact]
-	public void UpdateAdminStatus_ShouldThrowException_WhenEntityIsNull()
-	{
-		// Arrange
-		GroupParticipants groupParticipant = null;
-
-		// Act
-		var act = () => GroupParticipants.UpdateAdminStatus(groupParticipant, true);
-
-		// Assert
-		act.Should().Throw<NullReferenceException>();
-	}
+        groupParticipant.Should().BeEquivalentTo(expectedParticipant);
+    }
 }

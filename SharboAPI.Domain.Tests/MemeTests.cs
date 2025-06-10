@@ -1,7 +1,3 @@
-using FluentAssertions;
-using SharboAPI.Domain.Models;
-using Xunit;
-
 namespace SharboAPI.Domain.Tests;
 
 public class MemeTests
@@ -11,18 +7,17 @@ public class MemeTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var participants = TestDataFactory.CreateUsers(2);
-        const string imagePath = "test_image_path.jpg";
-        const string text = "Test meme text";
+        const string IMAGE_PATH = "test_image_path.jpg";
+        const string TEXT = "Test meme text";
 
         var expectedMeme = new
         {
-            ImagePath = imagePath,
-            Text = text
+            ImagePath = IMAGE_PATH,
+            Text = TEXT
         };
 
         // Act
-        var meme = Meme.Create(createdById, participants, imagePath, text);
+        var meme = Meme.Create(createdById, IMAGE_PATH, TEXT);
 
         // Assert
         meme.Should().NotBeNull();
@@ -34,22 +29,22 @@ public class MemeTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var initialParticipants = TestDataFactory.CreateUsers(1);
-        var meme = Meme.Create(createdById, initialParticipants, "initial_image.jpg", "Initial text");
+        var meme = Meme.Create(createdById, "initial_image.jpg", "Initial text");
 
         var modifiedById = Guid.NewGuid();
-        var updatedParticipants = TestDataFactory.CreateUsers(2);
-        const string updatedImagePath = "updated_image.jpg";
-        const string updatedText = "Updated meme text";
+        const string UPDATED_IMAGE_PATH = "updated_image.jpg";
+        const string UPDATED_TEXT = "Updated meme text";
 
         var expectedMeme = new
         {
-            ImagePath = updatedImagePath,
-            Text = updatedText
+            CreatedById = createdById,
+            LastModifiedById = modifiedById,
+            ImagePath = UPDATED_IMAGE_PATH,
+            Text = UPDATED_TEXT
         };
 
         // Act
-        Meme.Update(meme, modifiedById, updatedParticipants, updatedImagePath, updatedText);
+        Meme.Update(meme, modifiedById, UPDATED_IMAGE_PATH, UPDATED_TEXT);
 
         // Assert
         meme.Should().BeEquivalentTo(expectedMeme);
@@ -61,12 +56,11 @@ public class MemeTests
         // Arrange
         Meme? meme = null;
         var modifiedById = Guid.NewGuid();
-        var participants = TestDataFactory.CreateUsers(1);
-        const string imagePath = "updated_image.jpg";
-        const string text = "Updated meme text";
+        const string IMAGE_PATH = "updated_image.jpg";
+        const string TEXT = "Updated meme text";
 
         // Act
-        var act = () => Meme.Update(meme, modifiedById, participants, imagePath, text);
+        var act = () => Meme.Update(meme, modifiedById, IMAGE_PATH, TEXT);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

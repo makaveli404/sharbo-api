@@ -4,15 +4,13 @@ using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Configurations;
 
-public class GroupParticipantsConfiguration : IEntityTypeConfiguration<GroupParticipants>
+public class GroupParticipantConfiguration : IEntityTypeConfiguration<GroupParticipant>
 {
-    public void Configure(EntityTypeBuilder<GroupParticipants> builder)
+    public void Configure(EntityTypeBuilder<GroupParticipant> builder)
     {
-        builder.HasKey(gc => new { gc.GroupId, gc.UserId });
-
         builder
             .HasOne(gp => gp.User)
-            .WithMany(u => u.GroupParticipants)
+            .WithMany()
             .HasForeignKey(gp => gp.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
