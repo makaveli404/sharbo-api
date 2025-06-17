@@ -8,6 +8,6 @@ public class QuoteConfiguration : IEntityTypeConfiguration<Quote>
 {
     public void Configure(EntityTypeBuilder<Quote> builder)
     {
-        builder.HasNoKey();
+        builder.ToTable("Quotes");
     }
 }

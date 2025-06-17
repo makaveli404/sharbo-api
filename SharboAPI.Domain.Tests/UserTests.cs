@@ -1,8 +1,3 @@
-using FluentAssertions;
-using Moq;
-using SharboAPI.Domain.Models;
-using Xunit;
-
 namespace SharboAPI.Domain.Tests;
 
 public class UserTests
@@ -11,9 +6,9 @@ public class UserTests
 	public void Create_ShouldInitializeUserCorrectly()
 	{
 		// Arrange
-		const string nickname = "TestUser";
-		const string email = "testuser@example.com";
-		const string password = "123456789";
+		string nickname = "TestUser";
+		string email = "testuser@example.com";
+		string password = "123456789";
 
 		var expectedUser = new
 		{
@@ -26,7 +21,6 @@ public class UserTests
 
 		// Assert
 		user.Id.Should().NotBe(Guid.Empty);
-		user.Should().NotBeNull();
 		user.Should().BeEquivalentTo(expectedUser);
 	}
 
@@ -35,8 +29,8 @@ public class UserTests
 	{
 		// Arrange
 		string? nickname = null;
-		const string email = "testuser@example.com";
-		const string password = "123456789";
+		string email = "testuser@example.com";
+		string password = "123456789";
 
 		// Act
 		var act = () => User.Create(nickname, email, password);
@@ -49,7 +43,7 @@ public class UserTests
 	public void Create_ShouldThrowException_WhenEmailIsNullOrEmpty()
 	{
 		// Arrange
-		const string nickname = "TestUser";
+		string nickname = "TestUser";
 		string? email = null;
 		string password = "123456789";
 

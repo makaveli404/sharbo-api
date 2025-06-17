@@ -6,23 +6,14 @@ public class User
 	public string Nickname { get; private set; }
 	public string Email { get; private set; }
 	public string Password { get; private set; }
-	public List<GroupParticipants> GroupParticipants { get; private set; } = [];
-	public List<Entry> Entries { get; private set; }
 
 	private User() {}
 
-	// Factory methods
-	public static User Create(string nickname, string email, string password)
+    #region Factory_Methods
+    public static User Create(string nickname, string email, string password)
 	{
-		if (string.IsNullOrWhiteSpace(nickname))
-		{
-			throw new ArgumentNullException(nameof(nickname), "Nickname cannot be null or empty.");
-		}
-
-		if (string.IsNullOrWhiteSpace(email))
-		{
-			throw new ArgumentNullException(nameof(email), "Email cannot be null or empty.");
-		}
+        ArgumentException.ThrowIfNullOrWhiteSpace(nickname, nameof(nickname));
+        ArgumentException.ThrowIfNullOrWhiteSpace(email, nameof(email));
 
 		return new User
 		{
@@ -32,4 +23,5 @@ public class User
 			Password = password
 		};
 	}
+	#endregion
 }
