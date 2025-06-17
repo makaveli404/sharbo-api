@@ -1,20 +1,16 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using SharboAPI.Domain.Enums;
+﻿using SharboAPI.Domain.Enums;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure;
 
-public class Seeder(IServiceProvider serviceProvider)
+public class Seeder(SharboDbContext dbContext)
 {
     public async Task Seed()
     {
-        using var scope = serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<SharboDbContext>();
-
-        await SeedRoles(dbContext);
+        await SeedRoles();
     }
 
-    private async Task SeedRoles(SharboDbContext dbContext)
+    private async Task SeedRoles()
     {
         if (dbContext.Roles.Any())
         {

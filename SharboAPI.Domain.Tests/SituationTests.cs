@@ -37,7 +37,7 @@ public class SituationTests
         };
 
         // Act
-        Situation.Update(situation, modifiedById, UPDATED_TEXT);
+        situation.Update(modifiedById, UPDATED_TEXT);
 
         // Assert
         situation.Should().BeEquivalentTo(expectedSituation);
@@ -52,7 +52,7 @@ public class SituationTests
         const string TEXT = "Updated situation text.";
 
         // Act
-        var act = () => Situation.Update(situation, modifiedById, TEXT);
+        var act = () => situation.Update(modifiedById, TEXT);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

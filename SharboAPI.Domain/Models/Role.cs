@@ -13,16 +13,18 @@ public class Role
 
     #region Factory_Methods
     public static Role Create(RoleType roleType, string name)
-        => new()
-        {
-            RoleType = roleType,
-            Name = name
-        };
-
-    public static void Update(Role entity, RoleType roleType, string name)
     {
-        entity.RoleType = roleType;
-        entity.Name = name;
+        Role role = new();
+        role.Update(roleType, name);
+
+        return role;
+
+    }
+
+    public void Update(RoleType roleType, string name)
+    {
+        RoleType = roleType;
+        Name = name;
     }
     #endregion
 }

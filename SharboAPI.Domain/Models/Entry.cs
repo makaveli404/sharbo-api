@@ -17,30 +17,21 @@ public class Entry
 	{
         entry.Id = Guid.NewGuid();
         entry.CreatedById = createdById;
-        entry.LastModifiedById = createdById;
         entry.CreationDate = DateTime.UtcNow;
-        entry.LastModificationDate = DateTime.UtcNow;
+
+        entry.Update(createdById);
 	}
 
     protected static void Set(Entry entry, GroupParticipant createdBy)
-    {
-        entry.Id = Guid.NewGuid();
-        entry.CreatedBy = createdBy;
-        entry.LastModifiedBy = createdBy;
-        entry.CreationDate = DateTime.UtcNow;
-        entry.LastModificationDate = DateTime.UtcNow;
-    }
+        => Set(entry, createdBy.Id);
 
-    protected static void Update(Entry entity, Guid modifiedById)
+    protected void Update(Guid modifiedById)
 	{
-		entity.LastModifiedById = modifiedById;
-		entity.LastModificationDate = DateTime.UtcNow;
+		LastModifiedById = modifiedById;
+		LastModificationDate = DateTime.UtcNow;
 	}
 
-    protected static void Update(Entry entity, GroupParticipant modifiedBy)
-    {
-        entity.LastModifiedBy = modifiedBy;
-        entity.LastModificationDate = DateTime.UtcNow;
-    }
+    protected void Update(GroupParticipant modifiedBy)
+        => Update(modifiedBy.Id);
     #endregion
 }

@@ -18,27 +18,10 @@ public class Quote : Entry
         return quote;
     }
 
-    public static Quote Create(GroupParticipant createdBy, string text)
+    public void Update(Guid modifiedById, string text)
     {
-        Quote quote = new()
-        {
-            Text = text
-        };
-
-        Entry.Set(quote, createdBy);
-        return quote;
-    }
-
-    public static void Update(Quote entity, Guid modifiedById, string text)
-    {
-        Entry.Update(entity, modifiedById);
-        entity.Text = text;
-    }
-
-    public static void Update(Quote entity, GroupParticipant modifiedBy, string text)
-    {
-        Entry.Update(entity, modifiedBy);
-        entity.Text = text;
+        base.Update(modifiedById);
+        Text = text;
     }
     #endregion
 }

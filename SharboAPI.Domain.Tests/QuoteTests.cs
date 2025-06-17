@@ -37,7 +37,7 @@ public class QuoteTests
         };
 
         // Act
-        Quote.Update(quote, modifiedById, UPDATED_TEXT);
+        quote.Update(modifiedById, UPDATED_TEXT);
 
         // Assert
         quote.Should().BeEquivalentTo(expectedQuote);
@@ -52,7 +52,7 @@ public class QuoteTests
         const string TEXT = "Updated quote text.";
 
         // Act
-        var act = () => Quote.Update(quote, modifiedById, TEXT);
+        var act = () => quote.Update(modifiedById, TEXT);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

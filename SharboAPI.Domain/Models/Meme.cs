@@ -20,36 +20,11 @@ public class Meme : Entry
         return meme;
     }
 
-    public static Meme Create(GroupParticipant createdBy, string imagePath, string? text = null)
+    public void Update(Guid modifiedById, string imagePath, string? text = null)
     {
-        Meme meme = new()
-        {
-            ImagePath = imagePath,
-            Text = text
-        };
-
-        Entry.Set(meme, createdBy);
-        return meme;
-    }
-
-    public static void Update(Meme entity,
-                              Guid modifiedById,
-                              string imagePath,
-                              string? text = null)
-    {
-        Entry.Update(entity, modifiedById);
-        entity.ImagePath = imagePath;
-        entity.Text = text;
-    }
-
-    public static void Update(Meme entity,
-                              GroupParticipant modifiedBy,
-                              string imagePath,
-                              string? text = null)
-    {
-        Entry.Update(entity, modifiedBy);
-        entity.ImagePath = imagePath;
-        entity.Text = text;
+        base.Update(modifiedById);
+        ImagePath = imagePath;
+        Text = text;
     }
     #endregion
 }

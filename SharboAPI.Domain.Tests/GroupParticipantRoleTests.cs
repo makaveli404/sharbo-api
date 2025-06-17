@@ -31,7 +31,7 @@ public class GroupParticipantRoleTests
         var roleId = 23;
 
         // Act
-        GroupParticipantRole.Update(groupParticipantRoleToUpdate, roleId);
+        groupParticipantRoleToUpdate.Update(roleId);
 
         // Assert
         groupParticipantRoleToUpdate.RoleId.Should().Be(roleId);

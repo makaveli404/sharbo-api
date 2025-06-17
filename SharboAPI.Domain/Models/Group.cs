@@ -15,70 +15,38 @@ public class Group
 
 	private Group() {}
 
-	// Factory methods
-	public static Group Create(string name,
-                               User createdBy,
-                               string? imagePath = null,
-                               List<GroupParticipant>? participants = null)
-		=> new()
-		{
-			Id = Guid.NewGuid(),
-			Name = name,
-			ImagePath = imagePath,
-			CreatedBy = createdBy,
-			LastModifiedBy = createdBy,
-            GroupParticipants = participants is not null ? participants : [],
-			CreationDate = DateTime.UtcNow,
-			ModificationDate = DateTime.UtcNow,
-		};
-
+    #region Factory_Methods
     public static Group Create(string name,
                                Guid createdById,
                                string? imagePath = null,
                                List<GroupParticipant>? participants = null)
-        => new()
+    {
+        Group group = new()
         {
             Id = Guid.NewGuid(),
-            Name = name,
-            ImagePath = imagePath,
             CreatedById = createdById,
-            LastModifiedById = createdById,
-            GroupParticipants = participants is not null ? participants : [],
-            CreationDate = DateTime.UtcNow,
-            ModificationDate = DateTime.UtcNow,
+            CreationDate = DateTime.UtcNow
         };
 
-    public static void Update(Group entity,
-							  string name,
-							  User modifiedBy,
-                              string? imagePath = null,
-                              List<GroupParticipant>? participants = null)
+        group.Update(name, createdById, imagePath, participants);
+        
+        return group;
+    }
+
+    public void Update(string name,
+                       Guid modifiedById,
+                       string? imagePath = null,
+                       List<GroupParticipant>? participants = null)
     {
-		entity.Name = name;
-		entity.ImagePath = imagePath;
-		entity.LastModifiedBy = modifiedBy;
-		entity.ModificationDate = DateTime.UtcNow;
+        Name = name;
+        ImagePath = imagePath;
+        LastModifiedById = modifiedById;
+        ModificationDate = DateTime.UtcNow;
 
         if (participants is not null)
         {
-			entity.GroupParticipants = participants;
+            GroupParticipants = participants;
         }
     }
-
-    public static void Update(Group entity,
-                              string name,
-                              Guid modifiedById,
-                              string? imagePath = null,
-                              List<GroupParticipant>? participants = null)
-    {
-        entity.Name = name;
-        entity.ImagePath = imagePath;
-        entity.LastModifiedById = modifiedById;
-        entity.ModificationDate = DateTime.UtcNow;
-
-        if (participants is not null)
-        {
-            entity.GroupParticipants = participants;
-        }
-    }
+    #endregion
 }

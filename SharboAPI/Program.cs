@@ -66,7 +66,7 @@ static void ApplyMigration<TDbContext>(IServiceScope scope)
 	try
 	{
 		Log.Information("Applying migrations.");
-		using var context = scope.ServiceProvider.GetRequiredService<TDbContext>();
+		var context = scope.ServiceProvider.GetRequiredService<TDbContext>();
 
 		context.Database.Migrate();
 		Log.Information("Finished migrations.");

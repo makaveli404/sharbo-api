@@ -44,7 +44,7 @@ public class MemeTests
         };
 
         // Act
-        Meme.Update(meme, modifiedById, UPDATED_IMAGE_PATH, UPDATED_TEXT);
+        meme.Update(modifiedById, UPDATED_IMAGE_PATH, UPDATED_TEXT);
 
         // Assert
         meme.Should().BeEquivalentTo(expectedMeme);
@@ -60,7 +60,7 @@ public class MemeTests
         const string TEXT = "Updated meme text";
 
         // Act
-        var act = () => Meme.Update(meme, modifiedById, IMAGE_PATH, TEXT);
+        var act = () => meme.Update(modifiedById, IMAGE_PATH, TEXT);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

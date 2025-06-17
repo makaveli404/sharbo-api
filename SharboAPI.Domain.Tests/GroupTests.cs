@@ -57,7 +57,7 @@ public class GroupTests
         };
 
         // Act
-        Group.Update(group, UPDATED_NAME, modifiedById, UPDATED_IMAGE_PATH, updatedParticipants);
+        group.Update(UPDATED_NAME, modifiedById, UPDATED_IMAGE_PATH, updatedParticipants);
 
         // Assert
         group.Should().NotBeNull();
@@ -92,7 +92,7 @@ public class GroupTests
         };
 
         // Act
-        Group.Update(group, UPDATED_NAME, modifiedById, UPDATED_IMAGE_PATH);
+        group.Update(UPDATED_NAME, modifiedById, UPDATED_IMAGE_PATH);
 
         // Assert
         group.Should().NotBeNull();
@@ -115,7 +115,7 @@ public class GroupTests
         var participants = TestDataFactory.CreateGroupParticipants(1);
 
         // Act
-        var act = () => Group.Update(group, UPDATED_NAME, modifiedById, participants: participants);
+        var act = () => group.Update(UPDATED_NAME, modifiedById, participants: participants);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

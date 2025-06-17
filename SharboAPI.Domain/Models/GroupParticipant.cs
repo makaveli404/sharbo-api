@@ -23,56 +23,14 @@ public class GroupParticipant
             GroupParticipantRoles = participantRoles is not null ? participantRoles : []
         };
 
-    public static GroupParticipant Create(User user, List<GroupParticipantRole>? participantRoles = null)
-        => new()
-        {
-            Id = Guid.NewGuid(),
-            User = user,
-            GroupParticipantRoles = participantRoles is not null ? participantRoles : []
-        };
-
     public static GroupParticipant Create(Guid groupId,
                                           Guid userId,
                                           List<GroupParticipantRole>? participantRoles = null)
-        => new()
-        {
-            Id = Guid.NewGuid(),
-            GroupId = groupId,
-            UserId = userId,
-            GroupParticipantRoles = participantRoles is not null ? participantRoles : []
-        };
+    {
+        GroupParticipant groupParticipant = Create(userId, participantRoles);
+        groupParticipant.GroupId = groupId;
 
-    public static GroupParticipant Create(Group group,
-                                          User user,
-                                          List<GroupParticipantRole>? participantRoles = null)
-        => new()
-        {
-            Id = Guid.NewGuid(),
-            Group = group,
-            User = user,
-            GroupParticipantRoles = participantRoles is not null ? participantRoles : []
-        };
-
-    public static GroupParticipant Create(Group group,
-                                          Guid userId,
-                                          List<GroupParticipantRole>? participantRoles = null)
-        => new()
-        {
-            Id = Guid.NewGuid(),
-            Group = group,
-            UserId = userId,
-            GroupParticipantRoles = participantRoles is not null ? participantRoles : []
-        };
-
-    public static GroupParticipant Create(Guid groupId,
-                                          User user,
-                                          List<GroupParticipantRole>? participantRoles = null)
-        => new()
-        {
-            Id = Guid.NewGuid(),
-            GroupId = groupId,
-            User = user,
-            GroupParticipantRoles = participantRoles is not null ? participantRoles : []
-        };
+        return groupParticipant;
+    }
     #endregion
 }

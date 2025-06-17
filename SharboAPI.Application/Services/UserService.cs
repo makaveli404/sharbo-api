@@ -8,7 +8,7 @@ public class UserService(IUserRepository userRepository) : IUserService
 {
 	public Task<Guid> AddAsync(string nickname, string email, string password, CancellationToken cancellationToken)
 	{
-		// Validation
+		// TODO: Add validation
 
 		var newUser = User.Create(nickname, email, password);
 		return userRepository.AddAsync(newUser, cancellationToken);

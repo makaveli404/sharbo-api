@@ -13,8 +13,10 @@ public sealed class GroupService(IGroupRepository groupRepository, IRoleReposito
 
 	public async Task<Guid?> AddAsync(GroupDto groupDto, CancellationToken cancellationToken)
 	{
-		// Get user id from claim by HttpContextAccessor
-		var createdById = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
+		// TODO: Add validation
+
+        // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually 
+        var createdById = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
 
 		// Add creator to group and assign admin role
 		var adminRole = await roleRepository.GetByRoleTypeAsync(RoleType.Admin, cancellationToken);
@@ -22,8 +24,8 @@ public sealed class GroupService(IGroupRepository groupRepository, IRoleReposito
 		var participantRole = await roleRepository.GetByRoleTypeAsync(RoleType.Participant, cancellationToken);
 
 		var admin = GroupParticipantRole.Create(adminRole);
-		var moderator = GroupParticipantRole.Create(adminRole);
-		var participant = GroupParticipantRole.Create(adminRole);
+		var moderator = GroupParticipantRole.Create(moderatorRole);
+		var participant = GroupParticipantRole.Create(participantRole);
 
 		List<GroupParticipant> participants = [
 			GroupParticipant.Create(createdById, [admin, moderator, participant])

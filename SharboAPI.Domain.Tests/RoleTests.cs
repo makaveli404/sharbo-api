@@ -33,7 +33,7 @@ public class RoleTests
         var name = "Admin";
 
         // Act
-        Role.Update(roleToUpdate, roleType, name);
+        roleToUpdate.Update(roleType, name);
 
         // Assert
         roleToUpdate.RoleType.Should().Be(roleType);

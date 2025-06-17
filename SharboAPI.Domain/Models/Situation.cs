@@ -18,27 +18,10 @@ public class Situation : Entry
         return situation;
     }
 
-    public static Situation Create(GroupParticipant createdBy, string text)
+    public void Update(Guid modifiedById, string text)
     {
-        Situation situation = new()
-        {
-            Text = text
-        };
-
-        Entry.Set(situation, createdBy);
-        return situation;
-    }
-
-    public static void Update(Situation entity, Guid modifiedById, string text)
-    {
-        Entry.Update(entity, modifiedById);
-        entity.Text = text;
-    }
-
-    public static void Update(Situation entity, GroupParticipant modifiedBy, string text)
-    {
-        Entry.Update(entity, modifiedBy);
-        entity.Text = text;
+        base.Update(modifiedById);
+        Text = text;
     }
     #endregion
 }
