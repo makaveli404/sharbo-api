@@ -1,7 +1,3 @@
-using FluentAssertions;
-using SharboAPI.Domain.Models;
-using Xunit;
-
 namespace SharboAPI.Domain.Tests;
 
 public class GroupTests
@@ -10,14 +6,14 @@ public class GroupTests
     public void Create_ShouldInitializeGroupCorrectly()
     {
         // Arrange
-        const string name = "Test Group";
+        const string NAME = "Test Group";
         var createdById = Guid.NewGuid();
         var participants = TestDataFactory.CreateGroupParticipants(2);
         const string imagePath = "test_image.jpg";
 
         var expectedGroup = new
         {
-            Name = name,
+            Name = NAME,
             ImagePath = imagePath,
             CreatedById = createdById,
             LastModifiedById = createdById,
@@ -25,7 +21,7 @@ public class GroupTests
         };
 
         // Act
-        var group = Group.Create(name, createdById, participants, imagePath);
+        var group = Group.Create(NAME, createdById, imagePath, participants);
 
         // Assert
         group.Should().NotBeNull();
@@ -44,24 +40,24 @@ public class GroupTests
         // Arrange
         var createdById = Guid.NewGuid();
         var initialParticipants = TestDataFactory.CreateGroupParticipants(1);
-        var group = Group.Create("Initial Group", createdById, initialParticipants, "initial_image.jpg");
+        var group = Group.Create("Initial Group", createdById, "initial_image.jpg", initialParticipants);
 
-        const string updatedName = "Updated Group";
+        const string UPDATED_NAME = "Updated Group";
         var modifiedById = Guid.NewGuid();
         var updatedParticipants = TestDataFactory.CreateGroupParticipants(2);
-        const string updatedImagePath = "updated_image.jpg";
+        const string UPDATED_IMAGE_PATH = "updated_image.jpg";
 
         var expectedGroup = new
         {
-            Name = updatedName,
-            ImagePath = updatedImagePath,
+            Name = UPDATED_NAME,
+            ImagePath = UPDATED_IMAGE_PATH,
             CreatedById = createdById,
             LastModifiedById = modifiedById,
             GroupParticipants = updatedParticipants
         };
 
         // Act
-        Group.Update(group, updatedName, modifiedById, updatedImagePath, updatedParticipants);
+        group.Update(UPDATED_NAME, modifiedById, UPDATED_IMAGE_PATH, updatedParticipants);
 
         // Assert
         group.Should().NotBeNull();
@@ -80,23 +76,23 @@ public class GroupTests
         // Arrange
         var createdById = Guid.NewGuid();
         var initialParticipants = TestDataFactory.CreateGroupParticipants(1);
-        var group = Group.Create("Initial Group", createdById, initialParticipants);
+        var group = Group.Create("Initial Group", createdById, participants: initialParticipants);
 
-        const string updatedName = "Updated Group";
+        const string UPDATED_NAME = "Updated Group";
         var modifiedById = Guid.NewGuid();
-        const string updatedImagePath = "updated_image.jpg";
+        const string UPDATED_IMAGE_PATH = "updated_image.jpg";
 
         var expectedGroup = new
         {
-            Name = updatedName,
-            ImagePath = updatedImagePath,
+            Name = UPDATED_NAME,
+            ImagePath = UPDATED_IMAGE_PATH,
             CreatedById = createdById,
             LastModifiedById = modifiedById,
             GroupParticipants = initialParticipants
         };
 
         // Act
-        Group.Update(group, updatedName, modifiedById, updatedImagePath);
+        group.Update(UPDATED_NAME, modifiedById, UPDATED_IMAGE_PATH);
 
         // Assert
         group.Should().NotBeNull();
@@ -114,12 +110,12 @@ public class GroupTests
     {
         // Arrange
         Group group = null;
-        const string updatedName = "Updated Group";
+        const string UPDATED_NAME = "Updated Group";
         var modifiedById = Guid.NewGuid();
         var participants = TestDataFactory.CreateGroupParticipants(1);
 
         // Act
-        var act = () => Group.Update(group, updatedName, modifiedById, participants: participants);
+        var act = () => group.Update(UPDATED_NAME, modifiedById, participants: participants);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

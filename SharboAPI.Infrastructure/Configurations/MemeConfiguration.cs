@@ -8,6 +8,6 @@ public class MemeConfiguration : IEntityTypeConfiguration<Meme>
 {
     public void Configure(EntityTypeBuilder<Meme> builder)
     {
-        builder.HasNoKey();
+        builder.ToTable("Memes");
     }
 }

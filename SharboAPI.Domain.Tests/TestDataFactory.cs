@@ -1,5 +1,3 @@
-using SharboAPI.Domain.Models;
-
 namespace SharboAPI.Domain.Tests;
 
 public static class TestDataFactory
@@ -15,12 +13,12 @@ public static class TestDataFactory
 		return users;
 	}
 
-	public static List<GroupParticipants> CreateGroupParticipants(int count = 2)
+	public static List<GroupParticipant> CreateGroupParticipants(int count = 2)
 	{
-		var groupParticipants = new List<GroupParticipants>();
+		var groupParticipants = new List<GroupParticipant>();
 		for (var i = 1; i <= count; i++)
 		{
-			groupParticipants.Add(GroupParticipants.Create(Guid.NewGuid(), Guid.NewGuid(), false));
+			groupParticipants.Add(GroupParticipant.Create(Guid.NewGuid(), Guid.NewGuid()));
 		}
 
 		return groupParticipants;

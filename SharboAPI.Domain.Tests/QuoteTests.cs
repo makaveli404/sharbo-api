@@ -1,7 +1,3 @@
-using FluentAssertions;
-using SharboAPI.Domain.Models;
-using Xunit;
-
 namespace SharboAPI.Domain.Tests;
 
 public class QuoteTests
@@ -11,19 +7,17 @@ public class QuoteTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var participants = TestDataFactory.CreateUsers(2);
-        const string text = "This is a test quote.";
+        const string TEXT = "This is a test quote.";
 
         var expectedQuote = new
         {
-            Text = text
+            Text = TEXT
         };
 
         // Act
-        var quote = Quote.Create(createdById, participants, text);
+        var quote = Quote.Create(createdById, TEXT);
 
         // Assert
-        quote.Should().NotBeNull();
         quote.Should().BeEquivalentTo(expectedQuote);
     }
 
@@ -32,20 +26,18 @@ public class QuoteTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var initialParticipants = TestDataFactory.CreateUsers(1);
-        var quote = Quote.Create(createdById, initialParticipants, "Initial quote text.");
+        var quote = Quote.Create(createdById, "Initial quote text.");
 
         var modifiedById = Guid.NewGuid();
-        var updatedParticipants = TestDataFactory.CreateUsers(2);
-        const string updatedText = "This is the updated quote text.";
+        const string UPDATED_TEXT = "This is the updated quote text.";
 
         var expectedQuote = new
         {
-            Text = updatedText
+            Text = UPDATED_TEXT
         };
 
         // Act
-        Quote.Update(quote, modifiedById, updatedParticipants, updatedText);
+        quote.Update(modifiedById, UPDATED_TEXT);
 
         // Assert
         quote.Should().BeEquivalentTo(expectedQuote);
@@ -57,11 +49,10 @@ public class QuoteTests
         // Arrange
         Quote? quote = null;
         var modifiedById = Guid.NewGuid();
-        var participants = TestDataFactory.CreateUsers(1);
-        const string text = "Updated quote text.";
+        const string TEXT = "Updated quote text.";
 
         // Act
-        var act = () => Quote.Update(quote, modifiedById, participants, text);
+        var act = () => quote.Update(modifiedById, TEXT);
 
         // Assert
         act.Should().Throw<NullReferenceException>();

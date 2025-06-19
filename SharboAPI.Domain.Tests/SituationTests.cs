@@ -1,7 +1,3 @@
-using FluentAssertions;
-using SharboAPI.Domain.Models;
-using Xunit;
-
 namespace SharboAPI.Domain.Tests;
 
 public class SituationTests
@@ -11,24 +7,18 @@ public class SituationTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var participants = TestDataFactory.CreateUsers(2);
-        const string text = "This is a test situation.";
+        const string TEXT = "This is a test situation.";
 
         var expectedSituation = new
         {
-            Text = text
+            Text = TEXT
         };
 
         // Act
-        var situation = Situation.Create(createdById, participants, text);
+        var situation = Situation.Create(createdById, TEXT);
 
         // Assert
-        situation.Should().NotBeNull();
         situation.Should().BeEquivalentTo(expectedSituation);
-        situation.Entry.Participants.Should().HaveCount(2);
-        situation.Entry.Participants.Should().BeEquivalentTo(participants);
-        situation.Entry.CreationDate.Date.Should().Be(DateTime.UtcNow.Date);
-        situation.Entry.LastModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
     }
 
     [Fact]
@@ -36,28 +26,21 @@ public class SituationTests
     {
         // Arrange
         var createdById = Guid.NewGuid();
-        var initialParticipants = TestDataFactory.CreateUsers(1);
-        var situation = Situation.Create(createdById, initialParticipants, "Initial situation text.");
+        var situation = Situation.Create(createdById, "Initial situation text.");
 
         var modifiedById = Guid.NewGuid();
-        var updatedParticipants = TestDataFactory.CreateUsers(2);
-        const string updatedText = "This is the updated situation text.";
+        const string UPDATED_TEXT = "This is the updated situation text.";
 
         var expectedSituation = new
         {
-            Text = updatedText
+            Text = UPDATED_TEXT
         };
 
         // Act
-        Situation.Update(situation, modifiedById, updatedParticipants, updatedText);
+        situation.Update(modifiedById, UPDATED_TEXT);
 
         // Assert
-        situation.Should().NotBeNull();
         situation.Should().BeEquivalentTo(expectedSituation);
-        situation.Entry.Participants.Should().HaveCount(2);
-        situation.Entry.Participants.Should().BeEquivalentTo(updatedParticipants);
-        situation.Entry.CreationDate.Date.Should().Be(DateTime.UtcNow.Date);
-        situation.Entry.LastModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
     }
 
     [Fact]
@@ -66,11 +49,10 @@ public class SituationTests
         // Arrange
         Situation? situation = null;
         var modifiedById = Guid.NewGuid();
-        var participants = TestDataFactory.CreateUsers(1);
-        const string text = "Updated situation text.";
+        const string TEXT = "Updated situation text.";
 
         // Act
-        var act = () => Situation.Update(situation, modifiedById, participants, text);
+        var act = () => situation.Update(modifiedById, TEXT);
 
         // Assert
         act.Should().Throw<NullReferenceException>();
