@@ -1,3 +1,4 @@
+using FluentValidation;
 using SharboAPI.Application.DTO.Group;
 using SharboAPI.Domain.Models;
 

@@ -1,3 +1,4 @@
+using FluentValidation;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.DTO.Group;
@@ -6,16 +7,16 @@ using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Application.Services;
 
-public sealed class GroupService(IGroupRepository groupRepository, IRoleRepository roleRepository) : IGroupService
+public sealed class GroupService(IGroupRepository groupRepository, IRoleRepository roleRepository, IValidator<GroupDto> groupDtoValidator) : IGroupService
 {
-	public async Task<Group?> GetById(Guid id, CancellationToken cancellationToken) 
+	public async Task<Group?> GetById(Guid id, CancellationToken cancellationToken)
 		=> await groupRepository.GetById(id, cancellationToken);
 
 	public async Task<Guid?> AddAsync(GroupDto groupDto, CancellationToken cancellationToken)
 	{
-		// TODO: Add validation
+		await groupDtoValidator.ValidateAndThrowAsync(groupDto, cancellationToken);
 
-        // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually 
+        // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
         var createdById = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
 
 		// Add creator to group and assign admin role
@@ -34,7 +35,7 @@ public sealed class GroupService(IGroupRepository groupRepository, IRoleReposito
         // Add participants (if chosen) to group and assign participant role
 		if (groupDto.Participants is not null)
 		{
-			groupDto.Participants.ForEach(dto => 
+			groupDto.Participants.ForEach(dto =>
 				participants.Add(GroupParticipant.Create(dto.UserId, [participant]))
 			);
 		}
