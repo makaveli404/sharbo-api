@@ -40,8 +40,8 @@ public static class GroupEndpoints
 	{
 		var group = routes.MapGroup("/api/group");
 
-		group.MapPost("/create", CreateGroup);
-		group.MapGet("/{id:guid}", GetGroupById);
+		group.MapPost("/create", CreateGroup).RequireAuthorization();
+		group.MapGet("/{id:guid}", GetGroupById).RequireAuthorization();
 		group.MapPut("/{id:guid}/update", UpdateGroup);
 	}
 }

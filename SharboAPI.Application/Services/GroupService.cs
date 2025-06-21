@@ -7,7 +7,11 @@ using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Application.Services;
 
-public sealed class GroupService(IGroupRepository groupRepository, IRoleRepository roleRepository, IValidator<GroupDto> groupDtoValidator) : IGroupService
+public sealed class GroupService(
+	IGroupRepository groupRepository,
+	IRoleRepository roleRepository,
+	IValidator<GroupDto> groupDtoValidator,
+	ICurrentUserService currentUserService) : IGroupService
 {
 	public async Task<Group?> GetById(Guid id, CancellationToken cancellationToken)
 		=> await groupRepository.GetById(id, cancellationToken);
@@ -17,16 +21,18 @@ public sealed class GroupService(IGroupRepository groupRepository, IRoleReposito
 		await groupDtoValidator.ValidateAndThrowAsync(groupDto, cancellationToken);
 
         // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-        var createdById = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
+        // var createdById = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
+        var createdById = currentUserService.UserId
+                          ?? throw new UnauthorizedAccessException();
 
 		// Add creator to group and assign admin role
 		var adminRole = await roleRepository.GetByRoleTypeAsync(RoleType.Admin, cancellationToken);
 		var moderatorRole = await roleRepository.GetByRoleTypeAsync(RoleType.Moderator, cancellationToken);
 		var participantRole = await roleRepository.GetByRoleTypeAsync(RoleType.Participant, cancellationToken);
 
-		var admin = GroupParticipantRole.Create(adminRole);
-		var moderator = GroupParticipantRole.Create(moderatorRole);
-		var participant = GroupParticipantRole.Create(participantRole);
+		var admin = GroupParticipantRole.Create(adminRole!);
+		var moderator = GroupParticipantRole.Create(moderatorRole!);
+		var participant = GroupParticipantRole.Create(participantRole!);
 
 		List<GroupParticipant> participants = [
 			GroupParticipant.Create(createdById, [admin, moderator, participant])
@@ -49,5 +55,9 @@ public sealed class GroupService(IGroupRepository groupRepository, IRoleReposito
 	public async Task<Group?> UpdateAsync(Guid groupId, UpdateGroupDto updatedGroup, CancellationToken cancellationToken) =>
 		await groupRepository.UpdateAsync(groupId, updatedGroup, cancellationToken);
 
-	public async Task DeleteAsync(Guid id, CancellationToken cancellationToken) => await groupRepository.DeleteAsync(id, cancellationToken);
+	public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+	{
+		// TODO: Remove group participants first
+		await groupRepository.DeleteAsync(id, cancellationToken);
+	}
 }

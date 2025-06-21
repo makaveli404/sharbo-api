@@ -11,8 +11,10 @@ public static class ServiceCollectionExtensions
 {
 	public static IServiceCollection AddApplication(this IServiceCollection services)
 	{
+		services.AddHttpContextAccessor();
 		services.AddScoped(typeof(IGroupService), typeof(GroupService));
 		services.AddScoped(typeof(IUserService),  typeof(UserService));
+		services.AddScoped(typeof(ICurrentUserService),  typeof(CurrentUserService));
 
 		services.AddFluentValidationAutoValidation();
 		services.AddValidatorsFromAssemblyContaining<GroupValidator>();
