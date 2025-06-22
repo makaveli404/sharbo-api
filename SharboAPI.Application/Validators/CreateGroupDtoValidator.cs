@@ -3,9 +3,9 @@ using SharboAPI.Application.DTO.Group;
 
 namespace SharboAPI.Application.Validators;
 
-public class GroupValidator : AbstractValidator<GroupDto>
+public class CreateGroupDtoValidator : AbstractValidator<CreateGroupDto>
 {
-	public GroupValidator()
+	public CreateGroupDtoValidator()
 	{
 		RuleFor(x => x.Name).NotEmpty().WithErrorCode("Group name is required").MaximumLength(50).WithMessage("Group name is too long").NotNull();
 		RuleFor(x => x.ImagePath)

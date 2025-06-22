@@ -28,6 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\SharboAPI.Application\SharboAPI.Application.csproj" />
       <ProjectReference Include="..\SharboAPI.Domain\SharboAPI.Domain.csproj" />
     </ItemGroup>
 

@@ -65,15 +65,19 @@ static void ApplyMigration<TDbContext>(IServiceScope scope)
 {
 	try
 	{
-		Log.Information("Applying migrations.");
+		Log.Information("Checking if any pending migrations exists.");
 		var context = scope.ServiceProvider.GetRequiredService<TDbContext>();
-
-		context.Database.Migrate();
-		Log.Information("Finished migrations.");
+		var pendingMigrations = context.Database.GetPendingMigrations().ToList();
+		if (pendingMigrations.Any())
+		{
+			Log.Information("Applying {Count} pending migrations.", pendingMigrations.Count);
+			context.Database.Migrate();
+			Log.Information("Finished migrations.");
+		}
 	}
 	catch (Exception ex)
 	{
-		Log.Error(ex, $"Failed to apply migrations for {typeof(TDbContext).Name}.");
+		Log.Error(ex, "Failed to apply migrations for {Name}.", typeof(TDbContext).Name);
 		throw;
 	}
 }

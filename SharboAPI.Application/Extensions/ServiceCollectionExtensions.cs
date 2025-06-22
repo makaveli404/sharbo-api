@@ -14,10 +14,10 @@ public static class ServiceCollectionExtensions
 		services.AddHttpContextAccessor();
 		services.AddScoped(typeof(IGroupService), typeof(GroupService));
 		services.AddScoped(typeof(IUserService),  typeof(UserService));
-		services.AddScoped(typeof(ICurrentUserService),  typeof(CurrentUserService));
 
 		services.AddFluentValidationAutoValidation();
-		services.AddValidatorsFromAssemblyContaining<GroupValidator>();
+		services.AddValidatorsFromAssemblyContaining<CreateGroupDtoValidator>();
+		services.AddValidatorsFromAssemblyContaining<UpdateGroupDtoValidator>();
 		return services;
 	}
 }
