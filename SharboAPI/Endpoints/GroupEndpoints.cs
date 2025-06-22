@@ -49,6 +49,6 @@ public static class GroupEndpoints
 		group.MapPost("/create", CreateGroup);
 		group.MapGet("/{id:guid}", GetGroupById);
 		group.MapPut("/{id:guid}/update", UpdateGroup);
-		group.MapDelete("/{id:guid}/delete", DeleteGroup);
+		group.MapDelete("/{id:guid}", DeleteGroup);
 	}
 }
