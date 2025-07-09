@@ -20,23 +20,27 @@ public sealed class GroupService(
 	{
 		await createGroupDtoValidator.ValidateAndThrowAsync(createGroupDto, cancellationToken);
 
-        // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-        var createdById = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
+		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
+		var createdById = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
 
 		// Add creator to group and assign admin role
 		var adminRole = await roleRepository.GetByRoleTypeAsync(RoleType.Admin, cancellationToken);
 		var moderatorRole = await roleRepository.GetByRoleTypeAsync(RoleType.Moderator, cancellationToken);
 		var participantRole = await roleRepository.GetByRoleTypeAsync(RoleType.Participant, cancellationToken);
+		ArgumentNullException.ThrowIfNull(adminRole, nameof(RoleType.Admin));
+		ArgumentNullException.ThrowIfNull(moderatorRole, nameof(RoleType.Moderator));
+		ArgumentNullException.ThrowIfNull(participantRole, nameof(RoleType.Participant));
 
 		var admin = GroupParticipantRole.Create(adminRole!);
 		var moderator = GroupParticipantRole.Create(moderatorRole!);
 		var participant = GroupParticipantRole.Create(participantRole!);
 
-		List<GroupParticipant> participants = [
+		List<GroupParticipant> participants =
+		[
 			GroupParticipant.Create(createdById, [admin, moderator, participant])
 		];
 
-        // Add participants (if chosen) to group and assign participant role
+		// Add participants (if chosen) to group and assign participant role
 		if (createGroupDto.Participants is not null)
 		{
 			createGroupDto.Participants.ForEach(dto =>
@@ -44,12 +48,13 @@ public sealed class GroupService(
 			);
 		}
 
-        var group = Group.Create(createGroupDto.Name, createdById, createGroupDto.ImagePath, participants);
+		var group = Group.Create(createGroupDto.Name, createdById, createGroupDto.ImagePath, participants);
 
 		return await groupRepository.AddAsync(group, cancellationToken);
 	}
 
-	public async Task<Group?> UpdateAsync(Guid groupId, UpdateGroupDto updatedGroup, CancellationToken cancellationToken)
+	public async Task<Group?> UpdateAsync(Guid groupId, UpdateGroupDto updatedGroup,
+		CancellationToken cancellationToken)
 	{
 		var group = await groupRepository.GetById(groupId, cancellationToken);
 
@@ -68,7 +73,6 @@ public sealed class GroupService(
 		await groupRepository.SaveChangesAsync(cancellationToken);
 		return group;
 	}
-
 
 
 	public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
