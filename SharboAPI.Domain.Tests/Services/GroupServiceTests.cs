@@ -3,6 +3,7 @@ using FluentValidation.Results;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.DTO.Group;
 using SharboAPI.Application.Services;
+using SharboAPI.Domain.Enums;
 
 namespace SharboAPI.Domain.Tests.Services;
 
@@ -51,10 +52,12 @@ public class GroupServiceTests
 		const string name = "Test";
 		const string imagePath = "https://example.com/image.jpg";
 		var dto = new CreateGroupDto(name, imagePath);
+		var role = Role.Create(RoleType.Admin, "Admin");
 
 		_groupRepo.Setup(r => r.AddAsync(It.IsAny<Group>(), CancellationToken))
 			.ReturnsAsync((Group g, CancellationToken _) => g.Id);
-
+		_roleRepo.Setup(r => r.GetByRoleTypeAsync(It.IsAny<RoleType>(), CancellationToken))
+			.ReturnsAsync(role);
 		// Act
 		var result = await _service.AddAsync(dto, CancellationToken);
 
