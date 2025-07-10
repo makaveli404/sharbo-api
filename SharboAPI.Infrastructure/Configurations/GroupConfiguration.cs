@@ -17,5 +17,11 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
             .HasOne(g => g.LastModifiedBy)
             .WithMany()
             .HasForeignKey(g => g.LastModifiedById);
+
+        builder
+            .HasMany(g => g.GroupParticipants)
+            .WithOne(p => p.Group)
+            .HasForeignKey(p => p.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

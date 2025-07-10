@@ -18,12 +18,12 @@ public static class GroupEndpoints
 			: TypedResults.NotFound();
 	}
 
-	private static async Task<IResult> CreateGroup(GroupDto group, IGroupService groupService,
+	private static async Task<IResult> CreateGroup(CreateGroupDto createGroup, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
-		var result = await groupService.AddAsync(group, cancellationToken);
+		var result = await groupService.AddAsync(createGroup, cancellationToken);
 		return result is not null
-			? TypedResults.Created($"{group}/{result}", result)
+			? TypedResults.Created($"{createGroup}/{result}", result)
 			: TypedResults.BadRequest();
 	}
 
@@ -36,6 +36,12 @@ public static class GroupEndpoints
 			: TypedResults.Ok();
 	}
 
+	private static async Task<IResult> DeleteGroup(Guid id, IGroupService groupService, CancellationToken cancellationToken)
+	{
+		await groupService.DeleteAsync(id, cancellationToken);
+		return TypedResults.NoContent();
+	}
+
 	private static void MapGroupsApi(this IEndpointRouteBuilder routes)
 	{
 		var group = routes.MapGroup("/api/group");
@@ -43,5 +49,6 @@ public static class GroupEndpoints
 		group.MapPost("/create", CreateGroup);
 		group.MapGet("/{id:guid}", GetGroupById);
 		group.MapPut("/{id:guid}/update", UpdateGroup);
+		group.MapDelete("/{id:guid}", DeleteGroup);
 	}
 }
