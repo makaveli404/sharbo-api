@@ -28,25 +28,36 @@ public class Group
             CreationDate = DateTime.UtcNow
         };
 
-        group.Update(name, createdById, imagePath, participants);
-        
+        group.Update(name, createdById, imagePath);
+        group.AddParticipants(participants);
+
         return group;
     }
 
     public void Update(string name,
                        Guid modifiedById,
-                       string? imagePath = null,
-                       List<GroupParticipant>? participants = null)
+                       string? imagePath = null)
     {
         Name = name;
         ImagePath = imagePath;
         LastModifiedById = modifiedById;
         ModificationDate = DateTime.UtcNow;
+    }
 
-        if (participants is not null)
-        {
-            GroupParticipants = participants;
-        }
+    public void AddParticipants(List<GroupParticipant>? participants)
+    {
+	    if (participants != null)
+	    {
+		    GroupParticipants.AddRange(participants);
+	    }
+    }
+
+    public void RemoveParticipants(List<GroupParticipant>? participants)
+    {
+	    if (participants != null)
+	    {
+		    GroupParticipants.RemoveAll(participants.Contains);
+	    }
     }
     #endregion
 }

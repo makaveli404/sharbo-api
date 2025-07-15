@@ -44,7 +44,6 @@ public class GroupTests
 
         const string UPDATED_NAME = "Updated Group";
         var modifiedById = Guid.NewGuid();
-        var updatedParticipants = TestDataFactory.CreateGroupParticipants(2);
         const string UPDATED_IMAGE_PATH = "updated_image.jpg";
 
         var expectedGroup = new
@@ -53,19 +52,19 @@ public class GroupTests
             ImagePath = UPDATED_IMAGE_PATH,
             CreatedById = createdById,
             LastModifiedById = modifiedById,
-            GroupParticipants = updatedParticipants
+            GroupParticipants = initialParticipants
         };
 
         // Act
-        group.Update(UPDATED_NAME, modifiedById, UPDATED_IMAGE_PATH, updatedParticipants);
+        group.Update(UPDATED_NAME, modifiedById, UPDATED_IMAGE_PATH);
 
         // Assert
         group.Should().NotBeNull();
         group.Should().BeEquivalentTo(expectedGroup, options => options
             .ExcludingMissingMembers()
             .Excluding(g => g.GroupParticipants));
-        group.GroupParticipants.Should().HaveCount(2);
-        group.GroupParticipants.Should().BeEquivalentTo(updatedParticipants);
+        group.GroupParticipants.Should().HaveCount(1);
+        group.GroupParticipants.Should().BeEquivalentTo(initialParticipants);
         group.CreationDate.Date.Should().Be(DateTime.UtcNow.Date);
         group.ModificationDate.Date.Should().Be(DateTime.UtcNow.Date);
     }
@@ -112,10 +111,9 @@ public class GroupTests
         Group group = null;
         const string UPDATED_NAME = "Updated Group";
         var modifiedById = Guid.NewGuid();
-        var participants = TestDataFactory.CreateGroupParticipants(1);
 
         // Act
-        var act = () => group.Update(UPDATED_NAME, modifiedById, participants: participants);
+        var act = () => group.Update(UPDATED_NAME, modifiedById);
 
         // Assert
         act.Should().Throw<NullReferenceException>();
