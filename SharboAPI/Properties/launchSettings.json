@@ -7,16 +7,16 @@
       "launchBrowser": false,
       "applicationUrl": "https://localhost:7077;http://localhost:5160",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "FIREBASE_CREDENTIALS": "{\"type\":\"service_account\",\"project_id\":\"sharbo-1\",\"private_key_id\":\"ff14cf095aefe4a98948e3374edbf049ffe4cf9b\",\"private_key\":\"-----BEGIN PRIVATE KEY-----\\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCvSUHAYXBqcvcx\\n7shH3CwXrZrX0am2I2taOphbvLcQA7aJNxnLP7i\/tlH1Xn2JgczfGbJDAn\/xrQvQ\\nGovHDp8THtuTrloNJDmUiu6J+NjiCPvtq+r3g0BQDcgDyfWFKHc0WCK28pFaGviI\\nJeqbh1WSnovpYZFHNI\/lLkLmd6g4Pzpv5dbiuOSsHnIZzkCX7epCK3KzJgG\/Vr0k\\n9HJwl3EFsSWlbOG7ecaeqkdBISIUlTJAE+WBcm\/RxdFcBfkyUKTqVs32sshEmzi4\\nhxvrQmELptN+9uLOO3RsO31qHcZ5cFlXIj2TjUfrTmArxyzu+5WAitEXo5b4mVU5\\n64e+qyI1AgMBAAECggEAHK0F4jSuoOOM+DDBuCvXVMpUbiFBO+hgfCLg4QUnB6or\\n1xfaEuuqTEbF8rfSHshK3WbFSHwktUNjjtiA7IBCWuzt7COWXNcDyn7OFmlNBfGF\\nUXUSHArvXwlaIvCLx4x+r+QJTdeyGsUVyqQ1VNtXjwR8DCKnkzgQoGQokq6ZqRW9\\nBinUgvb7+C9HJqXWxtLXAE\/K9USu0L1ziNoLb+FvXZp5i2M8CMUgL3jJblUxyGct\\nEXcni7YJ58b6OmLYeI0OKYi2q3Wp1SbJvQ78VbFfhCqJ2vKTQyuGhgGYGggjs9Ic\\nkrYDu2eUlHXXDW8SnGjjfbF7ysl2BF97305GyQUbMwKBgQDygchCa6l4SNtihDj7\\nIQf5cBZae9+eZhXMeXZTD7RJVpsIvUfQieO0VDSTU5NsQymjMdpFJFDYimK2PYj0\\nm+wbalyzChX4oV7bJCLpwVzJNPOtElZgsDoulDsCUsLPLZ03UlOjrh364rBEtFVa\\n3yWkHQBchAf+a4FpJl3UrdMzQwKBgQC5Cf7nyic3+R8kN03SCbRpWXKOQG2zMi8i\\nEJAtxzpxwx+KeIw7D\/aVmfvP0FAXmuKu4W0R1\/pJQ6pCkUzlj7r3uiUabj8DpY+a\\nsnisWevFt8cHA53RKz\/+ZvngTc05mrIc+RTKKoET8TIobOZaOOqii08b2qwitXtX\\nWZgJQW+xJwKBgB6vx4yIHSDIb2JvAtrcWir5QQrgI\/LiTh3avNtT4GdrWyDm+sBr\\nwnGeOizuZXhMo2cwNsOLDePo1wbikIMLe\/wYIHTTcOZOXTdzwis8OaaIWdFrwZxo\\nkGQ2g6UOnfIjfoJym3zZ2pdVuiJng2mFVTkIJnSOjIhoSC7rGPKBsHkLAoGBAIKg\\nPNPy0Lbh5gsSA5zn\/vV0ELu9XfPn1IAuwymeAHM49PYy3YQAY+n+d1agTzoqvCYK\\nu42iM20vGG2\/11IjojCptvGurEttwC\/MGAZLwHamoxkfg3SbHKUCmxmustccjuqH\\nKBcD5HVoiykgn4lHrtQqliEqwOQLy9PBSuQVzrx3AoGBAN4vnLPPcLoVPEPUax06\\n5foNuIRb9VavGVXcM7leZBjg\/T6EAgk4sZ0t\/3uMMP\/sTVN3tal5Kn90vzNG+3m8\\nTRbOFOpswaE7BlgvkmScRyJBZqEXI8KVcwjDXDD8A3ht+FKtC8MkyJQdaHpcQyEO\\nxkajuM54eVTUIlWLCV99wfYi\\n-----END PRIVATE KEY-----\\n\",\"client_email\":\"firebase-adminsdk-tbqht@sharbo-1.iam.gserviceaccount.com\",\"client_id\":\"115747941401928271395\",\"auth_uri\":\"https:\/\/accounts.google.com\/o\/oauth2\/auth\",\"token_uri\":\"https:\/\/oauth2.googleapis.com\/token\",\"auth_provider_x509_cert_url\":\"https:\/\/www.googleapis.com\/oauth2\/v1\/certs\",\"client_x509_cert_url\":\"https:\/\/www.googleapis.com\/robot\/v1\/metadata\/x509\/firebase-adminsdk-tbqht%40sharbo-1.iam.gserviceaccount.com\",\"universe_domain\":\"googleapis.com\"}"}
-    },
-    "SharboAPI_Production": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "https://placeholder",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Production"
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "SharboAPI_Production": {
+        "commandName": "Project",
+        "dotnetRunMessages": true,
+        "launchBrowser": false,
+        "applicationUrl": "https://placeholder",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Production"
+        }
       }
     }
   }

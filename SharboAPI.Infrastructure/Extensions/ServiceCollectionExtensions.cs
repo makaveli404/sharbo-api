@@ -59,7 +59,7 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IFirebaseService, FirebaseService>();
 		services.AddScoped<IAuthenticationService, AuthenticationService>();
 
-		var json = configuration["FIREBASE_CREDENTIALS"];
+		var json = configuration.GetSection("Firebase:Credentials").Value;
 
 		if (string.IsNullOrWhiteSpace(json))
 		{
