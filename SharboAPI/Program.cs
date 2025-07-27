@@ -5,7 +5,7 @@ using SharboAPI.Endpoints;
 using Serilog;
 using SharboAPI.Infrastructure;
 using SharboAPI.Infrastructure.Extensions;
-using SharboAPI.MIddleware;
+using SharboAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 

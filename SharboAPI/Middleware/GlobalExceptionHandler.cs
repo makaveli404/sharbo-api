@@ -1,7 +1,9 @@
+using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using SharboAPI.Application.Common.Exceptions;
 
-namespace SharboAPI.MIddleware;
+namespace SharboAPI.Middleware;
 
 internal sealed class GlobalExceptionHandler(IProblemDetailsService problemDetailsService, ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
@@ -13,6 +15,7 @@ internal sealed class GlobalExceptionHandler(IProblemDetailsService problemDetai
 		httpContext.Response.StatusCode = exception switch
 		{
 			ApplicationException => StatusCodes.Status400BadRequest,
+			FirebaseException => StatusCodes.Status409Conflict,
 			_ => StatusCodes.Status500InternalServerError
 		};
 

@@ -1,5 +1,6 @@
 using FirebaseAdmin.Auth;
 using SharboAPI.Application.Abstractions.Services;
+using SharboAPI.Application.Common.Exceptions;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Services;
@@ -43,7 +44,7 @@ public class FirebaseService : IFirebaseService
 		{
 			if (ex is FirebaseAuthException)
 			{
-				throw new Exception($"Firebase error has occurred: {ex.Message}");
+				throw new FirebaseException($"Firebase error has occurred: {ex.Message}");
 			}
 
 			throw new Exception($"Unexpected error: {ex.Message}");
@@ -62,7 +63,7 @@ public class FirebaseService : IFirebaseService
 		{
 			if (ex is FirebaseAuthException)
 			{
-				throw new Exception($"Firebase error has occurred: { ex.Message }");
+				throw new FirebaseException($"Firebase error has occurred: { ex.Message }");
 			}
 
 			throw new Exception($"Unexpected error: { ex.Message }");
@@ -87,7 +88,7 @@ public class FirebaseService : IFirebaseService
 		{
 			if (ex is FirebaseAuthException)
 			{
-				throw new Exception($"Firebase error has occurred: { ex.Message }");
+				throw new FirebaseException($"Firebase error has occurred: { ex.Message }");
 			}
 
 			throw new Exception($"Unexpected error: { ex.Message }");
