@@ -1,11 +1,11 @@
 using FluentValidation;
 using SharboAPI.Application.DTO.Group;
 
-namespace SharboAPI.Application.Validators;
+namespace SharboAPI.Application.Validators.Group;
 
-public class CreateGroupDtoValidator : AbstractValidator<CreateGroupDto>
+public class UpdateGroupDtoValidator : AbstractValidator<UpdateGroupDto>
 {
-	public CreateGroupDtoValidator()
+	public UpdateGroupDtoValidator()
 	{
 		RuleFor(x => x.Name)
 			.NotEmpty()
@@ -17,12 +17,5 @@ public class CreateGroupDtoValidator : AbstractValidator<CreateGroupDto>
 		RuleFor(x => x.ImagePath)
 			.Must(path => string.IsNullOrEmpty(path) || Uri.IsWellFormedUriString(path, UriKind.Absolute))
 			.WithMessage("ImagePath must be a valid URL");
-
-		RuleForEach(x => x.Participants)
-			.ChildRules(p =>
-			{
-				p.RuleFor(x => x.UserId)
-					.NotEqual(Guid.Empty).WithMessage("UserId is required");
-			});
 	}
 }

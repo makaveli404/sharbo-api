@@ -1,63 +1,84 @@
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
+using SharboAPI.Application.Common;
+using SharboAPI.Application.Common.Errors.User;
 using SharboAPI.Application.DTO.User;
-using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Application.Services;
 
 public class UserService(IUserRepository userRepository, IAuthenticationService authenticationService, IFirebaseService firebaseService) : IUserService
 {
-	public async Task<List<UserDetailsDto>> GetAllAsync(CancellationToken cancellationToken)
+	public async Task<Result<List<UserDetailsDto>>> GetAllAsync(CancellationToken cancellationToken)
 	{
 		var domainUsers = await userRepository.GetAllAsync(cancellationToken);
 		var firebaseUsers = await firebaseService.GetAllAsync([.. domainUsers], cancellationToken);
 
-		var users = domainUsers.Select(domainUser =>
-		{
-			var (uid, email) = firebaseUsers.FirstOrDefault(fu => fu.email == domainUser.Email);
+		var result = new List<UserDetailsDto>();
 
-			if (email is null)
+		foreach (var domainUser in domainUsers)
+		{
+			var firebaseUser = firebaseUsers.FirstOrDefault(fu => fu.email == domainUser.Email);
+
+			if (string.IsNullOrWhiteSpace(firebaseUser.uid)
+			    || string.IsNullOrEmpty(firebaseUser.email) ||
+			    string.IsNullOrEmpty(domainUser.Email))
 			{
-				throw new Exception($"No user with e-mail: { domainUser.Email } found");
+				return Result.Failure<List<UserDetailsDto>>(UserErrors.NotFound(domainUser.Id.ToString(), domainUser.Email));
 			}
 
-			return new UserDetailsDto(uid, email, domainUser.Nickname);
-		});
-
-		return [.. users];
-	}
-
-	public async Task<UserDetailsDto> GetByIdAsync(string id, CancellationToken cancellationToken)
-	{
-		var (uid, email) = await firebaseService.GetByIdAsync(id, cancellationToken);
-
-		if(email is null)
-		{
-			throw new Exception($"No user with ID: { id } found");
+			result.Add(new UserDetailsDto(domainUser.Id.ToString(), domainUser.Email, domainUser.Nickname));
 		}
 
-		var domainUser = await userRepository
-			                 .GetByEmailAsync(email, cancellationToken)
-		                 ?? throw new Exception($"No user with e-mail: { email } found");
-
-		return new(uid, email, domainUser.Nickname);
+		return Result.Success(result);
 	}
 
-	public async Task<UserDetailsDto> GetByEmailAsync(string userEmail, CancellationToken cancellationToken)
+	public async Task<Result<UserDetailsDto>> GetByIdAsync(string id, CancellationToken cancellationToken)
 	{
-		var domainUser = await userRepository
-			                 .GetByEmailAsync(userEmail, cancellationToken)
-		                 ?? throw new Exception($"No user with e-mail: {userEmail} found");
+		var firebaseUser = await firebaseService.GetByIdAsync(id, cancellationToken);
 
-		var (uid, email) = await firebaseService.GetByEmailAsync(userEmail, cancellationToken);
+		if (string.IsNullOrWhiteSpace(firebaseUser.uid))
+		{
+			return Result.Failure<UserDetailsDto>(UserErrors.NotFound(id));
+		}
 
-		return new(uid, email, domainUser.Nickname);
+		var domainUser = await userRepository.GetByEmailAsync(firebaseUser.email, cancellationToken);
+
+		if (string.IsNullOrEmpty(domainUser?.Email))
+		{
+			return Result.Failure<UserDetailsDto>(UserErrors.NotFound(domainUser?.Id.ToString(), domainUser?.Email));
+		}
+
+		var result = new UserDetailsDto(domainUser.Id.ToString(), domainUser.Email, domainUser.Nickname);
+		return Result.Success(result);
 	}
 
-	public async Task<string> AddAsync(string nickname, string email, string password, CancellationToken cancellationToken)
+	public async Task<Result<UserDetailsDto>> GetByEmailAsync(string userEmail, CancellationToken cancellationToken)
 	{
-		var userId = await authenticationService.RegisterAsync(nickname, email, password, cancellationToken);
-		return userId;
+		var domainUser = await userRepository.GetByEmailAsync(userEmail, cancellationToken);
+
+		if (string.IsNullOrEmpty(domainUser?.Email))
+		{
+			return Result.Failure<UserDetailsDto>(UserErrors.NotFound(domainUser?.Email));
+		}
+
+		var firebaseUser = await firebaseService.GetByEmailAsync(userEmail, cancellationToken);
+
+		if (string.IsNullOrWhiteSpace(firebaseUser.uid) || string.IsNullOrEmpty(firebaseUser.email))
+		{
+			return Result.Failure<UserDetailsDto>(UserErrors.NotFound(firebaseUser.uid));
+		}
+
+		var result = new UserDetailsDto(domainUser.Id.ToString(), domainUser.Email, domainUser.Nickname);
+		return Result.Success(result);
+	}
+
+	public async Task<Result<string>> AddAsync(string nickname, string email, string password, CancellationToken cancellationToken)
+	{
+		var result = await authenticationService.RegisterAsync(nickname, email, password, cancellationToken);
+
+		return result.IsFailure
+			? Result.Failure<string>(result.Error)
+			: result;
 	}
 
 }

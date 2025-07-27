@@ -5,10 +5,14 @@ using SharboAPI.Endpoints;
 using Serilog;
 using SharboAPI.Infrastructure;
 using SharboAPI.Infrastructure.Extensions;
+using SharboAPI.MIddleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var configuration = builder.Configuration;
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddInfrastructure(configuration);
 builder.Services.AddApplication();
@@ -32,6 +36,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 app.MapGroupEndpoints();
 app.MapUserEndpoints();
@@ -57,9 +63,7 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 app.MapControllers();
-Log.Information(builder.Configuration["FIREBASE_CREDENTIALS"]?.Substring(0, 100) ?? string.Empty);
 app.Run();
-
 
 
 static void ApplyMigration<TDbContext>(IServiceScope scope)

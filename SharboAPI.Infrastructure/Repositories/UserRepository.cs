@@ -6,7 +6,7 @@ namespace SharboAPI.Infrastructure.Repositories;
 
 public sealed class UserRepository(SharboDbContext context) : IUserRepository
 {
-	public async Task<IEnumerable<User>> GetAllAsync(CancellationToken cancellationToken)
+	public async Task<ICollection<User>> GetAllAsync(CancellationToken cancellationToken)
 		=> await context.Users.ToListAsync(cancellationToken);
 
 	public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)

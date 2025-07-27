@@ -1,5 +1,6 @@
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.DTO.User;
+using SharboAPI.Extensions;
 
 namespace SharboAPI.Endpoints;
 
@@ -13,22 +14,31 @@ public static class UserEndpoints
 	private static async Task<IResult> GetAllUsers(IUserService userService, CancellationToken cancellationToken)
 	{
 		var result = await userService.GetAllAsync(cancellationToken);
-		return TypedResults.Ok(result);
+		return result.ToResult();
 	}
 
 	private static async Task<IResult> GetUserById(string id, IUserService userService, CancellationToken cancellationToken)
 	{
 		var result = await userService.GetByIdAsync(id, cancellationToken);
-		return TypedResults.Ok(result);
+		return result.ToResult();
+	}
+
+	private static async Task<IResult> GetUserByEmail(string email, IUserService userService, CancellationToken cancellationToken)
+	{
+		var result = await userService.GetByEmailAsync(email, cancellationToken);
+		return result.ToResult();
 	}
 
 	private static async Task<IResult> CreateUser(UserDto user, IUserService userService,
 		CancellationToken cancellationToken)
 	{
 		var result = await userService.AddAsync(user.Nickname, user.Email, user.Password, cancellationToken);
-		return string.IsNullOrEmpty(result)
-			? TypedResults.BadRequest()
-			: TypedResults.CreatedAtRoute(routeName: nameof(GetUserById), routeValues: new { id = result }, value: new { id = result });
+
+		return result.IsFailure
+			? result.ToResult()
+			: TypedResults.CreatedAtRoute(routeName: nameof(GetUserById),
+				routeValues: new { id = result.Value },
+				value: new { id = result.Value });
 	}
 
 
@@ -38,5 +48,6 @@ public static class UserEndpoints
 		group.MapPost("/create", CreateUser);
 		group.MapGet("/", GetAllUsers);
 		group.MapGet("/{id}", GetUserById).WithName(nameof(GetUserById));
+		group.MapGet("email/{email}", GetUserByEmail).WithName(nameof(GetUserByEmail));
 	}
 }
