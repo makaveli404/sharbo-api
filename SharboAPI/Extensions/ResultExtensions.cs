@@ -8,46 +8,29 @@ public static class ResultExtensions
 {
 	public static IResult ToResult<T>(this Result<T> result)
 	{
-		if (result.IsSuccess)
-		{
-			return TypedResults.Ok(result.Value);
-		}
-
-		var problemDetails = new ProblemDetails
-		{
-			Type = $"https://httpstatuses.com/{result.Error.StatusCode}",
-			Title = result.Error.Type.ToString(),
-			Detail = result.Error.Message,
-			Status = result.Error.StatusCode
-		};
-
-		return result.Error.Type switch
-		{
-			ErrorType.BadRequest => TypedResults.BadRequest(problemDetails),
-			ErrorType.NotFound => TypedResults.NotFound(problemDetails),
-			ErrorType.Forbidden => TypedResults.Forbid(),
-			ErrorType.Unauthorized => TypedResults.Unauthorized(),
-			ErrorType.Conflict => TypedResults.Conflict(problemDetails),
-			_ => TypedResults.Problem(problemDetails)
-		};
+		return result.IsSuccess
+			? TypedResults.Ok(result.Value)
+			: CreateErrorResult(result.Error);
 	}
 
 	public static IResult ToResult(this Result result)
 	{
-		if (result.IsSuccess)
-		{
-			return TypedResults.Ok();
-		}
+		return result.IsSuccess
+			? TypedResults.Ok()
+			: CreateErrorResult(result.Error);
+	}
 
+	private static IResult CreateErrorResult(Error error)
+	{
 		var problemDetails = new ProblemDetails
 		{
-			Type = $"https://httpstatuses.com/{result.Error.StatusCode}",
-			Title = result.Error.Type.ToString(),
-			Detail = result.Error.Message,
-			Status = result.Error.StatusCode
+			Type = $"https://httpstatuses.com/{error.StatusCode}",
+			Title = error.Type.ToString(),
+			Detail = error.Message,
+			Status = error.StatusCode
 		};
 
-		return result.Error.Type switch
+		return error.Type switch
 		{
 			ErrorType.BadRequest => TypedResults.BadRequest(problemDetails),
 			ErrorType.NotFound => TypedResults.NotFound(problemDetails),
