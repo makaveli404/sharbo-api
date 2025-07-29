@@ -6,7 +6,7 @@ public sealed class Error(string message, int statusCode, ErrorType errorType)
 	public int StatusCode { get; init; } = statusCode;
 	public ErrorType Type { get; init; } = errorType;
 
-	public static readonly Error None = new(string.Empty, 0, ErrorType.None);
+	public static Error None => new(string.Empty, 0, ErrorType.None);
 	public static Error BadRequest(string message) => new(message, 400, ErrorType.BadRequest);
 	public static Error NotFound(string message) => new(message, 404, ErrorType.NotFound);
 	public static Error Unauthorized(string message) => new(message, 401, ErrorType.Unauthorized);
