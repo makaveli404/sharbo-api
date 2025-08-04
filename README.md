@@ -52,7 +52,7 @@ The solution follows a Clean Architecture layered approach:
 ## Authors
 
 - [Andrzej "Andret" Chmiel (andret2344)](https://gitlab.com/andret2344)
-- [Mateusz Domagała (Mytthew)](https://gitlab.com/Mytthew)
+- [Mateusz Domagała (makaveli)](https://gitlab.com/makavelix)
 - [Bartłomiej Potoniec (BartTux)](https://gitlab.com/BartTux)
 
 
