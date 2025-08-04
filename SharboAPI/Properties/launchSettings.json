@@ -8,15 +8,15 @@
       "applicationUrl": "https://localhost:7077;http://localhost:5160",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "SharboAPI_Production": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "https://placeholder",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Production"
+      },
+      "SharboAPI_Production": {
+        "commandName": "Project",
+        "dotnetRunMessages": true,
+        "launchBrowser": false,
+        "applicationUrl": "https://placeholder",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Production"
+        }
       }
     }
   }

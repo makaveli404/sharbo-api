@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Services;
 using SharboAPI.Application.Validators;
+using SharboAPI.Application.Validators.Group;
 
 namespace SharboAPI.Application.Extensions;
 
