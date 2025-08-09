@@ -3,7 +3,7 @@ using SharboAPI.Application.DTO.Group;
 
 namespace SharboAPI.Application.Validators.Group;
 
-public class CreateGroupDtoValidator : AbstractValidator<CreateGroupDto>
+public class CreateGroupDtoValidator : AbstractValidator<CreateGroup>
 {
 	public CreateGroupDtoValidator()
 	{
@@ -18,11 +18,11 @@ public class CreateGroupDtoValidator : AbstractValidator<CreateGroupDto>
 			.Must(path => string.IsNullOrEmpty(path) || Uri.IsWellFormedUriString(path, UriKind.Absolute))
 			.WithMessage("ImagePath must be a valid URL");
 
-		RuleForEach(x => x.Participants)
-			.ChildRules(p =>
-			{
-				p.RuleFor(x => x.UserId)
-					.NotEqual(Guid.Empty).WithMessage("UserId is required");
-			});
+		// RuleForEach(x => x.Participants)
+		// 	.ChildRules(p =>
+		// 	{
+		// 		p.RuleFor(x => x.UserId)
+		// 			.NotEqual(Guid.Empty).WithMessage("UserId is required");
+		// 	});
 	}
 }

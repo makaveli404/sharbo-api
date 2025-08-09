@@ -11,8 +11,8 @@ public class GroupServiceTests
 {
 	private readonly Mock<IGroupRepository> _groupRepo = new();
 	private readonly Mock<IRoleRepository> _roleRepo = new();
-	private readonly Mock<IValidator<CreateGroupDto>> _createValidator = new();
-	private readonly Mock<IValidator<UpdateGroupDto>> _updateValidator = new();
+	private readonly Mock<IValidator<CreateGroup>> _createValidator = new();
+	private readonly Mock<IValidator<UpdateGroup>> _updateValidator = new();
 	private readonly GroupService _service;
 	private static readonly CancellationToken CancellationToken = CancellationToken.None;
 
@@ -51,7 +51,7 @@ public class GroupServiceTests
 		// Arrange
 		const string name = "Test";
 		const string imagePath = "https://example.com/image.jpg";
-		var dto = new CreateGroupDto(name, imagePath);
+		var dto = new CreateGroup(name, imagePath);
 		var role = Role.Create(RoleType.Admin, "Admin");
 
 		_groupRepo.Setup(r => r.AddAsync(It.IsAny<Group>(), CancellationToken))
@@ -78,7 +78,7 @@ public class GroupServiceTests
 		const string newImagePath = "https://example.com/image.jpg";
 		var id = Guid.NewGuid();
 		var original = Group.Create(name, id, null, new List<GroupParticipant>());
-		var dto = new UpdateGroupDto(newName, newImagePath);
+		var dto = new UpdateGroup(newName, newImagePath);
 
 		_groupRepo.Setup(r => r.GetById(id, CancellationToken))
 			.ReturnsAsync(original);

@@ -18,7 +18,7 @@ public static class GroupEndpoints
 			: TypedResults.NotFound();
 	}
 
-	private static async Task<IResult> CreateGroup(CreateGroupDto createGroup, IGroupService groupService,
+	private static async Task<IResult> CreateGroup(CreateGroup createGroup, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.AddAsync(createGroup, cancellationToken);
@@ -27,7 +27,7 @@ public static class GroupEndpoints
 			: TypedResults.BadRequest();
 	}
 
-	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroupDto updatedGroup, IGroupService groupService,
+	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroup updatedGroup, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.UpdateAsync(id, updatedGroup, cancellationToken);

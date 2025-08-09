@@ -2,6 +2,7 @@ using FluentValidation;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.DTO.Group;
+using SharboAPI.Application.DTO.GroupParticipant;
 using SharboAPI.Domain.Enums;
 using SharboAPI.Domain.Models;
 
@@ -10,18 +11,27 @@ namespace SharboAPI.Application.Services;
 public sealed class GroupService(
 	IGroupRepository groupRepository,
 	IRoleRepository roleRepository,
-	IValidator<CreateGroupDto> createGroupDtoValidator,
-	IValidator<UpdateGroupDto> updateGroupDtoValidator) : IGroupService
+	IValidator<CreateGroup> createGroupDtoValidator,
+	IValidator<UpdateGroup> updateGroupDtoValidator) : IGroupService
 {
-	public async Task<Group?> GetById(Guid id, CancellationToken cancellationToken)
-		=> await groupRepository.GetById(id, cancellationToken);
-
-	public async Task<Guid?> AddAsync(CreateGroupDto createGroupDto, CancellationToken cancellationToken)
+	public async Task<GroupResult?> GetById(Guid id, CancellationToken cancellationToken)
 	{
-		await createGroupDtoValidator.ValidateAndThrowAsync(createGroupDto, cancellationToken);
+		var group = await groupRepository.GetById(id, cancellationToken);
+		if (group is null)
+		{
+			return null;
+		}
+
+		var groupResult = new GroupResult(group.Id, group.Name, group.ImagePath, CreateGroupParticipantsResult(group));
+		return groupResult;
+	}
+
+	public async Task<Guid?> AddAsync(CreateGroup createGroup, CancellationToken cancellationToken)
+	{
+		await createGroupDtoValidator.ValidateAndThrowAsync(createGroup, cancellationToken);
 
 		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-		var createdById = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
+		var createdById = Guid.Parse("3416e059-ca9e-484c-a93a-4816d1db9a10");
 
 		// Add creator to group and assign admin role
 		var adminRole = await roleRepository.GetByRoleTypeAsync(RoleType.Admin, cancellationToken);
@@ -41,19 +51,19 @@ public sealed class GroupService(
 		];
 
 		// Add participants (if chosen) to group and assign participant role
-		if (createGroupDto.Participants is not null)
+		if (createGroup.Participants is not null)
 		{
-			createGroupDto.Participants.ForEach(dto =>
-				participants.Add(GroupParticipant.Create(dto.UserId, [participant]))
+			createGroup.Participants.ForEach(userId =>
+				participants.Add(GroupParticipant.Create(userId, [participant]))
 			);
 		}
 
-		var group = Group.Create(createGroupDto.Name, createdById, createGroupDto.ImagePath, participants);
+		var group = Group.Create(createGroup.Name, createdById, createGroup.ImagePath, participants);
 
 		return await groupRepository.AddAsync(group, cancellationToken);
 	}
 
-	public async Task<Group?> UpdateAsync(Guid groupId, UpdateGroupDto updatedGroup,
+	public async Task<Group?> UpdateAsync(Guid groupId, UpdateGroup updatedGroup,
 		CancellationToken cancellationToken)
 	{
 		var group = await groupRepository.GetById(groupId, cancellationToken);
@@ -78,5 +88,17 @@ public sealed class GroupService(
 	public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
 	{
 		await groupRepository.DeleteAsync(id, cancellationToken);
+	}
+
+	private ICollection<GroupParticipantResult> CreateGroupParticipantsResult(Group group)
+	{
+		var groupParticipantsResult = new List<GroupParticipantResult>();
+
+		foreach (var groupParticipant in group.GroupParticipants)
+		{
+			groupParticipantsResult.Add(new GroupParticipantResult(groupParticipant.Id, groupParticipant.UserId));
+		}
+
+		return groupParticipantsResult;
 	}
 }
