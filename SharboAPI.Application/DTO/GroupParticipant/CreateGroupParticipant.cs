@@ -1,3 +1,3 @@
 ﻿namespace SharboAPI.Application.DTO.GroupParticipant;
 
-public record GroupParticipantDto(Guid UserId);
+public record CreateGroupParticipant(Guid UserId);

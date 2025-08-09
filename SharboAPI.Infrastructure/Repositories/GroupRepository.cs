@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using SharboAPI.Application.Abstractions.Repositories;
-using SharboAPI.Application.DTO.Group;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Repositories;

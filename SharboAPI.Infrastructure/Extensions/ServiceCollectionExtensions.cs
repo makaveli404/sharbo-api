@@ -54,6 +54,7 @@ public static class ServiceCollectionExtensions
 	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
 	{
 		services.AddScoped<IGroupRepository, GroupRepository>();
+		services.AddScoped<IGroupParticipantRepository, GroupParticipantRepository>();
 		services.AddScoped<IUserRepository, UserRepository>();
 		services.AddScoped<IRoleRepository, RoleRepository>();
 		services.AddScoped<IFirebaseService, FirebaseService>();

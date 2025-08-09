@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.DTO.Group;
+using SharboAPI.Application.DTO.GroupParticipant;
 
 namespace SharboAPI.Endpoints;
 
@@ -42,6 +44,23 @@ public static class GroupEndpoints
 		return TypedResults.NoContent();
 	}
 
+	private static async Task<IResult> AddParticipants(Guid id, CreateGroupParticipant createGroupParticipant, IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
+	{
+		var result = await groupParticipantService.AddAsync(createGroupParticipant, id, cancellationToken);
+		if (result.IsSuccess)
+		{
+			return TypedResults.Ok(result);
+		}
+
+		return TypedResults.Ok();
+	}
+
+	private static async Task<IResult> RemoveParticipants([FromBody] List<Guid> ids, IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
+	{
+		await groupParticipantService.DeleteAsync(ids, cancellationToken);
+		return TypedResults.Ok();
+	}
+
 	private static void MapGroupsApi(this IEndpointRouteBuilder routes)
 	{
 		var group = routes.MapGroup("/api/group");
@@ -50,5 +69,7 @@ public static class GroupEndpoints
 		group.MapGet("/{id:guid}", GetGroupById);
 		group.MapPut("/{id:guid}/update", UpdateGroup);
 		group.MapDelete("/{id:guid}", DeleteGroup);
+		group.MapPost("/{id:guid}/add-participants", AddParticipants);
+		group.MapPost("/{id:guid}/remove-participants", RemoveParticipants);
 	}
 }
