@@ -1,6 +1,8 @@
 using FluentValidation;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
+using SharboAPI.Application.Common;
+using SharboAPI.Application.Common.Errors;
 using SharboAPI.Application.DTO.Group;
 using SharboAPI.Application.DTO.GroupParticipant;
 using SharboAPI.Domain.Enums;
@@ -14,19 +16,19 @@ public sealed class GroupService(
 	IValidator<CreateGroup> createGroupDtoValidator,
 	IValidator<UpdateGroup> updateGroupDtoValidator) : IGroupService
 {
-	public async Task<GroupResult?> GetById(Guid id, CancellationToken cancellationToken)
+	public async Task<Result<GroupResult?>> GetById(Guid id, CancellationToken cancellationToken)
 	{
 		var group = await groupRepository.GetById(id, cancellationToken);
 		if (group is null)
 		{
-			return null;
+			return Result.Failure<GroupResult?>(Error.NotFound("Group not found"));
 		}
 
 		var groupResult = new GroupResult(group.Id, group.Name, group.ImagePath, CreateGroupParticipantsResult(group));
-		return groupResult;
+		return Result.Success<GroupResult?>(groupResult);
 	}
 
-	public async Task<Guid?> AddAsync(CreateGroup createGroup, CancellationToken cancellationToken)
+	public async Task<Result<Guid?>> AddAsync(CreateGroup createGroup, CancellationToken cancellationToken)
 	{
 		await createGroupDtoValidator.ValidateAndThrowAsync(createGroup, cancellationToken);
 
@@ -37,9 +39,11 @@ public sealed class GroupService(
 		var adminRole = await roleRepository.GetByRoleTypeAsync(RoleType.Admin, cancellationToken);
 		var moderatorRole = await roleRepository.GetByRoleTypeAsync(RoleType.Moderator, cancellationToken);
 		var participantRole = await roleRepository.GetByRoleTypeAsync(RoleType.Participant, cancellationToken);
-		ArgumentNullException.ThrowIfNull(adminRole, nameof(RoleType.Admin));
-		ArgumentNullException.ThrowIfNull(moderatorRole, nameof(RoleType.Moderator));
-		ArgumentNullException.ThrowIfNull(participantRole, nameof(RoleType.Participant));
+
+		if (adminRole is null || moderatorRole is null || participantRole is null)
+		{
+			return Result.Failure<Guid?>(Error.NotFound("Roles not found"));
+		}
 
 		var admin = GroupParticipantRole.Create(adminRole!);
 		var moderator = GroupParticipantRole.Create(moderatorRole!);
@@ -60,17 +64,18 @@ public sealed class GroupService(
 
 		var group = Group.Create(createGroup.Name, createdById, createGroup.ImagePath, participants);
 
-		return await groupRepository.AddAsync(group, cancellationToken);
+		var result = await groupRepository.AddAsync(group, cancellationToken);
+		return Result.Success(result);
 	}
 
-	public async Task<Group?> UpdateAsync(Guid groupId, UpdateGroup updatedGroup,
+	public async Task<Result<GroupResult?>> UpdateAsync(Guid groupId, UpdateGroup updatedGroup,
 		CancellationToken cancellationToken)
 	{
 		var group = await groupRepository.GetById(groupId, cancellationToken);
 
 		if (group is null)
 		{
-			return null;
+			return Result.Failure<GroupResult?>(Error.NotFound("Group not found"));
 		}
 
 		await updateGroupDtoValidator.ValidateAndThrowAsync(updatedGroup, cancellationToken);
@@ -81,13 +86,16 @@ public sealed class GroupService(
 		group.Update(updatedGroup.Name, modifiedBy, updatedGroup.ImagePath);
 
 		await groupRepository.SaveChangesAsync(cancellationToken);
-		return group;
+
+		var groupResult = new GroupResult(group.Id, group.Name, group.ImagePath, CreateGroupParticipantsResult(group));
+		return Result.Success<GroupResult?>(groupResult);
 	}
 
 
-	public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+	public async Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken)
 	{
 		await groupRepository.DeleteAsync(id, cancellationToken);
+		return Result.Success();
 	}
 
 	private ICollection<GroupParticipantResult> CreateGroupParticipantsResult(Group group)
