@@ -61,11 +61,6 @@ public class GroupParticipantService(IGroupParticipantRepository groupParticipan
 		return Result.Success();
 	}
 
-	public Task<Result> SaveChangesAsync(CancellationToken cancellationToken)
-	{
-		throw new NotImplementedException();
-	}
-
 	public async Task<Result> UpdateRolesAsync(Guid participantId, UpdateGroupParticipantRoles updateGroupParticipantRoles, CancellationToken cancellationToken)
 	{
 		var participant = await groupParticipantRepository.GetByIdAsync(participantId, cancellationToken);
