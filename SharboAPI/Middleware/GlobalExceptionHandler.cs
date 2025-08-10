@@ -14,6 +14,7 @@ internal sealed class GlobalExceptionHandler(IProblemDetailsService problemDetai
 
 		httpContext.Response.StatusCode = exception switch
 		{
+			BadHttpRequestException => StatusCodes.Status400BadRequest,
 			ApplicationException => StatusCodes.Status400BadRequest,
 			FirebaseException => StatusCodes.Status409Conflict,
 			ValidationException => StatusCodes.Status409Conflict,
@@ -23,8 +24,8 @@ internal sealed class GlobalExceptionHandler(IProblemDetailsService problemDetai
 		var problemDetails = new ProblemDetails
 		{
 			Type = exception.GetType().Name,
-			Title = "An unexpected error occurred",
-			Detail = exception.Message,
+			Title = exception.Message,
+			Detail = exception.InnerException?.ToString(),
 			Status = httpContext.Response.StatusCode
 		};
 
