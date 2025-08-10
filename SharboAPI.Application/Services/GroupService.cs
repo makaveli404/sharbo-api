@@ -24,7 +24,7 @@ public sealed class GroupService(
 			return Result.Failure<GroupResult?>(Error.NotFound("Group not found"));
 		}
 
-		var groupResult = new GroupResult(group.Id, group.Name, group.ImagePath, CreateGroupParticipantsResult(group));
+		var groupResult = new GroupResult(group.Id, group.Name, group.ImagePath, group.CreatedById, CreateGroupParticipantsResult(group));
 		return Result.Success<GroupResult?>(groupResult);
 	}
 
@@ -87,7 +87,7 @@ public sealed class GroupService(
 
 		await groupRepository.SaveChangesAsync(cancellationToken);
 
-		var groupResult = new GroupResult(group.Id, group.Name, group.ImagePath, CreateGroupParticipantsResult(group));
+		var groupResult = new GroupResult(group.Id, group.Name, group.ImagePath, group.CreatedById, CreateGroupParticipantsResult(group));
 		return Result.Success<GroupResult?>(groupResult);
 	}
 
@@ -104,7 +104,7 @@ public sealed class GroupService(
 
 		foreach (var groupParticipant in group.GroupParticipants)
 		{
-			groupParticipantsResult.Add(new GroupParticipantResult(groupParticipant.Id, groupParticipant.UserId));
+			groupParticipantsResult.Add(new GroupParticipantResult(groupParticipant.Id, groupParticipant.UserId, groupParticipant.GroupParticipantRoles.Select(r => r.Role.RoleType.ToString()).ToList()));
 		}
 
 		return groupParticipantsResult;

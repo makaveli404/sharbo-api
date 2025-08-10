@@ -30,7 +30,8 @@ public static class ServiceCollectionExtensions
 			case "SQLite":
 				services.AddDbContext<SharboDbContext>(options =>
 					options
-						.UseSqlite(configuration.GetConnectionString("SharboDbConnection"))
+						.UseSqlite(configuration.GetConnectionString("SharboDbConnection"),
+							optionsBuilder => optionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
 						.ConfigureWarnings(w => w.Ignore(RelationalEventId.NonTransactionalMigrationOperationWarning)));
 
 				break;
@@ -38,7 +39,8 @@ public static class ServiceCollectionExtensions
 				Log.Information("SharboDbConnection: " + configuration.GetConnectionString("SharboDbConnection"));
 				services.AddDbContext<SharboDbContext>(options =>
 				{
-					options.UseNpgsql(configuration.GetConnectionString("SharboDbConnection"))
+					options.UseNpgsql(configuration.GetConnectionString("SharboDbConnection"),
+							optionsBuilder => optionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
 						.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
 				});
 				break;

@@ -9,6 +9,8 @@ public sealed class GroupRepository(SharboDbContext context) : IGroupRepository
 	public async Task<Group?> GetById(Guid id, CancellationToken cancellationToken)
 	{
 		return await context.Groups.Include(g => g.GroupParticipants)
+			.ThenInclude(g => g.GroupParticipantRoles)
+			.ThenInclude(g => g.Role)
 			.FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 	}
 

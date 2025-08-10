@@ -42,7 +42,9 @@ public class GroupServiceTests
 		var actual = await _service.GetById(id, CancellationToken);
 
 		// Assert
-		Assert.Same(group, actual);
+		Assert.Equal(name, actual.Value?.Name);
+		Assert.Equal(imagePath, actual.Value?.ImagePath);
+		Assert.Equal(createdById, actual.Value?.CreatedById);
 	}
 
 	[Fact]
@@ -93,8 +95,8 @@ public class GroupServiceTests
 
 		// Assert
 		Assert.NotNull(updated);
-		Assert.Equal(dto.Name, updated!.Name);
-		Assert.Equal(dto.ImagePath, updated.ImagePath);
+		Assert.Equal(dto.Name, updated.Value?.Name);
+		Assert.Equal(dto.ImagePath, updated.Value?.ImagePath);
 		_groupRepo.Verify(r => r.SaveChangesAsync(CancellationToken), Times.Once);
 	}
 

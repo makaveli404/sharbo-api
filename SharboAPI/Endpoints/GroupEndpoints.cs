@@ -15,27 +15,39 @@ public static class GroupEndpoints
 	private static async Task<IResult> GetGroupById(Guid id, IGroupService groupService, CancellationToken cancellationToken)
 	{
 		var result = await groupService.GetById(id, cancellationToken);
-		return result is not null
-			? TypedResults.Ok(result)
-			: TypedResults.NotFound();
+
+		if (result.IsFailure)
+		{
+			return TypedResults.NotFound();
+		}
+
+		return TypedResults.Ok(result.Value);
 	}
 
 	private static async Task<IResult> CreateGroup(CreateGroup createGroup, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.AddAsync(createGroup, cancellationToken);
-		return result is not null
-			? TypedResults.Created($"{createGroup}/{result}", result)
-			: TypedResults.BadRequest();
+
+		if (result.IsFailure)
+		{
+			return TypedResults.BadRequest();
+		}
+
+		return TypedResults.Created($"{createGroup}/{result}", result);
 	}
 
 	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroup updatedGroup, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.UpdateAsync(id, updatedGroup, cancellationToken);
-		return result is not null
-			? TypedResults.Ok(result)
-			: TypedResults.Ok();
+
+		if (result.IsFailure)
+		{
+			return TypedResults.Ok();
+		}
+
+		return TypedResults.Ok(result);
 	}
 
 	private static async Task<IResult> DeleteGroup(Guid id, IGroupService groupService, CancellationToken cancellationToken)
@@ -61,15 +73,42 @@ public static class GroupEndpoints
 		return TypedResults.Ok();
 	}
 
+	private static async Task<IResult> UpdateRoles(Guid participantId, UpdateGroupParticipantRoles updateGroupParticipantRoles,
+		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
+	{
+		var result = await groupParticipantService.UpdateRolesAsync(participantId, updateGroupParticipantRoles, cancellationToken);
+
+		if (result.IsFailure)
+		{
+			return TypedResults.BadRequest();
+		}
+
+		return TypedResults.Ok();
+	}
+
+	private static async Task<IResult> GetGroupParticipantsByGroupId(Guid id, IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
+	{
+		var result = await groupParticipantService.GetGroupParticipantsByGroupIdAsync(id, cancellationToken);
+
+		if (result.IsFailure)
+		{
+			return TypedResults.NotFound();
+		}
+
+		return TypedResults.Ok(result.Value);
+	}
+
 	private static void MapGroupsApi(this IEndpointRouteBuilder routes)
 	{
-		var group = routes.MapGroup("/api/group");
+		var group = routes.MapGroup("/api/groups");
 
 		group.MapPost("/create", CreateGroup);
 		group.MapGet("/{id:guid}", GetGroupById);
 		group.MapPut("/{id:guid}/update", UpdateGroup);
 		group.MapDelete("/{id:guid}", DeleteGroup);
+		group.MapGet("/{id:guid}/participants", GetGroupParticipantsByGroupId);
 		group.MapPost("/{id:guid}/add-participants", AddParticipants);
 		group.MapPost("/{id:guid}/remove-participants", RemoveParticipants);
+		group.MapPost("/{id:guid}/participants/{participantId:guid}/update-roles", UpdateRoles);
 	}
 }
