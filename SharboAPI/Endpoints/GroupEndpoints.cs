@@ -12,7 +12,8 @@ public static class GroupEndpoints
 		MapGroupsApi(routes);
 	}
 
-	private static async Task<IResult> GetGroupById(Guid id, IGroupService groupService, CancellationToken cancellationToken)
+	private static async Task<IResult> GetGroupById(Guid id, IGroupService groupService,
+		CancellationToken cancellationToken)
 	{
 		var result = await groupService.GetById(id, cancellationToken);
 
@@ -37,7 +38,8 @@ public static class GroupEndpoints
 		return TypedResults.Created($"{createGroupRequest}/{result}", result);
 	}
 
-	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroupRequest updatedGroupRequest, IGroupService groupService,
+	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroupRequest updatedGroupRequest,
+		IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.UpdateAsync(id, updatedGroupRequest, cancellationToken);
@@ -50,15 +52,18 @@ public static class GroupEndpoints
 		return TypedResults.Ok(result);
 	}
 
-	private static async Task<IResult> DeleteGroup(Guid id, IGroupService groupService, CancellationToken cancellationToken)
+	private static async Task<IResult> DeleteGroup(Guid id, IGroupService groupService,
+		CancellationToken cancellationToken)
 	{
 		await groupService.DeleteAsync(id, cancellationToken);
 		return TypedResults.NoContent();
 	}
 
-	private static async Task<IResult> AddParticipants(Guid id, CreateGroupParticipantRequest createGroupParticipantRequest, IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
+	private static async Task<IResult> AddParticipants(Guid id,
+		[FromQuery] Guid[] userId, IGroupParticipantService groupParticipantService,
+		CancellationToken cancellationToken)
 	{
-		var result = await groupParticipantService.AddAsync(createGroupParticipantRequest, id, cancellationToken);
+		var result = await groupParticipantService.AddAsync(id, userId, cancellationToken);
 		if (result.IsSuccess)
 		{
 			return TypedResults.Ok(result);
@@ -67,16 +72,19 @@ public static class GroupEndpoints
 		return TypedResults.Ok();
 	}
 
-	private static async Task<IResult> RemoveParticipants([FromBody] List<Guid> ids, IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
+	private static async Task<IResult> RemoveParticipants([FromQuery] Guid[] participantId,
+		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
 	{
-		await groupParticipantService.DeleteAsync(ids, cancellationToken);
+		await groupParticipantService.DeleteAsync(participantId, cancellationToken);
 		return TypedResults.Ok();
 	}
 
-	private static async Task<IResult> UpdateRoles(Guid participantId, UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest,
+	private static async Task<IResult> UpdateRoles(Guid participantId,
+		UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest,
 		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
 	{
-		var result = await groupParticipantService.UpdateRolesAsync(participantId, updateGroupParticipantRolesRequest, cancellationToken);
+		var result = await groupParticipantService.UpdateRolesAsync(participantId, updateGroupParticipantRolesRequest,
+			cancellationToken);
 
 		if (result.IsFailure)
 		{
@@ -86,7 +94,8 @@ public static class GroupEndpoints
 		return TypedResults.Ok();
 	}
 
-	private static async Task<IResult> GetGroupParticipantsByGroupId(Guid id, IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
+	private static async Task<IResult> GetGroupParticipantsByGroupId(Guid id,
+		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
 	{
 		var result = await groupParticipantService.GetGroupParticipantsByGroupIdAsync(id, cancellationToken);
 
@@ -107,8 +116,8 @@ public static class GroupEndpoints
 		group.MapPut("/{id:guid}/update", UpdateGroup);
 		group.MapDelete("/{id:guid}", DeleteGroup);
 		group.MapGet("/{id:guid}/participants", GetGroupParticipantsByGroupId);
-		group.MapPost("/{id:guid}/add-participants", AddParticipants);
-		group.MapPost("/{id:guid}/remove-participants", RemoveParticipants);
-		group.MapPost("/{id:guid}/participants/{participantId:guid}/update-roles", UpdateRoles);
+		group.MapPost("/{id:guid}/participants", AddParticipants);
+		group.MapDelete("/{id:guid}/participants", RemoveParticipants);
+		group.MapPost("/{id:guid}/participants/{participantId:guid}/roles", UpdateRoles);
 	}
 }

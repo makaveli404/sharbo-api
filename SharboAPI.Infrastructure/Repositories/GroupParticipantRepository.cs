@@ -38,7 +38,7 @@ public class GroupParticipantRepository(SharboDbContext context) : IGroupPartici
 		return result.Entity?.Id;
 	}
 
-	public async Task DeleteAsync(List<Guid> id, CancellationToken cancellationToken)
+	public async Task DeleteAsync(Guid[] id, CancellationToken cancellationToken)
 	{
 		await context.GroupParticipants.Where(g => id.Contains(g.Id)).ExecuteDeleteAsync(cancellationToken);
 		await context.SaveChangesAsync(cancellationToken);

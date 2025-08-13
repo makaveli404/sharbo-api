@@ -36,28 +36,34 @@ public sealed class GroupParticipantService(IGroupParticipantRepository groupPar
 		return Result.Success(groupParticipantResult);
 	}
 
-	public async Task<Result<Guid?>> AddAsync(CreateGroupParticipantRequest createGroupParticipantRequest, Guid groupId, CancellationToken cancellationToken)
+	public async Task<Result<List<Guid?>>> AddAsync(Guid groupId, Guid[] userIds, CancellationToken cancellationToken)
 	{
 		var participantRole = await roleRepository.GetByRoleTypeAsync(RoleType.Participant, cancellationToken);
 
 		if (participantRole is null)
 		{
-			return Result.Failure<Guid?>(Error.NotFound("Participant role not found"));
+			return Result.Failure<List<Guid?>>(Error.NotFound("Participant role not found"));
 		}
 
-		var groupParticipantRoles = new List<GroupParticipantRole>
-		{
-			GroupParticipantRole.Create(participantRole)
-		};
+		var result = new List<Guid?>();
 
-		var groupParticipant = GroupParticipant.Create(groupId, createGroupParticipantRequest.UserId, groupParticipantRoles);
-		var result = await groupParticipantRepository.AddAsync(groupParticipant, cancellationToken);
+		foreach (var userId in userIds)
+		{
+			var groupParticipantRoles = new List<GroupParticipantRole>
+			{
+				GroupParticipantRole.Create(participantRole)
+			};
+
+			var groupParticipant = GroupParticipant.Create(groupId, userId, groupParticipantRoles);
+			result.Add(await groupParticipantRepository.AddAsync(groupParticipant, cancellationToken));
+		}
+
 		return Result.Success(result);
 	}
 
-	public async Task<Result> DeleteAsync(List<Guid> ids, CancellationToken cancellationToken)
+	public async Task<Result> DeleteAsync(Guid[] participantId, CancellationToken cancellationToken)
 	{
-		await groupParticipantRepository.DeleteAsync(ids, cancellationToken);
+		await groupParticipantRepository.DeleteAsync(participantId, cancellationToken);
 		return Result.Success();
 	}
 
