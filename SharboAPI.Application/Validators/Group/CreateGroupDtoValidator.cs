@@ -3,7 +3,7 @@ using SharboAPI.Application.DTO.Group;
 
 namespace SharboAPI.Application.Validators.Group;
 
-public class CreateGroupDtoValidator : AbstractValidator<CreateGroup>
+public class CreateGroupDtoValidator : AbstractValidator<CreateGroupRequest>
 {
 	public CreateGroupDtoValidator()
 	{

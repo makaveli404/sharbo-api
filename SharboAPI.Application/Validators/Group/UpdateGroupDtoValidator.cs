@@ -3,7 +3,7 @@ using SharboAPI.Application.DTO.Group;
 
 namespace SharboAPI.Application.Validators.Group;
 
-public class UpdateGroupDtoValidator : AbstractValidator<UpdateGroup>
+public class UpdateGroupDtoValidator : AbstractValidator<UpdateGroupRequest>
 {
 	public UpdateGroupDtoValidator()
 	{

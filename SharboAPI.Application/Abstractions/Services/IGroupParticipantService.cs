@@ -7,7 +7,7 @@ public interface IGroupParticipantService
 {
 	Task<Result<GroupParticipantResult>> GetById(Guid id, CancellationToken cancellationToken);
 	Task<Result<List<GroupParticipantResult>>> GetGroupParticipantsByGroupIdAsync(Guid groupId, CancellationToken cancellationToken);
-	Task<Result<Guid?>> AddAsync(CreateGroupParticipant groupParticipant, Guid groupId, CancellationToken cancellationToken);
+	Task<Result<Guid?>> AddAsync(CreateGroupParticipantRequest groupParticipantRequest, Guid groupId, CancellationToken cancellationToken);
 	Task<Result> DeleteAsync(List<Guid> ids, CancellationToken cancellationToken);
-	Task<Result> UpdateRolesAsync(Guid participantId, UpdateGroupParticipantRoles updateGroupParticipantRoles, CancellationToken cancellationToken);
+	Task<Result> UpdateRolesAsync(Guid participantId, UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest, CancellationToken cancellationToken);
 }

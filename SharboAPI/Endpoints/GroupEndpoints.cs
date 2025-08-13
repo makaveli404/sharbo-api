@@ -24,23 +24,23 @@ public static class GroupEndpoints
 		return TypedResults.Ok(result.Value);
 	}
 
-	private static async Task<IResult> CreateGroup(CreateGroup createGroup, IGroupService groupService,
+	private static async Task<IResult> CreateGroup(CreateGroupRequest createGroupRequest, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
-		var result = await groupService.AddAsync(createGroup, cancellationToken);
+		var result = await groupService.AddAsync(createGroupRequest, cancellationToken);
 
 		if (result.IsFailure)
 		{
 			return TypedResults.BadRequest();
 		}
 
-		return TypedResults.Created($"{createGroup}/{result}", result);
+		return TypedResults.Created($"{createGroupRequest}/{result}", result);
 	}
 
-	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroup updatedGroup, IGroupService groupService,
+	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroupRequest updatedGroupRequest, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
-		var result = await groupService.UpdateAsync(id, updatedGroup, cancellationToken);
+		var result = await groupService.UpdateAsync(id, updatedGroupRequest, cancellationToken);
 
 		if (result.IsFailure)
 		{
@@ -56,9 +56,9 @@ public static class GroupEndpoints
 		return TypedResults.NoContent();
 	}
 
-	private static async Task<IResult> AddParticipants(Guid id, CreateGroupParticipant createGroupParticipant, IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
+	private static async Task<IResult> AddParticipants(Guid id, CreateGroupParticipantRequest createGroupParticipantRequest, IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
 	{
-		var result = await groupParticipantService.AddAsync(createGroupParticipant, id, cancellationToken);
+		var result = await groupParticipantService.AddAsync(createGroupParticipantRequest, id, cancellationToken);
 		if (result.IsSuccess)
 		{
 			return TypedResults.Ok(result);
@@ -73,10 +73,10 @@ public static class GroupEndpoints
 		return TypedResults.Ok();
 	}
 
-	private static async Task<IResult> UpdateRoles(Guid participantId, UpdateGroupParticipantRoles updateGroupParticipantRoles,
+	private static async Task<IResult> UpdateRoles(Guid participantId, UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest,
 		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
 	{
-		var result = await groupParticipantService.UpdateRolesAsync(participantId, updateGroupParticipantRoles, cancellationToken);
+		var result = await groupParticipantService.UpdateRolesAsync(participantId, updateGroupParticipantRolesRequest, cancellationToken);
 
 		if (result.IsFailure)
 		{

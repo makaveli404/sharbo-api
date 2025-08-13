@@ -9,7 +9,7 @@ using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Application.Services;
 
-public class GroupParticipantService(IGroupParticipantRepository groupParticipantRepository,
+public sealed class GroupParticipantService(IGroupParticipantRepository groupParticipantRepository,
 	IRoleRepository roleRepository, ILogger<GroupParticipantService> logger) : IGroupParticipantService
 {
 	public async Task<Result<GroupParticipantResult>> GetById(Guid id, CancellationToken cancellationToken)
@@ -36,7 +36,7 @@ public class GroupParticipantService(IGroupParticipantRepository groupParticipan
 		return Result.Success(groupParticipantResult);
 	}
 
-	public async Task<Result<Guid?>> AddAsync(CreateGroupParticipant createGroupParticipant, Guid groupId, CancellationToken cancellationToken)
+	public async Task<Result<Guid?>> AddAsync(CreateGroupParticipantRequest createGroupParticipantRequest, Guid groupId, CancellationToken cancellationToken)
 	{
 		var participantRole = await roleRepository.GetByRoleTypeAsync(RoleType.Participant, cancellationToken);
 
@@ -50,7 +50,7 @@ public class GroupParticipantService(IGroupParticipantRepository groupParticipan
 			GroupParticipantRole.Create(participantRole)
 		};
 
-		var groupParticipant = GroupParticipant.Create(groupId, createGroupParticipant.UserId, groupParticipantRoles);
+		var groupParticipant = GroupParticipant.Create(groupId, createGroupParticipantRequest.UserId, groupParticipantRoles);
 		var result = await groupParticipantRepository.AddAsync(groupParticipant, cancellationToken);
 		return Result.Success(result);
 	}
@@ -61,7 +61,7 @@ public class GroupParticipantService(IGroupParticipantRepository groupParticipan
 		return Result.Success();
 	}
 
-	public async Task<Result> UpdateRolesAsync(Guid participantId, UpdateGroupParticipantRoles updateGroupParticipantRoles, CancellationToken cancellationToken)
+	public async Task<Result> UpdateRolesAsync(Guid participantId, UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest, CancellationToken cancellationToken)
 	{
 		var participant = await groupParticipantRepository.GetByIdAsync(participantId, cancellationToken);
 		if (participant is null)
@@ -71,8 +71,8 @@ public class GroupParticipantService(IGroupParticipantRepository groupParticipan
 
 		var currentRoles = participant.GroupParticipantRoles.Select(r => r.Role).ToList();
 
-		var rolesToAdd = updateGroupParticipantRoles.RoleTypes.Except(currentRoles.Select(r => r.RoleType)).ToList();
-		var rolesToRemove = currentRoles.Select(r => r.RoleType).Except(updateGroupParticipantRoles.RoleTypes).ToList();
+		var rolesToAdd = updateGroupParticipantRolesRequest.RoleTypes.Except(currentRoles.Select(r => r.RoleType)).ToList();
+		var rolesToRemove = currentRoles.Select(r => r.RoleType).Except(updateGroupParticipantRolesRequest.RoleTypes).ToList();
 
 		foreach (var roleTypeToAdd in rolesToAdd)
 		{

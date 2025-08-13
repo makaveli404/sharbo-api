@@ -13,8 +13,8 @@ namespace SharboAPI.Application.Services;
 public sealed class GroupService(
 	IGroupRepository groupRepository,
 	IRoleRepository roleRepository,
-	IValidator<CreateGroup> createGroupDtoValidator,
-	IValidator<UpdateGroup> updateGroupDtoValidator) : IGroupService
+	IValidator<CreateGroupRequest> createGroupDtoValidator,
+	IValidator<UpdateGroupRequest> updateGroupDtoValidator) : IGroupService
 {
 	public async Task<Result<GroupResult?>> GetById(Guid id, CancellationToken cancellationToken)
 	{
@@ -28,9 +28,9 @@ public sealed class GroupService(
 		return Result.Success<GroupResult?>(groupResult);
 	}
 
-	public async Task<Result<Guid?>> AddAsync(CreateGroup createGroup, CancellationToken cancellationToken)
+	public async Task<Result<Guid?>> AddAsync(CreateGroupRequest createGroupRequest, CancellationToken cancellationToken)
 	{
-		await createGroupDtoValidator.ValidateAndThrowAsync(createGroup, cancellationToken);
+		await createGroupDtoValidator.ValidateAndThrowAsync(createGroupRequest, cancellationToken);
 
 		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
 		var createdById = Guid.Parse("3416e059-ca9e-484c-a93a-4816d1db9a10");
@@ -55,20 +55,20 @@ public sealed class GroupService(
 		];
 
 		// Add participants (if chosen) to group and assign participant role
-		if (createGroup.Participants is not null)
+		if (createGroupRequest.Participants is not null)
 		{
-			createGroup.Participants.ForEach(userId =>
+			createGroupRequest.Participants.ForEach(userId =>
 				participants.Add(GroupParticipant.Create(userId, [participant]))
 			);
 		}
 
-		var group = Group.Create(createGroup.Name, createdById, createGroup.ImagePath, participants);
+		var group = Group.Create(createGroupRequest.Name, createdById, createGroupRequest.ImagePath, participants);
 
 		var result = await groupRepository.AddAsync(group, cancellationToken);
 		return Result.Success(result);
 	}
 
-	public async Task<Result<GroupResult?>> UpdateAsync(Guid groupId, UpdateGroup updatedGroup,
+	public async Task<Result<GroupResult?>> UpdateAsync(Guid groupId, UpdateGroupRequest updatedGroupRequest,
 		CancellationToken cancellationToken)
 	{
 		var group = await groupRepository.GetById(groupId, cancellationToken);
@@ -78,12 +78,12 @@ public sealed class GroupService(
 			return Result.Failure<GroupResult?>(Error.NotFound("Group not found"));
 		}
 
-		await updateGroupDtoValidator.ValidateAndThrowAsync(updatedGroup, cancellationToken);
+		await updateGroupDtoValidator.ValidateAndThrowAsync(updatedGroupRequest, cancellationToken);
 
 		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
 		var modifiedBy = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
 
-		group.Update(updatedGroup.Name, modifiedBy, updatedGroup.ImagePath);
+		group.Update(updatedGroupRequest.Name, modifiedBy, updatedGroupRequest.ImagePath);
 
 		await groupRepository.SaveChangesAsync(cancellationToken);
 

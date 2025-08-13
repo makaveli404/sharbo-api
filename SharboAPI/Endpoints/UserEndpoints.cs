@@ -29,10 +29,10 @@ public static class UserEndpoints
 		return result.ToResult();
 	}
 
-	private static async Task<IResult> CreateUser(CreateUser createUser, IUserService userService,
+	private static async Task<IResult> CreateUser(CreateUserRequest createUserRequest, IUserService userService,
 		CancellationToken cancellationToken)
 	{
-		var result = await userService.AddAsync(createUser.Nickname, createUser.Email, createUser.Password, cancellationToken);
+		var result = await userService.AddAsync(createUserRequest.Nickname, createUserRequest.Email, createUserRequest.Password, cancellationToken);
 
 		return result.IsFailure
 			? result.ToResult()

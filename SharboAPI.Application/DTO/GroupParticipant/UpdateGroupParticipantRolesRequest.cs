@@ -2,4 +2,4 @@ using SharboAPI.Domain.Enums;
 
 namespace SharboAPI.Application.DTO.GroupParticipant;
 
-public record UpdateGroupParticipantRoles(List<RoleType> RoleTypes);
+public sealed record UpdateGroupParticipantRolesRequest(List<RoleType> RoleTypes);
