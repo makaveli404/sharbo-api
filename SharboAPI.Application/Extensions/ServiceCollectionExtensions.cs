@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
 		services.AddHttpContextAccessor();
 		services.AddScoped(typeof(IGroupService), typeof(GroupService));
 		services.AddScoped(typeof(IUserService),  typeof(UserService));
+		services.AddScoped(typeof(IGroupParticipantService), typeof(GroupParticipantService));
 
 		services.AddFluentValidationAutoValidation();
 		services.AddValidatorsFromAssemblyContaining<CreateGroupDtoValidator>();

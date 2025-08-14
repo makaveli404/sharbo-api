@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SharboAPI.Application.Extensions;
@@ -21,7 +22,8 @@ builder.Services.AddOpenApi();
 builder.Host.UseSerilog((context, config) =>
 	config.ReadFrom.Configuration(context.Configuration));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+	.AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDatabaseConfiguration(configuration);
 
@@ -46,11 +48,7 @@ if (app.Environment.IsDevelopment())
 {
 	app.MapOpenApi();
 	app.UseSwagger();
-	app.UseSwaggerUI(c =>
-	{
-		c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sharbo API");
-		c.RoutePrefix = string.Empty;
-	});
+	app.UseSwaggerUI();
 }
 
 using var scope = app.Services.CreateScope();

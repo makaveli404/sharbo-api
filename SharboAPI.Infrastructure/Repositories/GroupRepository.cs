@@ -1,5 +1,5 @@
+using Microsoft.EntityFrameworkCore;
 using SharboAPI.Application.Abstractions.Repositories;
-using SharboAPI.Application.DTO.Group;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Repositories;
@@ -8,7 +8,11 @@ public sealed class GroupRepository(SharboDbContext context) : IGroupRepository
 {
 	public async Task<Group?> GetById(Guid id, CancellationToken cancellationToken)
 	{
-		return await context.Groups.FindAsync([id], cancellationToken);
+		return await context.Groups
+			.Include(g => g.GroupParticipants)
+			.ThenInclude(g => g.GroupParticipantRoles)
+			.ThenInclude(g => g.Role)
+			.FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
 	}
 
 	public async Task<Guid?> AddAsync(Group group, CancellationToken cancellationToken)
