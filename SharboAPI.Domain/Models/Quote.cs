@@ -7,20 +7,20 @@ public class Quote : Entry
 	private Quote() {}
 
     #region Factory_Methods
-    public static Quote Create(Guid createdById, string text)
+    public static Quote Create(GroupParticipant createdBy, string text)
     {
         Quote quote = new()
         {
             Text = text
         };
 
-        Entry.Set(quote, createdById);
+        Entry.Set(quote, createdBy);
         return quote;
     }
 
-    public void Update(Guid modifiedById, string text)
+    public void Update(GroupParticipant modifiedBy, string text)
     {
-        base.Update(modifiedById);
+        base.Update(modifiedBy);
         Text = text;
     }
     #endregion

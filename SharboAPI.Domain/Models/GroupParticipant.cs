@@ -5,7 +5,7 @@ public class GroupParticipant
     public Guid Id { get; private set; }
     public Guid GroupId { get; private set; }
     public Group Group { get; private set; }
-    public Guid UserId { get; private set; }
+    public string UserId { get; private set; }
     public User User { get; private set; }
 
     public List<GroupParticipantRole> GroupParticipantRoles { get; private set; } = [];
@@ -15,7 +15,7 @@ public class GroupParticipant
     private GroupParticipant() {}
 
     #region Factory_Methods
-    public static GroupParticipant Create(Guid userId, List<GroupParticipantRole>? participantRoles = null)
+    public static GroupParticipant Create(string userId, List<GroupParticipantRole>? participantRoles = null)
         => new()
         {
             Id = Guid.NewGuid(),
@@ -24,7 +24,7 @@ public class GroupParticipant
         };
 
     public static GroupParticipant Create(Guid groupId,
-                                          Guid userId,
+                                          string userId,
                                           List<GroupParticipantRole>? participantRoles = null)
     {
         GroupParticipant groupParticipant = Create(userId, participantRoles);
@@ -32,5 +32,9 @@ public class GroupParticipant
 
         return groupParticipant;
     }
+
+    public void AddRole(GroupParticipantRole role) => GroupParticipantRoles.Add(role);
+    public void RemoveRole(GroupParticipantRole role) => GroupParticipantRoles.Remove(role);
+
     #endregion
 }

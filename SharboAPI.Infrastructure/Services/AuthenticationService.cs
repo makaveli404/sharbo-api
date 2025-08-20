@@ -33,7 +33,7 @@ public class AuthenticationService(IUserRepository userRepository,
 		{
 			var userId = await firebaseService.RegisterAsync(email, password, cancellationToken);
 
-			var newUser = User.Create(nickname, email, password);
+			var newUser = User.Create(userId, nickname, email, password);
 			await userRepository.AddAsync(newUser, cancellationToken);
 
 			await transaction.CommitAsync(cancellationToken);

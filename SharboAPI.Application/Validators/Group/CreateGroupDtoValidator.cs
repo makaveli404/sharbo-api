@@ -9,7 +9,7 @@ public class CreateGroupDtoValidator : AbstractValidator<CreateGroupRequest>
 	{
 		RuleFor(x => x.Name)
 			.NotEmpty()
-			.WithErrorCode("Group name is required")
+			.WithMessage("Group name is required")
 			.MaximumLength(50)
 			.WithMessage("Group name is too long")
 			.NotNull();

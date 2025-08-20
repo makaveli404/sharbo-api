@@ -7,7 +7,7 @@ public static class TestDataFactory
 		var users = new List<User>();
 		for (var i = 1; i <= count; i++)
 		{
-			users.Add(User.Create($"User{i}", $"user{i}@example.com", "123456789"));
+			users.Add(User.Create($"ID{i}", $"User{i}", $"user{i}@example.com", "123456789"));
 		}
 
 		return users;

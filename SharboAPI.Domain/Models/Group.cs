@@ -5,9 +5,9 @@ public class Group
 	public Guid Id { get; private set; }
 	public string Name { get; private set; }
 	public string? ImagePath { get; private set; }
-	public Guid CreatedById { get; private set; }
+	public string CreatedById { get; private set; }
 	public User CreatedBy { get; private set; }
-	public Guid LastModifiedById { get; private set; }
+	public string LastModifiedById { get; private set; }
     public User LastModifiedBy { get; private set; }
     public List<GroupParticipant> GroupParticipants { get; private set; } = [];
     public DateTime CreationDate { get; private set; }
@@ -17,7 +17,7 @@ public class Group
 
     #region Factory_Methods
     public static Group Create(string name,
-                               Guid createdById,
+                               string createdById,
                                string? imagePath = null,
                                List<GroupParticipant>? participants = null)
     {
@@ -35,7 +35,7 @@ public class Group
     }
 
     public void Update(string name,
-                       Guid modifiedById,
+                       string modifiedById,
                        string? imagePath = null)
     {
         Name = name;

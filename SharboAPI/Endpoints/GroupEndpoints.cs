@@ -29,7 +29,7 @@ public static class GroupEndpoints
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.AddAsync(createGroupRequest, cancellationToken);
-
+		
 		if (result.IsFailure)
 		{
 			return TypedResults.BadRequest();
@@ -60,7 +60,7 @@ public static class GroupEndpoints
 	}
 
 	private static async Task<IResult> AddParticipants(Guid id,
-		[FromQuery] Guid[] userId, IGroupParticipantService groupParticipantService,
+		[FromQuery] string[] userId, IGroupParticipantService groupParticipantService,
 		CancellationToken cancellationToken)
 	{
 		var result = await groupParticipantService.AddAsync(id, userId, cancellationToken);
@@ -79,7 +79,9 @@ public static class GroupEndpoints
 		return TypedResults.Ok();
 	}
 
-	private static async Task<IResult> UpdateRoles(Guid participantId,
+	private static async Task<IResult> UpdateRoles(
+		Guid id, 
+		Guid participantId,
 		UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest,
 		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
 	{
@@ -91,7 +93,7 @@ public static class GroupEndpoints
 			return TypedResults.BadRequest();
 		}
 
-		return TypedResults.Ok();
+		return TypedResults.NoContent();
 	}
 
 	private static async Task<IResult> GetGroupParticipantsByGroupId(Guid id,
@@ -111,13 +113,13 @@ public static class GroupEndpoints
 	{
 		var group = routes.MapGroup("/api/groups");
 
-		group.MapPost("/create", CreateGroup);
+		group.MapPost("/", CreateGroup);
 		group.MapGet("/{id:guid}", GetGroupById);
 		group.MapPut("/{id:guid}/update", UpdateGroup);
 		group.MapDelete("/{id:guid}", DeleteGroup);
 		group.MapGet("/{id:guid}/participants", GetGroupParticipantsByGroupId);
 		group.MapPost("/{id:guid}/participants", AddParticipants);
 		group.MapDelete("/{id:guid}/participants", RemoveParticipants);
-		group.MapPost("/{id:guid}/participants/{participantId:guid}/roles", UpdateRoles);
+		group.MapPatch("/{id:guid}/participants/{participantId:guid}/roles", UpdateRoles);
 	}
 }

@@ -16,10 +16,10 @@ public static class ServiceCollectionExtensions
 		services.AddScoped(typeof(IGroupService), typeof(GroupService));
 		services.AddScoped(typeof(IUserService),  typeof(UserService));
 		services.AddScoped(typeof(IGroupParticipantService), typeof(GroupParticipantService));
+		services.AddScoped<IMemeService, MemeService>();
 
 		services.AddFluentValidationAutoValidation();
 		services.AddValidatorsFromAssemblyContaining<CreateGroupDtoValidator>();
-		services.AddValidatorsFromAssemblyContaining<UpdateGroupDtoValidator>();
 		return services;
 	}
 }

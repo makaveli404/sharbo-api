@@ -10,7 +10,6 @@ public class GroupParticipantRole
     private GroupParticipantRole() {}
 
     #region Factory_Methods
-    public static GroupParticipantRole Create(int roleId) => new() { RoleId = roleId };
 
     public static GroupParticipantRole Create(Role role) => new() { Role = role };
 

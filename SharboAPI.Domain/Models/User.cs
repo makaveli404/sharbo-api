@@ -2,7 +2,7 @@ namespace SharboAPI.Domain.Models;
 
 public class User
 {
-	public Guid Id { get; private set; }
+	public string Id { get; private set; }
 	public string Nickname { get; private set; }
 	public string Email { get; private set; }
 	public string Password { get; private set; }
@@ -10,14 +10,14 @@ public class User
 	private User() {}
 
     #region Factory_Methods
-    public static User Create(string nickname, string email, string password)
+    public static User Create(string providerId, string nickname, string email, string password)
 	{
         ArgumentException.ThrowIfNullOrWhiteSpace(nickname, nameof(nickname));
         ArgumentException.ThrowIfNullOrWhiteSpace(email, nameof(email));
 
 		return new User
 		{
-			Id = Guid.NewGuid(),
+			Id = providerId,
 			Nickname = nickname,
 			Email = email,
 			Password = password

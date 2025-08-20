@@ -23,7 +23,7 @@ public class GroupParticipantRepository(SharboDbContext context) : IGroupPartici
 			.ToListAsync(cancellationToken);
 	}
 
-	public async Task<GroupParticipant?> GetByUserIdAndGroupIdAsync(Guid userId, Guid groupId, CancellationToken cancellationToken)
+	public async Task<GroupParticipant?> GetByUserIdAndGroupIdAsync(string userId, Guid groupId, CancellationToken cancellationToken)
 	{
 		return await context.GroupParticipants
 			.Include(g => g.GroupParticipantRoles)
@@ -44,14 +44,13 @@ public class GroupParticipantRepository(SharboDbContext context) : IGroupPartici
 		await context.SaveChangesAsync(cancellationToken);
 	}
 
-	public async Task DeleteRolesAsync(Guid participantId, List<RoleType> roleTypes, CancellationToken cancellationToken)
-	{
-		await context.GroupParticipantRoles
-			.Where(x => x.GroupParticipantId == participantId
-			            && roleTypes.Contains(x.Role.RoleType))
-			.ExecuteDeleteAsync(cancellationToken);
-	}
-
+	public async Task DeleteRolesAsync(Guid participantId, List<Role> rolesToRemove, CancellationToken cancellationToken)
+		=> 
+			await context.GroupParticipantRoles
+				.Where(x => x.GroupParticipantId == participantId
+							&& rolesToRemove.Contains(x.Role))
+				.ExecuteDeleteAsync(cancellationToken);
+	
 	public async Task SaveChangesAsync(CancellationToken cancellationToken)
 	{
 		await context.SaveChangesAsync(cancellationToken);

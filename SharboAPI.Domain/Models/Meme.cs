@@ -8,7 +8,7 @@ public class Meme : Entry
 	private Meme() {}
 
     #region Factory_Methods
-    public static Meme Create(Guid createdById, string imagePath, string? text = null)
+    public static Meme Create(GroupParticipant createdBy, string imagePath, string? text = null)
     {
         Meme meme = new()
         {
@@ -16,14 +16,13 @@ public class Meme : Entry
             Text = text
         };
 
-        Entry.Set(meme, createdById);
+        Entry.Set(meme, createdBy);
         return meme;
     }
 
-    public void Update(Guid modifiedById, string imagePath, string? text = null)
+    public void UpdateText(GroupParticipant modifiedBy, string text)
     {
-        base.Update(modifiedById);
-        ImagePath = imagePath;
+        base.Update(modifiedBy);
         Text = text;
     }
     #endregion
