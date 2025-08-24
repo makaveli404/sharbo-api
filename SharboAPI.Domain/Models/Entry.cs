@@ -13,18 +13,18 @@ public class Entry
     protected Entry() {}
 
     #region Factory_Methods
-    protected static void Set(Entry entry, GroupParticipant createdBy)
+    protected static void Set(Entry entry, Guid createdById)
 	{
         entry.Id = Guid.NewGuid();
-        entry.CreatedBy = createdBy;
+        entry.CreatedById = createdById;
         entry.CreationDate = DateTime.UtcNow;
 
-        entry.Update(createdBy);
+        entry.Update(createdById);
 	}
 
-    protected void Update(GroupParticipant modifiedBy)
+    protected void Update(Guid modifiedById)
 	{
-		LastModifiedBy = modifiedBy;
+		LastModifiedById = modifiedById;
 		LastModificationDate = DateTime.UtcNow;
 	}
 

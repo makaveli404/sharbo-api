@@ -87,9 +87,13 @@ public sealed class GroupParticipantService(IGroupParticipantRepository groupPar
 			return Result.Failure(Error.NotFound("Group participant not found"));
 		}
 
-		var currentRoles = participant.GroupParticipantRoles.Select(r => r.Role).ToList();
+		List<Role> currentRoles = [];
+        List<Role> requestedRoles = [];
 
-		List<Role> requestedRoles = [];
+        foreach (var participantRole in participant.GroupParticipantRoles)
+        {
+			currentRoles.Add(participantRole.Role);
+        }
 
         foreach (var roleName in updateGroupParticipantRolesRequest.Roles)
         {

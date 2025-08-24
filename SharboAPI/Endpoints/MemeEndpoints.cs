@@ -27,21 +27,6 @@ public static class MemeEndpoints
     {
         var group = routes.MapGroup("/api/groups/{groupId:guid}/memes");
 
-        group.MapPost("", CreateMeme);
+        group.MapPost("/", CreateMeme);
     }
 }
-
-/*
- * 	private static async Task<IResult> CreateGroup(CreateGroupRequest createGroupRequest, IGroupService groupService,
-		CancellationToken cancellationToken)
-	{
-		var result = await groupService.AddAsync(createGroupRequest, cancellationToken);
-
-		if (result.IsFailure)
-		{
-			return TypedResults.BadRequest();
-		}
-
-		return TypedResults.Created($"{createGroupRequest}/{result}", result);
-	}
- */

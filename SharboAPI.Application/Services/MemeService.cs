@@ -31,7 +31,7 @@ public sealed class MemeService(
         }
 
         var meme = Meme.Create(
-            groupParticipant,
+            groupParticipant.Id,
             request.ImagePath,
             request.Text
         );

@@ -120,6 +120,6 @@ public static class GroupEndpoints
 		group.MapGet("/{id:guid}/participants", GetGroupParticipantsByGroupId);
 		group.MapPost("/{id:guid}/participants", AddParticipants);
 		group.MapDelete("/{id:guid}/participants", RemoveParticipants);
-		group.MapPatch("/{id:guid}/participants/{participantId:guid}/roles", UpdateRoles);
+		group.MapPut("/{id:guid}/participants/{participantId:guid}/roles", UpdateRoles);
 	}
 }

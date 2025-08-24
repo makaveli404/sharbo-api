@@ -7,20 +7,20 @@ public class Situation : Entry
     private Situation() {}
 
     #region Factory_Methods
-    public static Situation Create(GroupParticipant createdBy, string text)
+    public static Situation Create(Guid createdById, string text)
     {
         Situation situation = new()
         {
             Text = text
         };
 
-        Entry.Set(situation, createdBy);
+        Entry.Set(situation, createdById);
         return situation;
     }
 
-    public void Update(GroupParticipant modifiedBy, string text)
+    public void Update(Guid modifiedById, string text)
     {
-        base.Update(modifiedBy);
+        base.Update(modifiedById);
         Text = text;
     }
     #endregion

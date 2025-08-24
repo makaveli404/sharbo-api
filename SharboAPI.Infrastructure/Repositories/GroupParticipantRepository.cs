@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using SharboAPI.Application.Abstractions.Repositories;
-using SharboAPI.Domain.Enums;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Repositories;
@@ -43,13 +42,6 @@ public class GroupParticipantRepository(SharboDbContext context) : IGroupPartici
 		await context.GroupParticipants.Where(g => id.Contains(g.Id)).ExecuteDeleteAsync(cancellationToken);
 		await context.SaveChangesAsync(cancellationToken);
 	}
-
-	public async Task DeleteRolesAsync(Guid participantId, List<Role> rolesToRemove, CancellationToken cancellationToken)
-		=> 
-			await context.GroupParticipantRoles
-				.Where(x => x.GroupParticipantId == participantId
-							&& rolesToRemove.Contains(x.Role))
-				.ExecuteDeleteAsync(cancellationToken);
 	
 	public async Task SaveChangesAsync(CancellationToken cancellationToken)
 	{
