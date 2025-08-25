@@ -83,7 +83,7 @@ public sealed class GroupService(
 		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
 		var modifiedBy = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
 
-        group.Update(updatedGroupRequest.Name, modifiedBy, updatedGroupRequest.ImagePath);
+		group.Update(updatedGroupRequest.Name, modifiedBy, updatedGroupRequest.ImagePath);
 
 		await groupRepository.SaveChangesAsync(cancellationToken);
 
@@ -105,11 +105,11 @@ public sealed class GroupService(
 		foreach (var groupParticipant in group.GroupParticipants)
 		{
 			groupParticipantsResult.Add(new GroupParticipantResult(
-                groupParticipant.Id,
-                groupParticipant.UserId,
-                groupParticipant.GroupParticipantRoles
-					.Select(r => r.Role.RoleType.ToString())
-					.ToList()
+					groupParticipant.Id,
+					groupParticipant.UserId,
+					groupParticipant.GroupParticipantRoles
+						.Select(r => r.Role.RoleType.ToString())
+						.ToList()
 				)
 			);
 		}

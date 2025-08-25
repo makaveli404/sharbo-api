@@ -2,7 +2,7 @@
 
 public enum RoleType
 {
-    Participant,
-    Moderator,
-    Admin
+	Participant,
+	Moderator,
+	Admin
 }

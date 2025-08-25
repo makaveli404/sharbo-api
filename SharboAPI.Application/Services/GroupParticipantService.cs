@@ -25,7 +25,7 @@ public sealed class GroupParticipantService(IGroupParticipantRepository groupPar
 			groupParticipant.UserId, 
 			groupParticipant.GroupParticipantRoles
 				.Select(r => r.Role.RoleType.ToString())
-			.ToList()));
+				.ToList()));
 	}
 
 	public async Task<Result<List<GroupParticipantResult>>> GetGroupParticipantsByGroupIdAsync(Guid groupId, CancellationToken cancellationToken)
@@ -37,11 +37,11 @@ public sealed class GroupParticipantService(IGroupParticipantRepository groupPar
 		}
 
 		var groupParticipantResult = groupParticipants.Select(g => new GroupParticipantResult(
-			g.Id, 
-			g.UserId, 
-			g.GroupParticipantRoles
-				.Select(r => r.Role.RoleType.ToString())
-				.ToList()))
+				g.Id, 
+				g.UserId, 
+				g.GroupParticipantRoles
+					.Select(r => r.Role.RoleType.ToString())
+					.ToList()))
 			.ToList();
 
 		return Result.Success(groupParticipantResult);
@@ -88,25 +88,25 @@ public sealed class GroupParticipantService(IGroupParticipantRepository groupPar
 		}
 
 		List<Role> currentRoles = [];
-        List<Role> requestedRoles = [];
+		List<Role> requestedRoles = [];
 
-        foreach (var participantRole in participant.GroupParticipantRoles)
-        {
+		foreach (var participantRole in participant.GroupParticipantRoles)
+		{
 			currentRoles.Add(participantRole.Role);
-        }
+		}
 
-        foreach (var roleName in updateGroupParticipantRolesRequest.Roles)
-        {
+		foreach (var roleName in updateGroupParticipantRolesRequest.Roles)
+		{
 			var role = await roleRepository.GetByRoleNameAsync(roleName, cancellationToken);
 
-            if (role is null)
-            {
-                logger.LogWarning("Role with name {RoleName} not found.", roleName);
-                return Result.Failure<List<Role>>(Error.NotFound("No roles with given names found"));
-            }
+			if (role is null)
+			{
+				logger.LogWarning("Role with name {RoleName} not found.", roleName);
+				return Result.Failure<List<Role>>(Error.NotFound("No roles with given names found"));
+			}
 
 			requestedRoles.Add(role);
-        }
+		}
 
 		var rolesToAdd = requestedRoles.Except(currentRoles).ToList();
 		var rolesToRemove = currentRoles.Except(requestedRoles).ToList();

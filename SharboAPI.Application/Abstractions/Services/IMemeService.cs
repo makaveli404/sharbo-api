@@ -5,5 +5,5 @@ namespace SharboAPI.Application.Abstractions.Services;
 
 public interface IMemeService
 {
-    Task<Result<Guid?>> AddAsync(CreateMemeRequest request, CancellationToken cancellationToken);
+	Task<Result<Guid?>> AddAsync(CreateMemeRequest request, CancellationToken cancellationToken);
 }

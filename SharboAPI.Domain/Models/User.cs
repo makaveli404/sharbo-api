@@ -9,11 +9,11 @@ public class User
 
 	private User() {}
 
-    #region Factory_Methods
-    public static User Create(string providerId, string nickname, string email, string password)
+	#region Factory_Methods
+	public static User Create(string providerId, string nickname, string email, string password)
 	{
-        ArgumentException.ThrowIfNullOrWhiteSpace(nickname, nameof(nickname));
-        ArgumentException.ThrowIfNullOrWhiteSpace(email, nameof(email));
+		ArgumentException.ThrowIfNullOrWhiteSpace(nickname, nameof(nickname));
+		ArgumentException.ThrowIfNullOrWhiteSpace(email, nameof(email));
 
 		return new User
 		{

@@ -2,59 +2,59 @@ namespace SharboAPI.Domain.Tests;
 
 public class SituationTests
 {
-    [Fact]
-    public void Create_ShouldInitializeSituationCorrectly()
-    {
-        // Arrange
-        var createdById = Guid.NewGuid();
-        const string TEXT = "This is a test situation.";
+	[Fact]
+	public void Create_ShouldInitializeSituationCorrectly()
+	{
+		// Arrange
+		var createdById = Guid.NewGuid();
+		const string TEXT = "This is a test situation.";
 
-        var expectedSituation = new
-        {
-            Text = TEXT
-        };
+		var expectedSituation = new
+		{
+			Text = TEXT
+		};
 
-        // Act
-        var situation = Situation.Create(createdById, TEXT);
+		// Act
+		var situation = Situation.Create(createdById, TEXT);
 
-        // Assert
-        situation.Should().BeEquivalentTo(expectedSituation);
-    }
+		// Assert
+		situation.Should().BeEquivalentTo(expectedSituation);
+	}
 
-    [Fact]
-    public void Update_ShouldUpdateSituationCorrectly()
-    {
-        // Arrange
-        var createdById = Guid.NewGuid();
-        var situation = Situation.Create(createdById, "Initial situation text.");
+	[Fact]
+	public void Update_ShouldUpdateSituationCorrectly()
+	{
+		// Arrange
+		var createdById = Guid.NewGuid();
+		var situation = Situation.Create(createdById, "Initial situation text.");
 
-        var modifiedById = Guid.NewGuid();
-        const string UPDATED_TEXT = "This is the updated situation text.";
+		var modifiedById = Guid.NewGuid();
+		const string UPDATED_TEXT = "This is the updated situation text.";
 
-        var expectedSituation = new
-        {
-            Text = UPDATED_TEXT
-        };
+		var expectedSituation = new
+		{
+			Text = UPDATED_TEXT
+		};
 
-        // Act
-        situation.Update(modifiedById, UPDATED_TEXT);
+		// Act
+		situation.Update(modifiedById, UPDATED_TEXT);
 
-        // Assert
-        situation.Should().BeEquivalentTo(expectedSituation);
-    }
+		// Assert
+		situation.Should().BeEquivalentTo(expectedSituation);
+	}
 
-    [Fact]
-    public void Update_ShouldThrowException_WhenEntityIsNull()
-    {
-        // Arrange
-        Situation? situation = null;
-        var modifiedById = Guid.NewGuid();
-        const string TEXT = "Updated situation text.";
+	[Fact]
+	public void Update_ShouldThrowException_WhenEntityIsNull()
+	{
+		// Arrange
+		Situation? situation = null;
+		var modifiedById = Guid.NewGuid();
+		const string TEXT = "Updated situation text.";
 
-        // Act
-        var act = () => situation.Update(modifiedById, TEXT);
+		// Act
+		var act = () => situation.Update(modifiedById, TEXT);
 
-        // Assert
-        act.Should().Throw<NullReferenceException>();
-    }
+		// Assert
+		act.Should().Throw<NullReferenceException>();
+	}
 }
