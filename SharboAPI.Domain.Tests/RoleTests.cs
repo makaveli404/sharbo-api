@@ -4,39 +4,39 @@ namespace SharboAPI.Domain.Tests;
 
 public class RoleTests
 {
-    [Fact]
-    public void Create_ShouldInitializeRoleCorrectly()
-    {
-        // Arrange 
-        var roleType = RoleType.Participant;
-        var name = "Participant";
+	[Fact]
+	public void Create_ShouldInitializeRoleCorrectly()
+	{
+		// Arrange 
+		var roleType = RoleType.Participant;
+		var name = "Participant";
 
-        var expectedRole = new
-        {
-            RoleType = RoleType.Participant,
-            Name = "Participant"
-        };
+		var expectedRole = new
+		{
+			RoleType = RoleType.Participant,
+			Name = "Participant"
+		};
 
-        // Act
-        var result = Role.Create(roleType, name);
+		// Act
+		var result = Role.Create(roleType, name);
 
-        // Assert
-        result.Should().BeEquivalentTo(expectedRole);
-    }
+		// Assert
+		result.Should().BeEquivalentTo(expectedRole);
+	}
 
-    [Fact]
-    public void Create_ShouldUpdateRoleCorrectly()
-    {
-        // Arrange
-        var roleToUpdate = Role.Create(RoleType.Participant, "Participant");
-        var roleType = RoleType.Admin;
-        var name = "Admin";
+	[Fact]
+	public void Create_ShouldUpdateRoleCorrectly()
+	{
+		// Arrange
+		var roleToUpdate = Role.Create(RoleType.Participant, "Participant");
+		var roleType = RoleType.Admin;
+		var name = "Admin";
 
-        // Act
-        roleToUpdate.Update(roleType, name);
+		// Act
+		roleToUpdate.Update(roleType, name);
 
-        // Assert
-        roleToUpdate.RoleType.Should().Be(roleType);
-        roleToUpdate.Name.Should().Be(name);
-    }
+		// Assert
+		roleToUpdate.RoleType.Should().Be(roleType);
+		roleToUpdate.Name.Should().Be(name);
+	}
 }

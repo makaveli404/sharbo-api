@@ -6,8 +6,8 @@ namespace SharboAPI.Infrastructure.Configurations;
 
 public class QuoteConfiguration : IEntityTypeConfiguration<Quote>
 {
-    public void Configure(EntityTypeBuilder<Quote> builder)
-    {
-        builder.ToTable("Quotes");
-    }
+	public void Configure(EntityTypeBuilder<Quote> builder)
+	{
+		builder.ToTable("Quotes");
+	}
 }

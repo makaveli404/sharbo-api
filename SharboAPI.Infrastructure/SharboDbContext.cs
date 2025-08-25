@@ -15,9 +15,9 @@ public class SharboDbContext(DbContextOptions<SharboDbContext> options) : DbCont
 	public DbSet<Role> Roles { get; set; }
 	public DbSet<GroupParticipantRole> GroupParticipantRoles { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
+	protected override void OnModelCreating(ModelBuilder modelBuilder)
+	{
+		base.OnModelCreating(modelBuilder);
 		modelBuilder.ApplyConfigurationsFromAssembly(typeof(SharboDbContext).Assembly);
-    }
+	}
 }
