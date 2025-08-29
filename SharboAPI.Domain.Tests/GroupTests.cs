@@ -38,7 +38,7 @@ public class GroupTests
 	public void Update_ShouldUpdateGroupCorrectly()
 	{
 		// Arrange
-		var createdById = Guid.NewGuid();
+		var createdById = "fa4e74f5c58448a5acba";
 		var initialParticipants = TestDataFactory.CreateGroupParticipants(1);
 		var group = Group.Create("Initial Group", "fa4e74f5c58448a5acba", "initial_image.jpg", initialParticipants);
 
