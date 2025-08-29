@@ -9,7 +9,7 @@ public class GroupParticipantsTests
 	{
 		// Arrange
 		var groupId = Guid.NewGuid();
-		var userId = Guid.NewGuid();
+		var userId = "fa4e74f5c58448a5acba";
 		List<GroupParticipantRole>? roles = null;
 		List<GroupParticipantRole> expectedRoles = [];
 
@@ -32,7 +32,7 @@ public class GroupParticipantsTests
 	{
 		// Arrange
 		var groupId = Guid.NewGuid();
-		var userId = Guid.NewGuid();
+		var userId = "fa4e74f5c58448a5acba";
 		List<GroupParticipantRole> roles = [
 			GroupParticipantRole.Create(Role.Create(RoleType.Participant, "Participant")),
 			GroupParticipantRole.Create(Role.Create(RoleType.Moderator, "Moderator")),

@@ -6,18 +6,18 @@ public class MemeTests
 	public void Create_ShouldInitializeMemeCorrectly()
 	{
 		// Arrange
-		GroupParticipant createdBy = CreateGroupParticipantWithDefaults();
-		const string IMAGE_PATH = "test_image_path.jpg";
-		const string TEXT = "Test meme text";
+		Guid createdById = Guid.NewGuid();
+        const string imagePath = "test_image_path.jpg";
+		const string text = "Test meme text";
 
 		var expectedMeme = new
 		{
-			ImagePath = IMAGE_PATH,
-			Text = TEXT
+			ImagePath = imagePath,
+			Text = text
 		};
 
 		// Act
-		var meme = Meme.Create(createdBy, IMAGE_PATH, TEXT);
+		var meme = Meme.Create(createdById, imagePath, text);
 
 		// Assert
 		meme.Should().NotBeNull();
@@ -27,22 +27,22 @@ public class MemeTests
 	[Fact]
 	public void UpdateText_ShouldUpdateMemeCorrectly()
 	{
-		// Arrange
-		GroupParticipant createdBy = CreateGroupParticipantWithDefaults();
-		var meme = Meme.Create(createdBy, "initial_image.jpg", "Initial text");
+        // Arrange
+        Guid createdById = Guid.NewGuid();
+        var meme = Meme.Create(createdById, "initial_image.jpg", "Initial text");
 
-		GroupParticipant modifiedBy = CreateGroupParticipantWithDefaults();
-		const string UPDATED_TEXT = "Updated meme text";
+		Guid modifiedById = Guid.NewGuid();
+        const string updatedText = "Updated meme text";
 
 		var expectedMeme = new
 		{
-			CreatedById = createdBy,
-			LastModifiedById = modifiedBy,
-			Text = UPDATED_TEXT
+			CreatedById = createdById,
+			LastModifiedById = modifiedById,
+			Text = updatedText
 		};
 
 		// Act
-		meme.UpdateText(modifiedBy, UPDATED_TEXT);
+		meme.UpdateText(modifiedById, updatedText);
 
 		// Assert
 		meme.Should().BeEquivalentTo(expectedMeme);
@@ -53,16 +53,13 @@ public class MemeTests
 	{
 		// Arrange
 		Meme? meme = null;
-		var modifiedBy = CreateGroupParticipantWithDefaults();
-		const string UPDATED_TEXT = "Updated meme text";
+		var modifiedById = Guid.NewGuid();
+		const string updatedText = "Updated meme text";
 
 		// Act
-		var act = () => meme.UpdateText(modifiedBy, UPDATED_TEXT);
+		var act = () => meme.UpdateText(modifiedById, updatedText);
 
 		// Assert
 		act.Should().Throw<NullReferenceException>();
 	}
-
-	private GroupParticipant CreateGroupParticipantWithDefaults(Guid? groupId = null, Guid? userId = null)
-		=> GroupParticipant.Create(groupId ?? Guid.NewGuid(), userId ?? Guid.NewGuid());
 }

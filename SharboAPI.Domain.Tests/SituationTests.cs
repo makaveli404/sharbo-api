@@ -7,15 +7,15 @@ public class SituationTests
 	{
 		// Arrange
 		var createdById = Guid.NewGuid();
-		const string TEXT = "This is a test situation.";
+		const string text = "This is a test situation.";
 
 		var expectedSituation = new
 		{
-			Text = TEXT
+			Text = text
 		};
 
 		// Act
-		var situation = Situation.Create(createdById, TEXT);
+		var situation = Situation.Create(createdById, text);
 
 		// Assert
 		situation.Should().BeEquivalentTo(expectedSituation);
@@ -29,15 +29,15 @@ public class SituationTests
 		var situation = Situation.Create(createdById, "Initial situation text.");
 
 		var modifiedById = Guid.NewGuid();
-		const string UPDATED_TEXT = "This is the updated situation text.";
+		const string updatedText = "This is the updated situation text.";
 
 		var expectedSituation = new
 		{
-			Text = UPDATED_TEXT
+			Text = updatedText
 		};
 
 		// Act
-		situation.Update(modifiedById, UPDATED_TEXT);
+		situation.Update(modifiedById, updatedText);
 
 		// Assert
 		situation.Should().BeEquivalentTo(expectedSituation);
@@ -49,10 +49,10 @@ public class SituationTests
 		// Arrange
 		Situation? situation = null;
 		var modifiedById = Guid.NewGuid();
-		const string TEXT = "Updated situation text.";
+		const string text = "Updated situation text.";
 
 		// Act
-		var act = () => situation.Update(modifiedById, TEXT);
+		var act = () => situation.Update(modifiedById, text);
 
 		// Assert
 		act.Should().Throw<NullReferenceException>();

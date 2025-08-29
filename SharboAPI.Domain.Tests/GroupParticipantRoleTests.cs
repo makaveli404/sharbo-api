@@ -26,14 +26,16 @@ public class GroupParticipantRoleTests
 	public void Update_ShouldUpdateGroupParticipantRoleCorrectly()
 	{
 		// Arrange
-		var groupParticipantRoleToUpdate = GroupParticipantRole.Create(23);
+		var roleId = 2;
+		var updatedRoleId = 5;
 		var groupParticipantId = Guid.NewGuid();
-		var roleId = 23;
+
+		var groupParticipantRoleToUpdate = GroupParticipantRole.Create(groupParticipantId, roleId);
 
 		// Act
-		groupParticipantRoleToUpdate.Update(roleId);
+		groupParticipantRoleToUpdate.Update(updatedRoleId);
 
 		// Assert
-		groupParticipantRoleToUpdate.RoleId.Should().Be(roleId);
+		groupParticipantRoleToUpdate.RoleId.Should().Be(updatedRoleId);
 	}
 }

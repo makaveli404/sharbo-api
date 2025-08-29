@@ -7,7 +7,7 @@ public class GroupTests
 	{
 		// Arrange
 		const string NAME = "Test Group";
-		var createdById = Guid.NewGuid();
+		var createdById = "fa4e74f5c58448a5acba";
 		var participants = TestDataFactory.CreateGroupParticipants(2);
 		const string imagePath = "test_image.jpg";
 
@@ -40,10 +40,10 @@ public class GroupTests
 		// Arrange
 		var createdById = Guid.NewGuid();
 		var initialParticipants = TestDataFactory.CreateGroupParticipants(1);
-		var group = Group.Create("Initial Group", createdById, "initial_image.jpg", initialParticipants);
+		var group = Group.Create("Initial Group", "fa4e74f5c58448a5acba", "initial_image.jpg", initialParticipants);
 
 		const string UPDATED_NAME = "Updated Group";
-		var modifiedById = Guid.NewGuid();
+		var modifiedById = "fa4e74f5t76948a5acba";
 		const string UPDATED_IMAGE_PATH = "updated_image.jpg";
 
 		var expectedGroup = new
@@ -73,12 +73,12 @@ public class GroupTests
 	public void Update_ShouldNotChangeParticipants_WhenParticipantsAreNull()
 	{
 		// Arrange
-		var createdById = Guid.NewGuid();
+		var createdById = "fa4e74f5c58448a5acba";
 		var initialParticipants = TestDataFactory.CreateGroupParticipants(1);
 		var group = Group.Create("Initial Group", createdById, participants: initialParticipants);
 
 		const string UPDATED_NAME = "Updated Group";
-		var modifiedById = Guid.NewGuid();
+		var modifiedById = "fa4e74f5c58448a5kjhu";
 		const string UPDATED_IMAGE_PATH = "updated_image.jpg";
 
 		var expectedGroup = new
@@ -110,7 +110,7 @@ public class GroupTests
 		// Arrange
 		Group group = null;
 		const string UPDATED_NAME = "Updated Group";
-		var modifiedById = Guid.NewGuid();
+		var modifiedById = "fa4e74f5c58448a5acba";
 
 		// Act
 		var act = () => group.Update(UPDATED_NAME, modifiedById);

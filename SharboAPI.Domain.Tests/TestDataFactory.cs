@@ -18,7 +18,7 @@ public static class TestDataFactory
 		var groupParticipants = new List<GroupParticipant>();
 		for (var i = 1; i <= count; i++)
 		{
-			groupParticipants.Add(GroupParticipant.Create(Guid.NewGuid(), Guid.NewGuid()));
+			groupParticipants.Add(GroupParticipant.Create("fa4e74f5c58448a5acba", []));
 		}
 
 		return groupParticipants;

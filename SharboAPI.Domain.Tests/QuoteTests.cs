@@ -7,15 +7,15 @@ public class QuoteTests
 	{
 		// Arrange
 		var createdById = Guid.NewGuid();
-		const string TEXT = "This is a test quote.";
+		const string text = "This is a test quote.";
 
 		var expectedQuote = new
 		{
-			Text = TEXT
+			Text = text
 		};
 
 		// Act
-		var quote = Quote.Create(createdById, TEXT);
+		var quote = Quote.Create(createdById, text);
 
 		// Assert
 		quote.Should().BeEquivalentTo(expectedQuote);
@@ -29,15 +29,15 @@ public class QuoteTests
 		var quote = Quote.Create(createdById, "Initial quote text.");
 
 		var modifiedById = Guid.NewGuid();
-		const string UPDATED_TEXT = "This is the updated quote text.";
+		const string updatedText = "This is the updated quote text.";
 
 		var expectedQuote = new
 		{
-			Text = UPDATED_TEXT
+			Text = updatedText
 		};
 
 		// Act
-		quote.Update(modifiedById, UPDATED_TEXT);
+		quote.Update(modifiedById, updatedText);
 
 		// Assert
 		quote.Should().BeEquivalentTo(expectedQuote);
@@ -49,10 +49,10 @@ public class QuoteTests
 		// Arrange
 		Quote? quote = null;
 		var modifiedById = Guid.NewGuid();
-		const string TEXT = "Updated quote text.";
+		const string text = "Updated quote text.";
 
 		// Act
-		var act = () => quote.Update(modifiedById, TEXT);
+		var act = () => quote.Update(modifiedById, text);
 
 		// Assert
 		act.Should().Throw<NullReferenceException>();
