@@ -13,8 +13,8 @@ namespace SharboAPI.Application.Services;
 public sealed class GroupService(
 	IGroupRepository groupRepository,
 	IRoleRepository roleRepository,
-	IValidator<CreateGroupRequest> createGroupDtoValidator,
-	IValidator<UpdateGroupRequest> updateGroupDtoValidator) : IGroupService
+	IValidator<CreateGroupRequest> createGroupRequestValidator,
+	IValidator<UpdateGroupRequest> updateGroupRequestValidator) : IGroupService
 {
 	public async Task<Result<GroupResult?>> GetById(Guid id, CancellationToken cancellationToken)
 	{
@@ -30,10 +30,10 @@ public sealed class GroupService(
 
 	public async Task<Result<Guid?>> AddAsync(CreateGroupRequest createGroupRequest, CancellationToken cancellationToken)
 	{
-		await createGroupDtoValidator.ValidateAndThrowAsync(createGroupRequest, cancellationToken);
+		await createGroupRequestValidator.ValidateAndThrowAsync(createGroupRequest, cancellationToken);
 
 		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-		var createdById = Guid.Parse("3416e059-ca9e-484c-a93a-4816d1db9a10");
+		var createdById = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
 
 		// Add creator to group and assign admin role
 		var adminRole = await roleRepository.GetByRoleTypeAsync(RoleType.Admin, cancellationToken);
@@ -78,10 +78,10 @@ public sealed class GroupService(
 			return Result.Failure<GroupResult?>(Error.NotFound("Group not found"));
 		}
 
-		await updateGroupDtoValidator.ValidateAndThrowAsync(updatedGroupRequest, cancellationToken);
+		await updateGroupRequestValidator.ValidateAndThrowAsync(updatedGroupRequest, cancellationToken);
 
 		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-		var modifiedBy = Guid.Parse("0B9C7DF2-6829-4316-AA79-A60FAD110E5B");
+		var modifiedBy = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
 
 		group.Update(updatedGroupRequest.Name, modifiedBy, updatedGroupRequest.ImagePath);
 
@@ -104,7 +104,14 @@ public sealed class GroupService(
 
 		foreach (var groupParticipant in group.GroupParticipants)
 		{
-			groupParticipantsResult.Add(new GroupParticipantResult(groupParticipant.Id, groupParticipant.UserId, groupParticipant.GroupParticipantRoles.Select(r => r.Role.RoleType.ToString()).ToList()));
+			groupParticipantsResult.Add(new GroupParticipantResult(
+					groupParticipant.Id,
+					groupParticipant.UserId,
+					groupParticipant.GroupParticipantRoles
+						.Select(r => r.Role.RoleType.ToString())
+						.ToList()
+				)
+			);
 		}
 
 		return groupParticipantsResult;

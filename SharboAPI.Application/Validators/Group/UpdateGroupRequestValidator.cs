@@ -3,9 +3,9 @@ using SharboAPI.Application.DTO.Group;
 
 namespace SharboAPI.Application.Validators.Group;
 
-public class CreateGroupDtoValidator : AbstractValidator<CreateGroupRequest>
+public class UpdateGroupRequestValidator : AbstractValidator<UpdateGroupRequest>
 {
-	public CreateGroupDtoValidator()
+	public UpdateGroupRequestValidator()
 	{
 		RuleFor(x => x.Name)
 			.NotEmpty()

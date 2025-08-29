@@ -3,13 +3,13 @@ using SharboAPI.Application.DTO.Group;
 
 namespace SharboAPI.Application.Validators.Group;
 
-public class UpdateGroupDtoValidator : AbstractValidator<UpdateGroupRequest>
+public class CreateGroupRequestValidator : AbstractValidator<CreateGroupRequest>
 {
-	public UpdateGroupDtoValidator()
+	public CreateGroupRequestValidator()
 	{
 		RuleFor(x => x.Name)
 			.NotEmpty()
-			.WithErrorCode("Group name is required")
+			.WithMessage("Group name is required")
 			.MaximumLength(50)
 			.WithMessage("Group name is too long")
 			.NotNull();

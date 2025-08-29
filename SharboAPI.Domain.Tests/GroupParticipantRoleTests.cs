@@ -2,38 +2,40 @@
 
 public class GroupParticipantRoleTests
 {
-    [Fact]
-    public void Create_ShouldInitializeGroupParticipantRoleCorrectly()
-    {
-        // Arrange
-        var groupParticipantId = Guid.NewGuid();
-        var roleId = 23;
+	[Fact]
+	public void Create_ShouldInitializeGroupParticipantRoleCorrectly()
+	{
+		// Arrange
+		var groupParticipantId = Guid.NewGuid();
+		var roleId = 23;
 
-        var expectedGroupParticipantRole = new
-        {
-            GroupParticipantId = groupParticipantId,
-            RoleId = 23,
-        };
+		var expectedGroupParticipantRole = new
+		{
+			GroupParticipantId = groupParticipantId,
+			RoleId = 23,
+		};
 
-        // Act
-        var result = GroupParticipantRole.Create(groupParticipantId, roleId);
+		// Act
+		var result = GroupParticipantRole.Create(groupParticipantId, roleId);
 
-        // Assert
-        result.Should().BeEquivalentTo(expectedGroupParticipantRole);
-    }
+		// Assert
+		result.Should().BeEquivalentTo(expectedGroupParticipantRole);
+	}
 
-    [Fact]
-    public void Update_ShouldUpdateGroupParticipantRoleCorrectly()
-    {
-        // Arrange
-        var groupParticipantRoleToUpdate = GroupParticipantRole.Create(23);
-        var groupParticipantId = Guid.NewGuid();
-        var roleId = 23;
+	[Fact]
+	public void Update_ShouldUpdateGroupParticipantRoleCorrectly()
+	{
+		// Arrange
+		var roleId = 2;
+		var updatedRoleId = 5;
+		var groupParticipantId = Guid.NewGuid();
 
-        // Act
-        groupParticipantRoleToUpdate.Update(roleId);
+		var groupParticipantRoleToUpdate = GroupParticipantRole.Create(groupParticipantId, roleId);
 
-        // Assert
-        groupParticipantRoleToUpdate.RoleId.Should().Be(roleId);
-    }
+		// Act
+		groupParticipantRoleToUpdate.Update(updatedRoleId);
+
+		// Assert
+		groupParticipantRoleToUpdate.RoleId.Should().Be(updatedRoleId);
+	}
 }

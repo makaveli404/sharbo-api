@@ -1,6 +1,5 @@
 using SharboAPI.Application.Common;
 using SharboAPI.Application.DTO.Group;
-using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Application.Abstractions.Services;
 

@@ -6,8 +6,8 @@ namespace SharboAPI.Infrastructure.Configurations;
 
 public class MemeConfiguration : IEntityTypeConfiguration<Meme>
 {
-    public void Configure(EntityTypeBuilder<Meme> builder)
-    {
-        builder.ToTable("Memes");
-    }
+	public void Configure(EntityTypeBuilder<Meme> builder)
+	{
+		builder.ToTable("Memes");
+	}
 }

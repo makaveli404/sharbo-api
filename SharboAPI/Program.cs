@@ -43,6 +43,7 @@ app.UseExceptionHandler();
 
 app.MapGroupEndpoints();
 app.MapUserEndpoints();
+app.MapMemeEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

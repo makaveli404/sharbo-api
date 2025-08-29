@@ -44,7 +44,7 @@ public static class UserEndpoints
 
 	private static void MapUsersApi(this IEndpointRouteBuilder routes)
 	{
-		var group = routes.MapGroup("/api/user");
+		var group = routes.MapGroup("/api/users");
 		group.MapPost("/create", CreateUser);
 		group.MapGet("/", GetAllUsers);
 		group.MapGet("/{id}", GetUserById).WithName(nameof(GetUserById));

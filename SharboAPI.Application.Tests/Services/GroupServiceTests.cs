@@ -5,7 +5,7 @@ using SharboAPI.Application.DTO.Group;
 using SharboAPI.Application.Services;
 using SharboAPI.Domain.Enums;
 
-namespace SharboAPI.Domain.Tests.Services;
+namespace SharboAPI.Application.Tests.Services;
 
 public class GroupServiceTests
 {
@@ -32,7 +32,7 @@ public class GroupServiceTests
 		const string name = "Test";
 		const string imagePath = "https://example.com/image.jpg";
 		var id = Guid.NewGuid();
-		var createdById = Guid.NewGuid();
+		var createdById = "fa4e74f5c58448a5acba";
 		var group = Group.Create(name, createdById, imagePath);
 
 		_groupRepo.Setup(r => r.GetById(id, CancellationToken))
@@ -78,8 +78,11 @@ public class GroupServiceTests
 		const string name = "Test";
 		const string newName = "Test new";
 		const string newImagePath = "https://example.com/image.jpg";
-		var id = Guid.NewGuid();
-		var original = Group.Create(name, id, null, new List<GroupParticipant>());
+		const string createdById = "fa4e74f5c58448a5acba";
+
+        var id = Guid.NewGuid();
+
+		var original = Group.Create(name, createdById, null, []);
 		var dto = new UpdateGroupRequest(newName, newImagePath);
 
 		_groupRepo.Setup(r => r.GetById(id, CancellationToken))

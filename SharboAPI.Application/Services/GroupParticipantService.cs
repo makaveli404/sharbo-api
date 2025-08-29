@@ -20,7 +20,12 @@ public sealed class GroupParticipantService(IGroupParticipantRepository groupPar
 			return Result.Failure<GroupParticipantResult>(Error.NotFound("Group participant not found"));
 		}
 
-		return Result.Success(new GroupParticipantResult(groupParticipant.Id, groupParticipant.UserId, groupParticipant.GroupParticipantRoles.Select(r => r.Role.RoleType.ToString()).ToList()));
+		return Result.Success(new GroupParticipantResult(
+			groupParticipant.Id,
+			groupParticipant.UserId, 
+			groupParticipant.GroupParticipantRoles
+				.Select(r => r.Role.RoleType.ToString())
+				.ToList()));
 	}
 
 	public async Task<Result<List<GroupParticipantResult>>> GetGroupParticipantsByGroupIdAsync(Guid groupId, CancellationToken cancellationToken)
@@ -31,12 +36,18 @@ public sealed class GroupParticipantService(IGroupParticipantRepository groupPar
 			return Result.Failure<List<GroupParticipantResult>>(Error.NotFound("Group participants not found"));
 		}
 
-		var groupParticipantResult = groupParticipants.Select(g =>
-			new GroupParticipantResult(g.Id, g.UserId, g.GroupParticipantRoles.Select(r => r.Role.RoleType.ToString()).ToList())).ToList();
+		var groupParticipantResult = groupParticipants.Select(g => new GroupParticipantResult(
+				g.Id, 
+				g.UserId, 
+				g.GroupParticipantRoles
+					.Select(r => r.Role.RoleType.ToString())
+					.ToList()))
+			.ToList();
+
 		return Result.Success(groupParticipantResult);
 	}
 
-	public async Task<Result<List<Guid?>>> AddAsync(Guid groupId, Guid[] userIds, CancellationToken cancellationToken)
+	public async Task<Result<List<Guid?>>> AddAsync(Guid groupId, string[] userIds, CancellationToken cancellationToken)
 	{
 		var participantRole = await roleRepository.GetByRoleTypeAsync(RoleType.Participant, cancellationToken);
 
@@ -61,13 +72,14 @@ public sealed class GroupParticipantService(IGroupParticipantRepository groupPar
 		return Result.Success(result);
 	}
 
-	public async Task<Result> DeleteAsync(Guid[] participantId, CancellationToken cancellationToken)
+	public async Task<Result> DeleteAsync(Guid[] participantIds, CancellationToken cancellationToken)
 	{
-		await groupParticipantRepository.DeleteAsync(participantId, cancellationToken);
+		await groupParticipantRepository.DeleteAsync(participantIds, cancellationToken);
 		return Result.Success();
 	}
 
-	public async Task<Result> UpdateRolesAsync(Guid participantId, UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest, CancellationToken cancellationToken)
+	public async Task<Result> UpdateRolesAsync(Guid participantId, 
+		UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest, CancellationToken cancellationToken)
 	{
 		var participant = await groupParticipantRepository.GetByIdAsync(participantId, cancellationToken);
 		if (participant is null)
@@ -75,24 +87,32 @@ public sealed class GroupParticipantService(IGroupParticipantRepository groupPar
 			return Result.Failure(Error.NotFound("Group participant not found"));
 		}
 
-		var currentRoles = participant.GroupParticipantRoles.Select(r => r.Role).ToList();
+        List<Role> requestedRoles = [];
 
-		var rolesToAdd = updateGroupParticipantRolesRequest.RoleTypes.Except(currentRoles.Select(r => r.RoleType)).ToList();
-		var rolesToRemove = currentRoles.Select(r => r.RoleType).Except(updateGroupParticipantRolesRequest.RoleTypes).ToList();
+        foreach (var roleName in updateGroupParticipantRolesRequest.Roles)
+        {
+			var role = await roleRepository.GetByRoleNameAsync(roleName, cancellationToken);
 
-		foreach (var roleTypeToAdd in rolesToAdd)
-		{
-			var role = await roleRepository.GetByRoleTypeAsync(roleTypeToAdd, cancellationToken);
 			if (role is null)
 			{
-				logger.LogWarning("Role with type id {RoleTypeToAdd} not found.", roleTypeToAdd);
-				continue;
+				logger.LogWarning("Role with name {RoleName} not found.", roleName);
+				return Result.Failure<List<Role>>(Error.NotFound("No roles with given names found"));
 			}
 
-			participant.GroupParticipantRoles.Add(GroupParticipantRole.Create(role));
+			requestedRoles.Add(role);
 		}
 
-		await groupParticipantRepository.DeleteRolesAsync(participantId, rolesToRemove, cancellationToken);
+        var currentRoles = participant.GroupParticipantRoles.Select(r => r.Role).ToList();
+
+        var rolesToAdd = requestedRoles.Except(currentRoles).ToList();
+		var rolesToRemove = currentRoles.Except(requestedRoles).ToList();
+
+		rolesToAdd.ForEach(role => 
+			participant.AddRole(GroupParticipantRole.Create(role)));
+
+		rolesToRemove.ForEach(role => 
+			participant.RemoveRole(
+				participant.GroupParticipantRoles.First(r => r.Role == role)));
 
 		await groupParticipantRepository.SaveChangesAsync(cancellationToken);
 		return Result.Success();
