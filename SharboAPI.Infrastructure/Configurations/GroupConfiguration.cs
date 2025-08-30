@@ -6,22 +6,22 @@ namespace SharboAPI.Infrastructure.Configurations;
 
 public class GroupConfiguration : IEntityTypeConfiguration<Group>
 {
-    public void Configure(EntityTypeBuilder<Group> builder)
-    {
-        builder
-            .HasOne(g => g.CreatedBy)
-            .WithMany()
-            .HasForeignKey(g => g.CreatedById);
+	public void Configure(EntityTypeBuilder<Group> builder)
+	{
+		builder
+			.HasOne(g => g.CreatedBy)
+			.WithMany()
+			.HasForeignKey(g => g.CreatedById);
 
-        builder
-            .HasOne(g => g.LastModifiedBy)
-            .WithMany()
-            .HasForeignKey(g => g.LastModifiedById);
+		builder
+			.HasOne(g => g.LastModifiedBy)
+			.WithMany()
+			.HasForeignKey(g => g.LastModifiedById);
 
-        builder
-            .HasMany(g => g.GroupParticipants)
-            .WithOne(p => p.Group)
-            .HasForeignKey(p => p.GroupId)
-            .OnDelete(DeleteBehavior.Cascade);
-    }
+		builder
+			.HasMany(g => g.GroupParticipants)
+			.WithOne(p => p.Group)
+			.HasForeignKey(p => p.GroupId)
+			.OnDelete(DeleteBehavior.Cascade);
+	}
 }

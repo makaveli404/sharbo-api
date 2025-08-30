@@ -3,8 +3,6 @@ using FluentValidation.AspNetCore;
 using Microsoft.Extensions.DependencyInjection;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Services;
-using SharboAPI.Application.Validators;
-using SharboAPI.Application.Validators.Group;
 
 namespace SharboAPI.Application.Extensions;
 
@@ -16,10 +14,12 @@ public static class ServiceCollectionExtensions
 		services.AddScoped(typeof(IGroupService), typeof(GroupService));
 		services.AddScoped(typeof(IUserService),  typeof(UserService));
 		services.AddScoped(typeof(IGroupParticipantService), typeof(GroupParticipantService));
+		services.AddScoped(typeof(IMemeService), typeof(MemeService));
 
 		services.AddFluentValidationAutoValidation();
-		services.AddValidatorsFromAssemblyContaining<CreateGroupDtoValidator>();
-		services.AddValidatorsFromAssemblyContaining<UpdateGroupDtoValidator>();
+
+		services.AddValidatorsFromAssemblyContaining<UserService>();
+
 		return services;
 	}
 }

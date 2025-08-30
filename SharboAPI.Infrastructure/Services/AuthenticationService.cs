@@ -3,7 +3,6 @@ using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Common;
 using SharboAPI.Application.Common.Errors;
-using SharboAPI.Application.Services;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Services;
@@ -31,13 +30,13 @@ public class AuthenticationService(IUserRepository userRepository,
 		await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 		try
 		{
-			var userId = await firebaseService.RegisterAsync(email, password, cancellationToken);
+			var userIdFromProvider = await firebaseService.RegisterAsync(email, password, cancellationToken);
 
-			var newUser = User.Create(nickname, email, password);
+			var newUser = User.Create(userIdFromProvider, nickname, email, password);
 			await userRepository.AddAsync(newUser, cancellationToken);
 
 			await transaction.CommitAsync(cancellationToken);
-			return Result.Success(userId);
+			return Result.Success(userIdFromProvider);
 		}
 
 		catch (Exception ex)

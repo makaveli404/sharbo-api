@@ -6,7 +6,8 @@ using SharboAPI.Application.DTO.User;
 
 namespace SharboAPI.Application.Services;
 
-public sealed class UserService(IUserRepository userRepository, IAuthenticationService authenticationService, IFirebaseService firebaseService) : IUserService
+public sealed class UserService(IUserRepository userRepository, 
+	IAuthenticationService authenticationService, IFirebaseService firebaseService) : IUserService
 {
 	public async Task<Result<List<UserDetailsResult>>> GetAllAsync(CancellationToken cancellationToken)
 	{
@@ -26,7 +27,7 @@ public sealed class UserService(IUserRepository userRepository, IAuthenticationS
 				return Result.Failure<List<UserDetailsResult>>(Error.NotFound("No user found"));
 			}
 
-			result.Add(new UserDetailsResult(domainUser.Id.ToString(), domainUser.Email, domainUser.Nickname));
+			result.Add(new UserDetailsResult(domainUser.Id, domainUser.Email, domainUser.Nickname));
 		}
 
 		return Result.Success(result);
@@ -41,9 +42,9 @@ public sealed class UserService(IUserRepository userRepository, IAuthenticationS
 			return Result.Failure<UserDetailsResult>(Error.NotFound("No user found"));
 		}
 
-		var domainUser = await userRepository.GetByEmailAsync(firebaseUser.email, cancellationToken);
+		var domainUser = await userRepository.GetByIdAsync(firebaseUser.uid, cancellationToken);
 
-		if (string.IsNullOrEmpty(domainUser?.Email))
+		if (string.IsNullOrEmpty(domainUser?.Id))
 		{
 			return Result.Failure<UserDetailsResult>(Error.NotFound("No user found"));
 		}

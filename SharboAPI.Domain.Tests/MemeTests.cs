@@ -2,67 +2,64 @@ namespace SharboAPI.Domain.Tests;
 
 public class MemeTests
 {
-    [Fact]
-    public void Create_ShouldInitializeMemeCorrectly()
-    {
+	[Fact]
+	public void Create_ShouldInitializeMemeCorrectly()
+	{
+		// Arrange
+		Guid createdById = Guid.NewGuid();
+        const string imagePath = "test_image_path.jpg";
+		const string text = "Test meme text";
+
+		var expectedMeme = new
+		{
+			ImagePath = imagePath,
+			Text = text
+		};
+
+		// Act
+		var meme = Meme.Create(createdById, imagePath, text);
+
+		// Assert
+		meme.Should().NotBeNull();
+		meme.Should().BeEquivalentTo(expectedMeme);
+	}
+
+	[Fact]
+	public void UpdateText_ShouldUpdateMemeCorrectly()
+	{
         // Arrange
-        var createdById = Guid.NewGuid();
-        const string IMAGE_PATH = "test_image_path.jpg";
-        const string TEXT = "Test meme text";
-
-        var expectedMeme = new
-        {
-            ImagePath = IMAGE_PATH,
-            Text = TEXT
-        };
-
-        // Act
-        var meme = Meme.Create(createdById, IMAGE_PATH, TEXT);
-
-        // Assert
-        meme.Should().NotBeNull();
-        meme.Should().BeEquivalentTo(expectedMeme);
-    }
-
-    [Fact]
-    public void Update_ShouldUpdateMemeCorrectly()
-    {
-        // Arrange
-        var createdById = Guid.NewGuid();
+        Guid createdById = Guid.NewGuid();
         var meme = Meme.Create(createdById, "initial_image.jpg", "Initial text");
 
-        var modifiedById = Guid.NewGuid();
-        const string UPDATED_IMAGE_PATH = "updated_image.jpg";
-        const string UPDATED_TEXT = "Updated meme text";
+		Guid modifiedById = Guid.NewGuid();
+        const string updatedText = "Updated meme text";
 
-        var expectedMeme = new
-        {
-            CreatedById = createdById,
-            LastModifiedById = modifiedById,
-            ImagePath = UPDATED_IMAGE_PATH,
-            Text = UPDATED_TEXT
-        };
+		var expectedMeme = new
+		{
+			CreatedById = createdById,
+			LastModifiedById = modifiedById,
+			Text = updatedText
+		};
 
-        // Act
-        meme.Update(modifiedById, UPDATED_IMAGE_PATH, UPDATED_TEXT);
+		// Act
+		meme.UpdateText(modifiedById, updatedText);
 
-        // Assert
-        meme.Should().BeEquivalentTo(expectedMeme);
-    }
+		// Assert
+		meme.Should().BeEquivalentTo(expectedMeme);
+	}
 
-    [Fact]
-    public void Update_ShouldThrowException_WhenEntityIsNull()
-    {
-        // Arrange
-        Meme? meme = null;
-        var modifiedById = Guid.NewGuid();
-        const string IMAGE_PATH = "updated_image.jpg";
-        const string TEXT = "Updated meme text";
+	[Fact]
+	public void UpdateText_ShouldThrowException_WhenEntityIsNull()
+	{
+		// Arrange
+		Meme? meme = null;
+		var modifiedById = Guid.NewGuid();
+		const string updatedText = "Updated meme text";
 
-        // Act
-        var act = () => meme.Update(modifiedById, IMAGE_PATH, TEXT);
+		// Act
+		var act = () => meme.UpdateText(modifiedById, updatedText);
 
-        // Assert
-        act.Should().Throw<NullReferenceException>();
-    }
+		// Assert
+		act.Should().Throw<NullReferenceException>();
+	}
 }

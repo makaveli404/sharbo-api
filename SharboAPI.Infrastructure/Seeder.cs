@@ -5,25 +5,25 @@ namespace SharboAPI.Infrastructure;
 
 public class Seeder(SharboDbContext dbContext)
 {
-    public async Task Seed()
-    {
-        await SeedRoles();
-    }
+	public async Task Seed()
+	{
+		await SeedRoles();
+	}
 
-    private async Task SeedRoles()
-    {
-        if (dbContext.Roles.Any())
-        {
-            return;
-        }
+	private async Task SeedRoles()
+	{
+		if (dbContext.Roles.Any())
+		{
+			return;
+		}
 
-        Role[] roles = [
-            Role.Create(RoleType.Admin, "Admin"),
-            Role.Create(RoleType.Moderator, "Moderator"),
-            Role.Create(RoleType.Participant, "Participant")
-        ];
+		Role[] roles = [
+			Role.Create(RoleType.Admin, "Admin"),
+			Role.Create(RoleType.Moderator, "Moderator"),
+			Role.Create(RoleType.Participant, "Participant")
+		];
 
-        await dbContext.Roles.AddRangeAsync(roles);
-        await dbContext.SaveChangesAsync();
-    }
+		await dbContext.Roles.AddRangeAsync(roles);
+		await dbContext.SaveChangesAsync();
+	}
 }
