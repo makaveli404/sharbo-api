@@ -12,7 +12,7 @@ public static class MemeEndpoints
     
 	private static async Task<IResult> GetAll(Guid groupId, IMemeService memeService, CancellationToken cancellationToken)
 	{
-		var result = await memeService.GetAllAsync(cancellationToken);
+		var result = await memeService.GetAllForGroupAsync(groupId, cancellationToken);
 
         if (result.IsFailure)
         {
@@ -51,7 +51,7 @@ public static class MemeEndpoints
 	private static async Task<IResult> Update(Guid groupId, Guid memeId, UpdateMemeRequest request, 
 		IMemeService memeService, CancellationToken cancellationToken)
 	{
-		var result = await memeService.UpdateAsync(memeId, request, cancellationToken);
+		var result = await memeService.UpdateAsync(memeId, groupId, request, cancellationToken);
 
         if (result.IsFailure)
         {
@@ -81,7 +81,7 @@ public static class MemeEndpoints
 		group.MapGet("/", GetAll);
 		group.MapGet("/{memeId:guid}", GetById);
 		group.MapPost("/", Create);
-		group.MapPut("/{memeId:guid}", Update);
+		group.MapPatch("/{memeId:guid}", Update);
 		group.MapDelete("/{memeId:guid}", Delete);
 	}
 }

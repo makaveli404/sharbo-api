@@ -6,7 +6,12 @@ namespace SharboAPI.Infrastructure.Repositories;
 
 public sealed class MemeRepository(SharboDbContext dbContext) : IMemeRepository
 {
-	public async Task<Meme?> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Meme>> GetAllByGroupIdAsync(Guid groupId, CancellationToken cancellationToken)
+		=> await dbContext.Memes
+			.Where(m => m.CreatedBy.GroupId == groupId)
+			.ToListAsync(cancellationToken);
+	
+	public async Task<Meme?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
 		=> await dbContext.Memes.FirstOrDefaultAsync(meme => meme.Id == id, cancellationToken);
 
 	public async Task<Guid?> AddAsync(Meme meme, CancellationToken cancellationToken)

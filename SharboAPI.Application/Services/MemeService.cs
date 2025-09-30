@@ -13,8 +13,45 @@ public sealed class MemeService(
 	IMemeRepository memeRepository, 
 	IGroupParticipantRepository groupParticipantRepository,
 	IValidator<CreateMemeRequest> createMemeRequestValidator, 
+	IValidator<UpdateMemeRequest> updateMemeRequestValidator, 
 	IHttpContextAccessor httpContextAccessor) : IMemeService
 {
+    public async Task<Result<IEnumerable<MemeResult>>> GetAllForGroupAsync(Guid groupId, CancellationToken cancellationToken)
+    {
+        var memesForGroup = await memeRepository.GetAllByGroupIdAsync(groupId, cancellationToken);
+        var memeResults = memesForGroup.Select(meme => new MemeResult(
+            meme.Id,
+            meme.ImagePath,
+            meme.Text,
+            meme.CreatedById,
+            meme.LastModifiedById,
+            meme.CreationDate,
+            meme.LastModificationDate));
+
+		return Result.Success(memeResults);
+    }
+
+    public async Task<Result<MemeResult?>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+		var meme = await memeRepository.GetByIdAsync(id, cancellationToken);
+
+        if (meme is null)
+        {
+			return Result.Failure<MemeResult?>(Error.NotFound($"No meme with ID: { id } found"));
+        }
+
+		var memeResult = new MemeResult(
+            meme.Id,
+            meme.ImagePath,
+            meme.Text,
+            meme.CreatedById,
+            meme.LastModifiedById,
+            meme.CreationDate,
+            meme.LastModificationDate);
+
+		return Result.Success<MemeResult?>(memeResult);
+    }
+
 	public async Task<Result<Guid?>> AddAsync(CreateMemeRequest request, CancellationToken cancellationToken)
 	{
 		await createMemeRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
@@ -39,24 +76,43 @@ public sealed class MemeService(
 		var id = await memeRepository.AddAsync(meme, cancellationToken);
 		return Result.Success(id);
 	}
-
-    public Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    
+	public async Task<Result> UpdateAsync(Guid id, Guid groupId, UpdateMemeRequest request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await updateMemeRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
+        var requestingUserId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
+
+        var groupParticipant = await groupParticipantRepository
+            .GetByUserIdAndGroupIdAsync(requestingUserId, groupId, cancellationToken);
+        if (groupParticipant is null)
+        {
+            return Result.Failure<Result>(Error.NotFound("No participant found"));
+        }
+
+        var meme = await memeRepository.GetByIdAsync(id, cancellationToken);
+        if (meme is null)
+        {
+            return Result.Failure<Result>(Error.NotFound($"No meme with ID: { id } found"));
+        }
+
+        meme.UpdateText(groupParticipant.Id, request.Text);
+
+        await memeRepository.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 
-    public Task<Result<IEnumerable<Meme>>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
-    }
+        var meme = await memeRepository.GetByIdAsync(id, cancellationToken);
 
-    public Task<Result<Meme?>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+        if (meme is null)
+        {
+            return Result.Failure<Result>(Error.NotFound($"No meme with ID: { id } found"));
+        }
 
-    public Task<Result> UpdateAsync(Guid id, UpdateMemeRequest request, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
+        await memeRepository.DeleteAsync(meme, cancellationToken);
+        return Result.Success();
     }
 }
