@@ -39,4 +39,24 @@ public sealed class MemeService(
 		var id = await memeRepository.AddAsync(meme, cancellationToken);
 		return Result.Success(id);
 	}
+
+    public Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Result<IEnumerable<Meme>>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Result<Meme?>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Result> UpdateAsync(Guid id, UpdateMemeRequest request, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 }
