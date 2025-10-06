@@ -62,9 +62,7 @@ public class MemeServiceTests
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
 
-        memeRepositoryMock
-            .Setup(mock => mock.GetByIdAsync(memeId, CancellationToken.None))
-            .ReturnsAsync(memeResult);
+        SetupGetByIdAsyncToReturnMemeResult(memeRepositoryMock, memeResult);
 
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
@@ -98,10 +96,8 @@ public class MemeServiceTests
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
 
-        memeRepositoryMock
-            .Setup(mock => mock.GetByIdAsync(memeId, CancellationToken.None))
-            .ReturnsAsync(expectedMemeResult);
-
+        SetupGetByIdAsyncToReturnMemeResult(memeRepositoryMock, expectedMemeResult);
+        
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
@@ -222,6 +218,146 @@ public class MemeServiceTests
     }
 
     [Fact]
+    public async Task UpdateAsync_ForUpdateMemeRequest_ThrowsArgumentException_WhenValidationFailed()
+    {
+        // Arrange 
+        Guid memeId = Guid.NewGuid();
+        Guid groupId = Guid.NewGuid();
+        UpdateMemeRequest request = GetUpdateMemeRequest();
+
+        var memeRepositoryMock = CreateMemeRepositoryMock();
+        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
+        var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
+        var httpContextAccessorMock = CreateHttpContextAccessorMock();
+
+        validatorForUpdateMemeRequestMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<UpdateMemeRequest>>(), CancellationToken.None))
+            .ThrowsAsync(new ArgumentException());
+
+        var memeService = CreateMemeService(
+            memeRepositoryMock.Object,
+            groupParticipantRepositoryMock.Object,
+            validatorForCreateMemeRequestMock.Object,
+            validatorForUpdateMemeRequestMock.Object,
+            httpContextAccessorMock.Object);
+
+        // Act
+        var result = async () => await memeService.UpdateAsync(memeId, groupId, request, CancellationToken.None);
+
+        // Assert
+        await result
+            .Should()
+            .ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ForUpdateMemeRequest_ReturnsFailuredResult_WhenNoGroupParticipantForRequestingUserId()
+    {
+        // Arrange 
+        Guid memeId = Guid.NewGuid();
+        Guid groupId = Guid.NewGuid();
+        UpdateMemeRequest request = GetUpdateMemeRequest();
+        GroupParticipant? groupParticipantResult = null;
+        string expectedFailureMessage = "No participant found";
+
+        var memeRepositoryMock = CreateMemeRepositoryMock();
+        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
+        var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
+        var httpContextAccessorMock = CreateHttpContextAccessorMock();
+
+        SetupUpdateValidatorMockToReturnValidationResult(validatorForUpdateMemeRequestMock);
+        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
+
+        var memeService = CreateMemeService(
+            memeRepositoryMock.Object,
+            groupParticipantRepositoryMock.Object,
+            validatorForCreateMemeRequestMock.Object,
+            validatorForUpdateMemeRequestMock.Object,
+            httpContextAccessorMock.Object);
+
+        // Act
+        var result = await memeService.UpdateAsync(memeId, groupId, request, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be(expectedFailureMessage);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ForMemeId_ReturnsFailuredResult_WhenNoMemeForGivenIdFound()
+    {
+        // Arrange 
+        Guid memeId = Guid.Parse("27c82825-1d93-4210-8a63-d43e3c7c46d4");
+        Guid groupId = Guid.NewGuid();
+        UpdateMemeRequest request = GetUpdateMemeRequest();
+        GroupParticipant groupParticipantResult = GetGroupParticipantData();
+        Meme? memeResult = null;
+        string expectedFailureMessage = "No meme with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found";
+
+        var memeRepositoryMock = CreateMemeRepositoryMock();
+        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
+        var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
+        var httpContextAccessorMock = CreateHttpContextAccessorMock();
+
+        SetupUpdateValidatorMockToReturnValidationResult(validatorForUpdateMemeRequestMock);
+        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
+        SetupGetByIdAsyncToReturnMemeResult(memeRepositoryMock, memeResult);
+
+        var memeService = CreateMemeService(
+            memeRepositoryMock.Object,
+            groupParticipantRepositoryMock.Object,
+            validatorForCreateMemeRequestMock.Object,
+            validatorForUpdateMemeRequestMock.Object,
+            httpContextAccessorMock.Object);
+
+        // Act
+        var result = await memeService.UpdateAsync(memeId, groupId, request, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Message.Should().Be(expectedFailureMessage);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ForUpdateMemeRequest_ReturnsSucceededResult_WhenMemeSuccessfullyUpdated()
+    {
+        // Arrange 
+        Guid memeId = Guid.NewGuid();
+        Guid groupId = Guid.NewGuid();
+        UpdateMemeRequest request = GetUpdateMemeRequest();
+        GroupParticipant groupParticipantResult = GetGroupParticipantData();
+        Meme memeResult = GetMemeData();
+
+        var memeRepositoryMock = CreateMemeRepositoryMock();
+        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
+        var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
+        var httpContextAccessorMock = CreateHttpContextAccessorMock();
+
+        SetupUpdateValidatorMockToReturnValidationResult(validatorForUpdateMemeRequestMock);
+        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
+        SetupGetByIdAsyncToReturnMemeResult(memeRepositoryMock, memeResult);
+
+        var memeService = CreateMemeService(
+            memeRepositoryMock.Object,
+            groupParticipantRepositoryMock.Object,
+            validatorForCreateMemeRequestMock.Object,
+            validatorForUpdateMemeRequestMock.Object,
+            httpContextAccessorMock.Object);
+
+        // Act
+        var result = await memeService.UpdateAsync(memeId, groupId, request, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        memeRepositoryMock
+            .Verify(mock => mock.SaveChangesAsync(CancellationToken.None), Times.Once());
+    }
+
+    [Fact]
     public async Task DeleteAsync_ForGivenId_ReturnsFailuredResult_WhenNoMemeWithGivenIdFound()
     {
         // Arrange
@@ -307,6 +443,17 @@ public class MemeServiceTests
             .Setup(mock => mock.ValidateAsync(It.IsAny<CreateMemeRequest>(), CancellationToken.None))
             .ReturnsAsync(result ?? new ValidationResult());
 
+    private static void SetupUpdateValidatorMockToReturnValidationResult(Mock<IValidator<UpdateMemeRequest>> createValidatorMock,
+                                                                         ValidationResult? result = null)
+        => createValidatorMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<UpdateMemeRequest>(), CancellationToken.None))
+            .ReturnsAsync(result ?? new ValidationResult());
+
+    private static void SetupGetByIdAsyncToReturnMemeResult(Mock<IMemeRepository> memeRepositoryMock, Meme? memeResult = null)
+        => memeRepositoryMock
+            .Setup(mock => mock.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None))
+            .ReturnsAsync(memeResult);
+
     private static void SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(
         Mock<IGroupParticipantRepository> groupParticipantRepositoryMock,
         GroupParticipant? groupParticipantResult = null)
@@ -318,6 +465,8 @@ public class MemeServiceTests
                                                           string imagePath = "https://myserver/imagePaths/meme32.jpg",
                                                           string text = "meme32 description")
         => new(groupId ?? Guid.NewGuid(), imagePath, text);
+
+    private static UpdateMemeRequest GetUpdateMemeRequest(string? text = "meme32 description") => new(text);
 
     private static Meme GetMemeData(Guid? CreatedById = null, string imagePath = "https://server/paths/", string? text = null)
         => Meme.Create(CreatedById ?? Guid.NewGuid(), imagePath, text);
