@@ -46,7 +46,7 @@ The solution follows a Clean Architecture layered approach:
 ## Test Coverage
 
 
-![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmakaveli404%2F<REPO>%2Fbadges%2F.github%2Fbadges%2Fcoverage.json&cacheSeconds=60)
+![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmakaveli404%2Fsharbo-api%2Fbadges%2F.github%2Fbadges%2Fcoverage.json&cacheSeconds=60)
 
 
 
