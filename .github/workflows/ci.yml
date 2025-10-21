@@ -1,0 +1,138 @@
+name: .NET CI & Release
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Ręczny trigger do wypuszczenia obrazu (odpowiednik `when: manual` na main)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Wersja obrazu (bez prefiksu v)'
+        required: false
+        default: '0.1.0'
+
+env:
+  # Odpowiedniki zmiennych z GitLaba
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+  DOTNET_IMAGE: "mcr.microsoft.com/dotnet/sdk:9.0"
+  VERSION_FALLBACK: '0.1.0'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+          cache: true
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Upload build artifacts (bin/)
+        uses: actions/upload-artifact@v4
+        with:
+          name: bin
+          path: |
+            **/bin/
+
+  test:
+    name: Test + Coverage
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+          cache: true
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (Debug)
+        run: dotnet build --no-restore
+
+      - name: Test (XPlat Code Coverage + JUnit)
+        run: |
+          dotnet test --collect:"XPlat Code Coverage" --logger:"junit;LogFilePath=SharboLog.xml"
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+          reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport -reporttypes:cobertura
+          COVERAGE_VALUE=$(grep -oPm 1 'line-rate="\K([0-9.]+)' "./coveragereport/Cobertura.xml")
+          COVERAGE=$(awk -v v="$COVERAGE_VALUE" 'BEGIN { printf "%.2f", v*100 }')
+          echo "TOTAL_COVERAGE=$COVERAGE%"
+          echo "TOTAL_COVERAGE=$COVERAGE%" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Upload coverage & junit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts
+          path: |
+            coveragereport/Cobertura.xml
+            **/SharboLog.xml
+
+      # (opcjonalnie) publikacja JUnit do podsumowania workflow
+      # - uses: EnricoMi/publish-unit-test-result-action@v2
+      #   if: always()
+      #   with:
+      #     files: "**/SharboLog.xml"
+
+  release:
+    name: Release (Docker image)
+    runs-on: ubuntu-latest
+    needs: [test]
+    # Odpowiednik: rules: if branch == main -> when: manual; w innym wypadku: never
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write      # wymagane do pushowania do GHCR
+    env:
+      # Wersja z inputu; jeśli brak — użyj fallbacku (tak jak w GitLab `version: 0.1.0`)
+      VERSION: ${{ inputs.version || env.VERSION_FALLBACK }}
+      IMAGE_NAME: ghcr.io/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=v${{ env.VERSION }}
+            type=raw,value=latest
+
+      - name: Build & Push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
