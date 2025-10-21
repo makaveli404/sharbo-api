@@ -46,13 +46,14 @@ The solution follows a Clean Architecture layered approach:
 ## Test Coverage
 
 
-[![coverage report](https://gitlab.com/self-evolving/sharbo/sharbo-api/badges/main/coverage.svg)](https://gitlab.com/self-evolving/sharbo/sharbo-api/-/commits/main)
+[![coverage report](![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/<YOUR_USER>/<GIST_ID>/raw/coverage.json)
+)](https://github.com/makaveli404/sharbo-api)
 
 
 ## Authors
 
-- [Andrzej "Andret" Chmiel (andret2344)](https://gitlab.com/andret2344)
-- [Mateusz Domagała (makaveli)](https://gitlab.com/makavelix)
-- [Bartłomiej Potoniec (BartTux)](https://gitlab.com/BartTux)
+- [Andrzej "Andret" Chmiel (andret2344)](https://github.com/andret2344)
+- [Mateusz Domagała (makaveli)](https://github.com/makaveli404)
+- [Bartłomiej Potoniec (BartTux)](https://github.com/BartTux)
 
 
