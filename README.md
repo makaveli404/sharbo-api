@@ -46,8 +46,7 @@ The solution follows a Clean Architecture layered approach:
 ## Test Coverage
 
 
-[![coverage report](![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/<YOUR_USER>/<GIST_ID>/raw/coverage.json)
-)](https://github.com/makaveli404/sharbo-api)
++ [![cov](https://makaveli404.github.io/sharbo-api/badges/coverage.svg)](https://github.com/makaveli404/sharbo-api/actions)
 
 
 ## Authors
