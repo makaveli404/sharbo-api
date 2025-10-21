@@ -16,7 +16,6 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
   DOTNET_IMAGE: "mcr.microsoft.com/dotnet/sdk:9.0"
-  VERSION_FALLBACK: '0.1.0'
 
 jobs:
   build:
@@ -97,7 +96,7 @@ jobs:
       contents: read
       packages: write
     env:
-      VERSION: ${{ inputs.version || env.VERSION_FALLBACK }}
+      VERSION: ${{ inputs.version }}
       IMAGE_NAME: ghcr.io/${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
