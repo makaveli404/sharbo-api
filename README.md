@@ -46,7 +46,8 @@ The solution follows a Clean Architecture layered approach:
 ## Test Coverage
 
 
-+ [![cov](https://makaveli404.github.io/sharbo-api/badges/coverage.svg)](https://github.com/makaveli404/sharbo-api/actions)
+![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmakaveli404%2F<REPO>%2Fbadges%2F.github%2Fbadges%2Fcoverage.json&cacheSeconds=60)
+
 
 
 ## Authors
