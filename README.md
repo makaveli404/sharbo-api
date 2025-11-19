@@ -1,4 +1,4 @@
-
+![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmakaveli404%2Fsharbo-api%2Fbadges%2F.github%2Fbadges%2Fcoverage.json&cacheSeconds=60)
 # Sharbo API
 
 Sharbo API is the backend API serving mobile clients of the Sharbo application.
@@ -43,16 +43,10 @@ The solution follows a Clean Architecture layered approach:
 ![The solution follows a Clean Architecture layered approach](architecture_diagram.png)
 
 
-## Test Coverage
-
-
-[![coverage report](https://gitlab.com/self-evolving/sharbo/sharbo-api/badges/main/coverage.svg)](https://gitlab.com/self-evolving/sharbo/sharbo-api/-/commits/main)
-
-
 ## Authors
 
-- [Andrzej "Andret" Chmiel (andret2344)](https://gitlab.com/andret2344)
-- [Mateusz Domagała (makaveli)](https://gitlab.com/makavelix)
-- [Bartłomiej Potoniec (BartTux)](https://gitlab.com/BartTux)
+- [Andrzej "Andret" Chmiel (andret2344)](https://github.com/andret2344)
+- [Mateusz Domagała (makaveli)](https://github.com/makaveli404)
+- [Bartłomiej Potoniec (BartTux)](https://github.com/BartTux)
 
 
