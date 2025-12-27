@@ -11,7 +11,7 @@ public class CreateMemeRequestValidator : AbstractValidator<CreateMemeRequest>
 	public CreateMemeRequestValidator(IGroupRepository groupRepository)
 	{
 		RuleFor(req => req.GroupId)
-			.MustAsync(async (id, token) => await groupRepository.GetById(id, token) is not null)
+			.MustAsync(groupRepository.IsExistById)
 			.WithMessage("Group for given ID does not exist");
 
 		RuleFor(req => req.Text)

@@ -34,9 +34,9 @@ public sealed class GroupRepository(SharboDbContext context) : IGroupRepository
 		context.Groups.Remove(group);
 		await context.SaveChangesAsync(cancellationToken);
 	}
+	public async Task<bool> IsExistById(Guid id, CancellationToken cancellationToken)
+		=> await GetById(id, cancellationToken) is not null;
 
 	public async Task SaveChangesAsync(CancellationToken cancellationToken)
-	{
-		await context.SaveChangesAsync(cancellationToken);
-	}
+		=> await context.SaveChangesAsync(cancellationToken);
 }
