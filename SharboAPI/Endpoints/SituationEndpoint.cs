@@ -74,7 +74,7 @@ public static class SituationEndpoint
 
     public static void MapSituationsApi(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/groups/{groupId:guid}/memes");
+        var group = routes.MapGroup("/api/groups/{groupId:guid}/situations");
 
         group.MapGet("/", GetAll);
         group.MapGet("/{situationId:guid}", GetById);

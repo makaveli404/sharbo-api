@@ -18,7 +18,7 @@ public class Situation : Entry
 		return situation;
 	}
 
-	public void Update(Guid modifiedById, string text)
+	public void UpdateText(Guid modifiedById, string text)
 	{
 		base.Update(modifiedById);
 		Text = text;
