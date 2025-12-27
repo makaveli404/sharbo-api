@@ -20,7 +20,6 @@ public static class SituationEndpoint
         return TypedResults.Ok(result.Value);
     }
 
-
     private static async Task<IResult> GetById(Guid groupId, Guid situationId, ISituationService situationService,
         CancellationToken cancellationToken)
     {
@@ -72,7 +71,6 @@ public static class SituationEndpoint
 
         return TypedResults.NoContent();
     }
-
 
     public static void MapSituationsApi(this IEndpointRouteBuilder routes)
     {
