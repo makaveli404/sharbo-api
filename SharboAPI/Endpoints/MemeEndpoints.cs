@@ -5,11 +5,8 @@ namespace SharboAPI.Endpoints;
 
 public static class MemeEndpoints
 {
-	public static void MapMemeEndpoints(this IEndpointRouteBuilder routes)
-	{
-		MapMemesApi(routes);
-	}
-    
+	public static void MapMemeEndpoints(this IEndpointRouteBuilder routes) => MapMemesApi(routes);
+	
 	private static async Task<IResult> GetAll(Guid groupId, IMemeService memeService, CancellationToken cancellationToken)
 	{
 		var result = await memeService.GetAllForGroupAsync(groupId, cancellationToken);

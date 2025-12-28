@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
 		services.AddScoped(typeof(IUserService),  typeof(UserService));
 		services.AddScoped(typeof(IGroupParticipantService), typeof(GroupParticipantService));
 		services.AddScoped(typeof(IMemeService), typeof(MemeService));
+		services.AddScoped(typeof(ISituationService), typeof(SituationService));
 
 		services.AddFluentValidationAutoValidation();
 

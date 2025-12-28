@@ -44,6 +44,7 @@ app.UseExceptionHandler();
 app.MapGroupEndpoints();
 app.MapUserEndpoints();
 app.MapMemeEndpoints();
+app.MapSituationEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

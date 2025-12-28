@@ -60,6 +60,7 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IUserRepository, UserRepository>();
 		services.AddScoped<IRoleRepository, RoleRepository>();
 		services.AddScoped<IMemeRepository, MemeRepository>();
+		services.AddScoped<ISituationRepository, SituationRepository>();
 		services.AddScoped<IFirebaseService, FirebaseService>();
 		services.AddScoped<IAuthenticationService, AuthenticationService>();
 
