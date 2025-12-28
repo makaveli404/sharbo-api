@@ -1,10 +1,11 @@
-﻿using FluentValidation;
+﻿using SharboAPI.Domain.Models;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Common;
 using SharboAPI.Application.Common.Errors;
 using SharboAPI.Application.DTO.Situation;
-using SharboAPI.Domain.Models;
+using Microsoft.AspNetCore.Http;
+using FluentValidation;
 
 namespace SharboAPI.Application.Services;
 
@@ -12,19 +13,20 @@ public sealed class SituationService(
     ISituationRepository situationRepository, 
     IGroupParticipantRepository groupParticipantRepository,
     IValidator<CreateSituationRequest> createSituationRequestValidator,
-    IValidator<UpdateSituationRequest> updateSituationRequestValidator) : ISituationService
+    IValidator<UpdateSituationRequest> updateSituationRequestValidator,
+    IHttpContextAccessor httpContextAccessor) : ISituationService
 {
     public async Task<Result<IEnumerable<SituationResult>>> GetAllForGroupAsync(Guid groupId, CancellationToken cancellationToken)
     {
         var situations = await situationRepository.GetAllByGroupIdAsync(groupId, cancellationToken);
-        var situationsResult = situations.Select(situation => new SituationResult(
+        var situationsResult = situations?.Select(situation => new SituationResult(
             situation.Id,
             situation.Text,
             situation.CreatedById,
             situation.LastModifiedById,
             situation.CreationDate,
             situation.LastModificationDate
-        ));
+        )) ?? [];
 
         return Result.Success(situationsResult);
     }
