@@ -33,7 +33,6 @@ public static class QuoteEndpoint
         return TypedResults.Ok(result.Value);
     }
 
-
     private static async Task<IResult> Create(Guid groupId, CreateQuoteRequest request,
         IQuoteService quoteService, CancellationToken cancellationToken)
     {
