@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharboAPI", "SharboAPI\SharboAPI.csproj", "{554C6DBB-02F4-4583-B8B2-5731420271F8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharboAPI.Domain", "SharboAPI.Domain\SharboAPI.Domain.csproj", "{AC3E60F5-4A1A-4799-BAF6-FDCBFC75B8F2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharboAPI.Infrastructure", "SharboAPI.Infrastructure\SharboAPI.Infrastructure.csproj", "{48810ADE-DAA3-4CF0-83B7-4A881476D1F3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharboAPI.Application", "SharboAPI.Application\SharboAPI.Application.csproj", "{050FCB84-A9AB-4FD7-A130-9337EA141AD6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{86146D38-AC8E-4127-90AD-ABFC188D4141}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharboAPI.Domain.Tests", "SharboAPI.Domain.Tests\SharboAPI.Domain.Tests.csproj", "{8F82CD09-4661-4C44-9F4E-F1A186A5EEFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharboAPI.Application.Tests", "SharboAPI.Application.Tests\SharboAPI.Application.Tests.csproj", "{9E9AB39E-3116-458E-8B07-E3456E624C43}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{554C6DBB-02F4-4583-B8B2-5731420271F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{554C6DBB-02F4-4583-B8B2-5731420271F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{554C6DBB-02F4-4583-B8B2-5731420271F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{554C6DBB-02F4-4583-B8B2-5731420271F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC3E60F5-4A1A-4799-BAF6-FDCBFC75B8F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC3E60F5-4A1A-4799-BAF6-FDCBFC75B8F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC3E60F5-4A1A-4799-BAF6-FDCBFC75B8F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC3E60F5-4A1A-4799-BAF6-FDCBFC75B8F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48810ADE-DAA3-4CF0-83B7-4A881476D1F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48810ADE-DAA3-4CF0-83B7-4A881476D1F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48810ADE-DAA3-4CF0-83B7-4A881476D1F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48810ADE-DAA3-4CF0-83B7-4A881476D1F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{050FCB84-A9AB-4FD7-A130-9337EA141AD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{050FCB84-A9AB-4FD7-A130-9337EA141AD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{050FCB84-A9AB-4FD7-A130-9337EA141AD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{050FCB84-A9AB-4FD7-A130-9337EA141AD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F82CD09-4661-4C44-9F4E-F1A186A5EEFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F82CD09-4661-4C44-9F4E-F1A186A5EEFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F82CD09-4661-4C44-9F4E-F1A186A5EEFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F82CD09-4661-4C44-9F4E-F1A186A5EEFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E9AB39E-3116-458E-8B07-E3456E624C43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E9AB39E-3116-458E-8B07-E3456E624C43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E9AB39E-3116-458E-8B07-E3456E624C43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E9AB39E-3116-458E-8B07-E3456E624C43}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8F82CD09-4661-4C44-9F4E-F1A186A5EEFF} = {86146D38-AC8E-4127-90AD-ABFC188D4141}
+		{9E9AB39E-3116-458E-8B07-E3456E624C43} = {86146D38-AC8E-4127-90AD-ABFC188D4141}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A3057270-F2CB-4227-9D8C-88A86916F71C}
+	EndGlobalSection
+EndGlobal

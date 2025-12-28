@@ -1,0 +1,42 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: "
+labels: [ bug ]
+projects: [ makaveli404/sharbo-api ]
+body:
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Reproduction steps
+      description: Describe the steps you took to face this bug
+      value: |
+        1. 
+        2. 
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-and-actual-behaviour
+    attributes:
+      label: Expected and actual behaviour
+      description: Tell us what you expected to happen and what actually happened
+      value: |
+        ## Expected behaviour
+        
+        ## Actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Obligatory checks
+      description: By submitting this issue, you confirm all of the following aspects.
+      options:
+        - label: I confirm that there is no issue that already covers this bug.
+          required: true
