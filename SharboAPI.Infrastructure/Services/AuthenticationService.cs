@@ -3,6 +3,7 @@ using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Common;
 using SharboAPI.Application.Common.Errors;
+using SharboAPI.Application.DTO.Authentication;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Services;
@@ -44,5 +45,23 @@ public class AuthenticationService(IUserRepository userRepository,
 			await transaction.RollbackAsync(cancellationToken);
 			throw;
 		}
+	}
+
+	public async Task<Result<LoginResult>> AuthenticateAsync(string email, string password, CancellationToken cancellationToken)
+	{
+		try
+		{
+			var result = await firebaseService.SignInAsync(email, password, cancellationToken);
+			return Result.Success(result);
+		}
+		catch (Exception ex)
+		{
+			return Result.Failure<LoginResult>(Error.Forbidden(""));
+		}
+	}
+
+	public Task<Result<LoginResult>> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
+	{
+		throw new NotImplementedException();
 	}
 }

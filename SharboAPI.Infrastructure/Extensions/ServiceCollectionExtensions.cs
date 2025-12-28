@@ -76,6 +76,19 @@ public static class ServiceCollectionExtensions
 		{
 			Credential = GoogleCredential.FromJson(json)
 		});
+
+		services.AddHttpClient<IJwtProvider, JwtProvider>((sp, httpClient) =>
+		{
+			var tokenUri = configuration.GetSection("Authentication:TokenUri").Value;
+
+			if (string.IsNullOrWhiteSpace(tokenUri))
+			{
+				throw new InvalidOperationException("Firebase login authentication uri not found in configuration.");
+			}
+
+			httpClient.BaseAddress = new Uri(tokenUri);
+		});
+
 		return services;
 	}
 }

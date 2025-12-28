@@ -41,7 +41,6 @@ public static class UserEndpoints
 				value: new { id = result.Value });
 	}
 
-
 	private static void MapUsersApi(this IEndpointRouteBuilder routes)
 	{
 		var group = routes.MapGroup("/api/users");

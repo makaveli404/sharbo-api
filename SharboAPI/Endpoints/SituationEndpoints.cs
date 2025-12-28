@@ -3,7 +3,7 @@ using SharboAPI.Application.DTO.Situation;
 
 namespace SharboAPI.Endpoints;
 
-public static class SituationEndpoint
+public static class SituationEndpoints
 {
     public static void MapSituationEndpoints(this IEndpointRouteBuilder routes) => MapSituationsApi(routes);
 

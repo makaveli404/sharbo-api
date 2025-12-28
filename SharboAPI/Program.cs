@@ -41,6 +41,7 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
+app.MapAuthEndpoints();
 app.MapGroupEndpoints();
 app.MapUserEndpoints();
 app.MapMemeEndpoints();

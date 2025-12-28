@@ -3,7 +3,7 @@ using SharboAPI.Application.DTO.Quote;
 
 namespace SharboAPI.Endpoints;
 
-public static class QuoteEndpoint
+public static class QuoteEndpoints
 {
     public static void MapQuoteEndpoints(this IEndpointRouteBuilder routes) => MapQuotesApi(routes);
 
