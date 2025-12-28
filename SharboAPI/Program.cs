@@ -45,6 +45,7 @@ app.MapGroupEndpoints();
 app.MapUserEndpoints();
 app.MapMemeEndpoints();
 app.MapSituationEndpoints();
+app.MapQuoteEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
