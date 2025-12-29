@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
-using SharboAPI.Application.Services;
 using SharboAPI.Infrastructure.Repositories;
 using SharboAPI.Infrastructure.Services;
 
@@ -77,7 +76,7 @@ public static class ServiceCollectionExtensions
 			Credential = GoogleCredential.FromJson(json)
 		});
 
-		services.AddHttpClient<IJwtProvider, JwtProvider>((sp, httpClient) =>
+		services.AddHttpClient<IJwtProvider, JwtProvider>(httpClient =>
 		{
 			var tokenUri = configuration.GetSection("Authentication:TokenUri").Value;
 

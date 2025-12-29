@@ -5,8 +5,8 @@ namespace SharboAPI.Endpoints;
 
 public static class MemeEndpoints
 {
-	public static void MapMemeEndpoints(this IEndpointRouteBuilder routes) => MapMemesApi(routes);
-	
+	public static RouteGroupBuilder MapMemeEndpoints(this IEndpointRouteBuilder routes) => MapMemesApi(routes);
+
 	private static async Task<IResult> GetAll(Guid groupId, IMemeService memeService, CancellationToken cancellationToken)
 	{
 		var result = await memeService.GetAllForGroupAsync(groupId, cancellationToken);
@@ -19,7 +19,7 @@ public static class MemeEndpoints
 		return TypedResults.Ok(result.Value);
     }
 
-	private static async Task<IResult> GetById(Guid groupId, Guid memeId, IMemeService memeService, 
+	private static async Task<IResult> GetById(Guid groupId, Guid memeId, IMemeService memeService,
 		CancellationToken cancellationToken)
 	{
 		var result = await memeService.GetByIdAsync(memeId, cancellationToken);
@@ -32,7 +32,7 @@ public static class MemeEndpoints
 		return TypedResults.Ok(result.Value);
     }
 
-	private static async Task<IResult> Create(Guid groupId, CreateMemeRequest request, IMemeService memeService, 
+	private static async Task<IResult> Create(Guid groupId, CreateMemeRequest request, IMemeService memeService,
 		CancellationToken cancellationToken)
 	{
 		var result = await memeService.AddAsync(request, cancellationToken);
@@ -45,7 +45,7 @@ public static class MemeEndpoints
 		return TypedResults.Created($"{request}/{result}", result);
 	}
 
-	private static async Task<IResult> Update(Guid groupId, Guid memeId, UpdateMemeRequest request, 
+	private static async Task<IResult> Update(Guid groupId, Guid memeId, UpdateMemeRequest request,
 		IMemeService memeService, CancellationToken cancellationToken)
 	{
 		var result = await memeService.UpdateAsync(memeId, groupId, request, cancellationToken);
@@ -58,7 +58,7 @@ public static class MemeEndpoints
 		return TypedResults.NoContent();
     }
 
-    private static async Task<IResult> Delete(Guid groupId, Guid memeId, IMemeService memeService, 
+    private static async Task<IResult> Delete(Guid groupId, Guid memeId, IMemeService memeService,
 		CancellationToken cancellationToken)
     {
         var result = await memeService.DeleteAsync(memeId, cancellationToken);
@@ -71,7 +71,7 @@ public static class MemeEndpoints
         return TypedResults.NoContent();
     }
 
-    private static void MapMemesApi(this IEndpointRouteBuilder routes)
+    private static RouteGroupBuilder MapMemesApi(this IEndpointRouteBuilder routes)
 	{
 		var group = routes.MapGroup("/api/groups/{groupId:guid}/memes");
 
@@ -80,5 +80,7 @@ public static class MemeEndpoints
 		group.MapPost("/", Create);
 		group.MapPatch("/{memeId:guid}", Update);
 		group.MapDelete("/{memeId:guid}", Delete);
+
+		return group;
 	}
 }

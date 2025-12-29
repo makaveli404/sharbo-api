@@ -6,10 +6,7 @@ namespace SharboAPI.Endpoints;
 
 public static class UserEndpoints
 {
-	public static void MapUserEndpoints(this IEndpointRouteBuilder routes)
-	{
-		MapUsersApi(routes);
-	}
+	public static RouteGroupBuilder MapUserEndpoints(this IEndpointRouteBuilder routes) => MapUsersApi(routes);
 
 	private static async Task<IResult> GetAllUsers(IUserService userService, CancellationToken cancellationToken)
 	{
@@ -41,12 +38,14 @@ public static class UserEndpoints
 				value: new { id = result.Value });
 	}
 
-	private static void MapUsersApi(this IEndpointRouteBuilder routes)
+	private static RouteGroupBuilder MapUsersApi(this IEndpointRouteBuilder routes)
 	{
 		var group = routes.MapGroup("/api/users");
 		group.MapPost("/create", CreateUser);
 		group.MapGet("/", GetAllUsers);
 		group.MapGet("/{id}", GetUserById).WithName(nameof(GetUserById));
 		group.MapGet("email/{email}", GetUserByEmail).WithName(nameof(GetUserByEmail));
+
+		return group;
 	}
 }
