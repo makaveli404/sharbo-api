@@ -103,12 +103,29 @@ jobs:
       - name: Update coverage badge
         if: github.ref == 'refs/heads/main'
         run: |
-          git fetch origin badges || git checkout --orphan badges
-          git checkout badges 2>/dev/null || git checkout --orphan badges
+          set -euo pipefail
+
+          mkdir -p /tmp/badges
+          cp .github/badges/coverage.json /tmp/badges/coverage.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin badges || true
+          if git show-ref --verify --quiet refs/remotes/origin/badges; then
+            git checkout -B badges origin/badges
+          else
+            git checkout --orphan badges
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+
+          mkdir -p .github/badges
+          cp /tmp/badges/coverage.json .github/badges/coverage.json
+
           git add -f .github/badges/coverage.json
           if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "Update coverage badge: ${{ env.TOTAL_COVERAGE }}%"
-            git push origin badges
+            git push -u origin badges
+          else
+            echo "No badge changes."
           fi
