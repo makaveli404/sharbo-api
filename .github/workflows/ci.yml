@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches:
+    branches: [ main ]
   push:
-    branches:
+    branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -54,6 +54,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -71,8 +73,9 @@ jobs:
           dotnet test --collect:"XPlat Code Coverage" --logger:"junit;LogFilePath=SharboLog.xml"
           dotnet tool install --global dotnet-reportgenerator-globaltool
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-          reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport -reporttypes:cobertura
-          COVERAGE_VALUE=$(grep -oPm 1 'line-rate="\K([0-9.]+)' "./coveragereport/Cobertura.xml")
+          reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport/coberatura -reporttypes:Cobertura
+          reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport/html -reporttypes:Html
+          COVERAGE_VALUE=$(grep -oPm 1 'line-rate="\K([0-9.]+)' "./coveragereport/coberatura/Cobertura.xml")
           COVERAGE=$(awk -v v="$COVERAGE_VALUE" 'BEGIN { printf "%.2f", v*100 }')
           echo "TOTAL_COVERAGE=$COVERAGE" >> $GITHUB_ENV
 
@@ -82,7 +85,8 @@ jobs:
         with:
           name: test-artifacts
           path: |
-            coveragereport/Cobertura.xml
+            coveragereport/coberatura
+            coveragereport/html
             **/SharboLog.xml
 
       - name: Generate coverage badge
@@ -101,12 +105,35 @@ jobs:
       - name: Update coverage badge
         if: github.ref == 'refs/heads/main'
         run: |
-          git fetch origin badges || git checkout --orphan badges
-          git checkout badges 2>/dev/null || git checkout --orphan badges
+          set -euo pipefail
+
+          mkdir -p /tmp/badges
+          cp .github/badges/coverage.json /tmp/badges/coverage.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin badges || true
+          if git show-ref --verify --quiet refs/remotes/origin/badges; then
+            git checkout -B badges origin/badges
+          else
+            git checkout --orphan badges
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+
+          mkdir -p .github/badges
+          cp /tmp/badges/coverage.json .github/badges/coverage.json
+
           git add -f .github/badges/coverage.json
           if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "Update coverage badge: ${{ env.TOTAL_COVERAGE }}%"
-            git push origin badges
+            git push -u origin badges
+          else
+            echo "No badge changes."
           fi
+
+      - name: Publish coverage report to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: coveragereport/html
