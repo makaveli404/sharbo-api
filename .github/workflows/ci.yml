@@ -67,7 +67,7 @@ jobs:
         run: dotnet build --no-restore
 
       - name: Run tests with coverage
-        run: dotnet test  -p:CollectCoverage=true -p:CoverletOutput=TestResults/ -p:CoverletOutputFormat=opencover --no-build --verbosity normal SharboAPI.Tests/
+        run: dotnet test -p:CollectCoverage=true -p:CoverletOutput=TestResults/ -p:CoverletOutputFormat=opencover --no-build --verbosity normal
 
       - name: Upload test artifacts
         if: always()
