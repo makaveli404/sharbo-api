@@ -67,14 +67,7 @@ jobs:
         run: dotnet build --no-restore
 
       - name: Run tests with coverage
-        run: |
-          dotnet test --collect:"XPlat Code Coverage" --logger:"junit;LogFilePath=SharboLog.xml"
-          dotnet tool install --global dotnet-reportgenerator-globaltool
-          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
-          reportgenerator -reports:./**/coverage.cobertura.xml -targetdir:coveragereport -reporttypes:cobertura
-          COVERAGE_VALUE=$(grep -oPm 1 'line-rate="\K([0-9.]+)' "./coveragereport/Cobertura.xml")
-          COVERAGE=$(awk -v v="$COVERAGE_VALUE" 'BEGIN { printf "%.2f", v*100 }')
-          echo "TOTAL_COVERAGE=$COVERAGE" >> $GITHUB_ENV
+        run: dotnet test  -p:CollectCoverage=true -p:CoverletOutput=TestResults/ -p:CoverletOutputFormat=opencover --no-build --verbosity normal <MyProject>.Tests/
 
       - name: Upload test artifacts
         if: always()
@@ -85,28 +78,13 @@ jobs:
             coveragereport/Cobertura.xml
             **/SharboLog.xml
 
-      - name: Generate coverage badge
-        run: |
-          COVERAGE="${{ env.TOTAL_COVERAGE }}"
-          if (( $(echo "$COVERAGE >= 90" | bc -l) )); then COLOR="brightgreen"
-          elif (( $(echo "$COVERAGE >= 80" | bc -l) )); then COLOR="green"
-          elif (( $(echo "$COVERAGE >= 70" | bc -l) )); then COLOR="yellowgreen"
-          elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then COLOR="yellow"
-          elif (( $(echo "$COVERAGE >= 50" | bc -l) )); then COLOR="orange"
-          else COLOR="red"
-          fi
-          mkdir -p .github/badges
-          echo "{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"${COVERAGE}%\",\"color\":\"${COLOR}\"}" > .github/badges/coverage.json
-
-      - name: Update coverage badge
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git fetch origin badges || git checkout --orphan badges
-          git checkout badges 2>/dev/null || git checkout --orphan badges
-          git add -f .github/badges/coverage.json
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Update coverage badge: ${{ env.TOTAL_COVERAGE }}%"
-            git push origin badges
-          fi
+      - name: Create Test Coverage Badge
+        uses: simon-k/dotnet-code-coverage-badge@v1.0.0
+        id: create_coverage_badge
+        with:
+          label: Unit Test Coverage
+          color: brightgreen
+          path: <MyProject>.Tests/TestResults/coverage.opencover.xml
+          gist-filename: code-coverage.yml
+          gist-id: e1f4386849c2b52beecf64b6b02c94ef
+          gist-auth-token: ${{ secrets.GIST_AUTH_TOKEN }}
