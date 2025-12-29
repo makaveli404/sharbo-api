@@ -67,24 +67,47 @@ jobs:
         run: dotnet build --no-restore
 
       - name: Run tests with coverage
-        run: dotnet test -p:CollectCoverage=true -p:CoverletOutput=TestResults/ -p:CoverletOutputFormat=opencover --no-build --verbosity normal
+        run: |
+          dotnet test SharboAPI.sln \
+            -p:CollectCoverage=true \
+            -p:CoverletOutput="$(pwd)/TestResults/" \
+            -p:CoverletOutputFormat=opencover \
+            --verbosity normal
 
-      - name: Upload test artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-artifacts
-          path: |
-            coveragereport/Cobertura.xml
-            **/SharboLog.xml
+      - name: Create destination directory
+        env:
+          BADGE_PATH: ${{ steps.coverage.outputs.path }}
+        run: mkdir -p "${BADGE_PATH%/*}"
 
-      - name: Create Test Coverage Badge
-        uses: simon-k/dotnet-code-coverage-badge@v1.0.0
-        id: create_coverage_badge
+      - name: Generate the badge SVG image
+        uses: emibcn/badge-action@v2.0.3
+        id: badge
         with:
-          label: Unit Test Coverage
-          color: brightgreen
-          path: ./**/coverage.opencover.xml
-          gist-filename: code-coverage.yml
-          gist-id: e1f4386849c2b52beecf64b6b02c94ef
-          gist-auth-token: ${{ secrets.GIST_AUTH_TOKEN }}
+          label: 'Test coverage'
+          status: ${{ steps.coverage.outputs.lines }}
+          color: 'blue,555,daf'
+          path: ${{ steps.coverage.outputs.path }}
+
+      - name: Upload badge as artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: badge
+          path: ${{ steps.coverage.outputs.path }}
+          if-no-files-found: error
+
+      - name: Commit badge
+        continue-on-error: true
+        env:
+          BADGE: ${{ steps.coverage.outputs.path }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add "${BADGE}"
+          git commit -m "Add/Update badge"
+
+      - name: Push badge commit
+        uses: ad-m/github-push-action@master
+        if: ${{ success() }}
+        with:
+          github_token: ${{ secrets.GIST_AUTH_TOKEN }}
+          branch: ${{ steps.coverage.outputs.branch }}
