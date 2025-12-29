@@ -1,4 +1,4 @@
-![coverage](https://img.shields.io/endpoint?cacheSeconds=60&url=https://raw.githubusercontent.com/makaveli404/sharbo-api/badges/.github/badges/coverage.json)
+[![coverage](https://img.shields.io/endpoint?cacheSeconds=60&url=https://raw.githubusercontent.com/makaveli404/sharbo-api/badges/.github/badges/coverage.json)](https://makaveli404.github.io/sharbo-api/)
 # Sharbo API
 
 Sharbo API is the backend API serving mobile clients of the Sharbo application.
