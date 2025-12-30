@@ -16,9 +16,11 @@ public class ApiFactoryFixture : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
+            services.RemoveAll<IFirebaseService>();
             services.RemoveAll<IMemeService>();
 
             services.AddSingleton(Behavior);
+            services.AddScoped<IFirebaseService, FirebaseFake>();
             services.AddScoped<IMemeService, MemeServiceFake>();
         });
     }
