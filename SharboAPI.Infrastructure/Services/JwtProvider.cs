@@ -31,6 +31,23 @@ public sealed class JwtProvider : IJwtProvider
 
 		return new LoginResult(authToken.AccessToken, authToken.RefreshToken, authToken.ExpiresIn);
 	}
+
+	public async Task<LoginResult> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
+	{
+		var request = new FormUrlEncodedContent(new[]
+		{
+			new KeyValuePair<string, string>("grant_type", "refresh_token"),
+			new KeyValuePair<string, string>("refresh_token", refreshToken)
+		});
+
+		var response = await _httpClient.PostAsync("", request, cancellationToken);
+
+		var authToken = await response.Content.ReadFromJsonAsync<RefreshTokenResponse>(cancellationToken: cancellationToken);
+
+		// handle errors
+
+		return new LoginResult(authToken.IdToken, authToken.RefreshToken, authToken.ExpiresIn);
+	}
 }
 
 public class AuthToken
@@ -47,4 +64,19 @@ public class AuthToken
 	public bool Registered { get; set; }
 	[JsonPropertyName("expiresIn")]
 	public string ExpiresIn { get; set; }
+}
+
+public sealed class RefreshTokenResponse
+{
+	[JsonPropertyName("id_token")]
+	public string IdToken { get; set; } = default!;
+
+	[JsonPropertyName("refresh_token")]
+	public string RefreshToken { get; set; } = default!;
+
+	[JsonPropertyName("expires_in")]
+	public string ExpiresIn { get; set; } = default!;
+
+	[JsonPropertyName("user_id")]
+	public string UserId { get; set; } = default!;
 }

@@ -140,4 +140,22 @@ public class FirebaseService : IFirebaseService
 			throw new Exception($"Unexpected error: { ex.Message }");
 		}
 	}
+
+	public async Task<LoginResult> RefreshToken(string refreshToken, CancellationToken cancellationToken)
+	{
+		try
+		{
+			return await _jwtProvider.RefreshTokenAsync(refreshToken, cancellationToken);
+		}
+		catch (Exception ex)
+		{
+			if (ex is FirebaseAuthException &&
+			    ((FirebaseAuthException)ex).AuthErrorCode is AuthErrorCode.UserNotFound)
+			{
+				throw new FirebaseException($"Firebase error has occurred: { ex.Message }");
+			}
+
+			throw new Exception($"Unexpected error: { ex.Message }");
+		}
+	}
 }

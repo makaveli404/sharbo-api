@@ -60,8 +60,16 @@ public class AuthenticationService(IUserRepository userRepository,
 		}
 	}
 
-	public Task<Result<LoginResult>> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
+	public async Task<Result<LoginResult>> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
 	{
-		throw new NotImplementedException();
+		try
+		{
+			var result = await firebaseService.RefreshToken(refreshToken, cancellationToken);
+			return Result.Success(result);
+		}
+		catch (Exception ex)
+		{
+			return Result.Failure<LoginResult>(Error.Forbidden(""));
+		}
 	}
 }

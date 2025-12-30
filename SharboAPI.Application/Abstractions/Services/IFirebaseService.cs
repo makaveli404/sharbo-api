@@ -11,4 +11,5 @@ public interface IFirebaseService
 	Task<string> RegisterAsync(string email, string password, CancellationToken cancellationToken);
 	Task<bool> IsUserExistAsync(string email, CancellationToken cancellationToken);
 	Task<LoginResult> SignInAsync(string email, string password, CancellationToken cancellationToken);
+	Task<LoginResult> RefreshToken(string refreshToken, CancellationToken cancellationToken);
 }
