@@ -10,12 +10,6 @@ public static class MemeEndpoints
 	private static async Task<IResult> GetAll(Guid groupId, IMemeService memeService, CancellationToken cancellationToken)
 	{
 		var result = await memeService.GetAllForGroupAsync(groupId, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return TypedResults.BadRequest();
-        }
-
 		return TypedResults.Ok(result.Value);
     }
 

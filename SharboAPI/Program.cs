@@ -88,3 +88,5 @@ static void ApplyMigration<TDbContext>(IServiceScope scope)
 		throw;
 	}
 }
+
+public partial class Program {}
