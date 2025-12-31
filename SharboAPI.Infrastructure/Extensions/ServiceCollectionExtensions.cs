@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
@@ -53,7 +54,7 @@ public static class ServiceCollectionExtensions
 		return services;
 	}
 
-	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
 	{
 		services.AddScoped<IGroupRepository, GroupRepository>();
 		services.AddScoped<IGroupParticipantRepository, GroupParticipantRepository>();
@@ -65,7 +66,12 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IFirebaseService, FirebaseService>();
 		services.AddScoped<IAuthenticationService, AuthenticationService>();
 
-		var json = configuration.GetSection("Firebase:Credentials").Value;
+        if (env.IsEnvironment("Testing"))
+        {
+			return services;
+        }
+
+        var json = configuration.GetSection("Firebase:Credentials").Value;
 
 		if (string.IsNullOrWhiteSpace(json))
 		{
@@ -76,6 +82,7 @@ public static class ServiceCollectionExtensions
 		{
 			Credential = GoogleCredential.FromJson(json)
 		});
+
 		return services;
 	}
 }

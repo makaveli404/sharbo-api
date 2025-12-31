@@ -15,7 +15,7 @@ var configuration = builder.Configuration;
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-builder.Services.AddInfrastructure(configuration);
+builder.Services.AddInfrastructure(configuration, builder.Environment);
 builder.Services.AddApplication();
 builder.Services.AddOpenApi();
 
