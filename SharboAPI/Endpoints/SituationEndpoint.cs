@@ -11,12 +11,6 @@ public static class SituationEndpoint
         ISituationService situationService, CancellationToken cancellationToken)
     {
         var result = await situationService.GetAllForGroupAsync(groupId, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return TypedResults.BadRequest();
-        }
-
         return TypedResults.Ok(result.Value);
     }
 

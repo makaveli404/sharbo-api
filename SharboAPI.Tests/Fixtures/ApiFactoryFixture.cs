@@ -16,11 +16,12 @@ public class ApiFactoryFixture : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            services.RemoveAll<IFirebaseService>();
             services.RemoveAll<IMemeService>();
+            services.RemoveAll<ISituationService>();
 
             services.AddSingleton(Behavior);
             services.AddScoped<IMemeService, MemeServiceFake>();
+            services.AddScoped<ISituationService, SituationServiceFake>();
         });
     }
 }
