@@ -11,12 +11,6 @@ public static class QuoteEndpoint
         CancellationToken cancellationToken)
     {
         var result = await quoteService.GetAllForGroupAsync(groupId, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return TypedResults.BadRequest();
-        }
-
         return TypedResults.Ok(result.Value);
     }
 
