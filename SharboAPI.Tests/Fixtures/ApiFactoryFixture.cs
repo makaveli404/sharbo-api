@@ -18,10 +18,12 @@ public class ApiFactoryFixture : WebApplicationFactory<Program>
         {
             services.RemoveAll<IMemeService>();
             services.RemoveAll<ISituationService>();
+            services.RemoveAll<IQuoteService>();
 
             services.AddSingleton(Behavior);
             services.AddScoped<IMemeService, MemeServiceFake>();
             services.AddScoped<ISituationService, SituationServiceFake>();
+            services.AddScoped<IQuoteService, QuoteServiceFake>();
         });
     }
 }
