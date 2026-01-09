@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
+using SharboAPI.Infrastructure.Auth;
 using SharboAPI.Infrastructure.Repositories;
 using SharboAPI.Infrastructure.Services;
 
@@ -64,29 +65,22 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IFirebaseService, FirebaseService>();
 		services.AddScoped<IAuthenticationService, AuthenticationService>();
 
-		var json = configuration.GetSection("Firebase:Credentials").Value;
+		var authSection = configuration.GetSection("Firebase:Credentials").Value;
 
-		if (string.IsNullOrWhiteSpace(json))
+
+		if (string.IsNullOrWhiteSpace(authSection))
 		{
 			throw new InvalidOperationException("Firebase credentials not found in configuration.");
 		}
+		var json = configuration.GetSection("Firebase:Credentials").Value;
+		services.Configure<FirebaseAuthOptions>(configuration.GetSection("Authentication"));
 
 		FirebaseApp.Create(new AppOptions
 		{
 			Credential = GoogleCredential.FromJson(json)
 		});
 
-		services.AddHttpClient<IJwtProvider, JwtProvider>(httpClient =>
-		{
-			var tokenUri = configuration.GetSection("Authentication:TokenUri").Value;
-
-			if (string.IsNullOrWhiteSpace(tokenUri))
-			{
-				throw new InvalidOperationException("Firebase login authentication uri not found in configuration.");
-			}
-
-			httpClient.BaseAddress = new Uri(tokenUri);
-		});
+		services.AddHttpClient<IJwtProvider, JwtProvider>();
 
 		return services;
 	}
