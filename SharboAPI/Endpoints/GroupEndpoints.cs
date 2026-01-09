@@ -7,10 +7,7 @@ namespace SharboAPI.Endpoints;
 
 public static class GroupEndpoints
 {
-	public static void MapGroupEndpoints(this IEndpointRouteBuilder routes)
-	{
-		MapGroupsApi(routes);
-	}
+	public static RouteGroupBuilder MapGroupEndpoints(this IEndpointRouteBuilder routes) => MapGroupsApi(routes);
 
 	private static async Task<IResult> GetGroupById(Guid id, IGroupService groupService,
 		CancellationToken cancellationToken)
@@ -29,7 +26,7 @@ public static class GroupEndpoints
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.AddAsync(createGroupRequest, cancellationToken);
-		
+
 		if (result.IsFailure)
 		{
 			return TypedResults.BadRequest();
@@ -80,7 +77,7 @@ public static class GroupEndpoints
 	}
 
 	private static async Task<IResult> UpdateRoles(
-		Guid id, 
+		Guid id,
 		Guid participantId,
 		UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest,
 		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
@@ -109,7 +106,7 @@ public static class GroupEndpoints
 		return TypedResults.Ok(result.Value);
 	}
 
-	private static void MapGroupsApi(this IEndpointRouteBuilder routes)
+	private static RouteGroupBuilder MapGroupsApi(this IEndpointRouteBuilder routes)
 	{
 		var group = routes.MapGroup("/api/groups");
 
@@ -121,5 +118,7 @@ public static class GroupEndpoints
 		group.MapPost("/{id:guid}/participants", AddParticipants);
 		group.MapDelete("/{id:guid}/participants", RemoveParticipants);
 		group.MapPut("/{id:guid}/participants/{participantId:guid}/roles", UpdateRoles);
+
+		return group;
 	}
 }

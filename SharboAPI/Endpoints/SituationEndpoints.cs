@@ -3,9 +3,9 @@ using SharboAPI.Application.DTO.Situation;
 
 namespace SharboAPI.Endpoints;
 
-public static class SituationEndpoint
+public static class SituationEndpoints
 {
-    public static void MapSituationEndpoints(this IEndpointRouteBuilder routes) => MapSituationsApi(routes);
+    public static RouteGroupBuilder MapSituationEndpoints(this IEndpointRouteBuilder routes) => MapSituationsApi(routes);
 
     private static async Task<IResult> GetAll(Guid groupId,
         ISituationService situationService, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public static class SituationEndpoint
         return TypedResults.Ok(result.Value);
     }
 
-    private static async Task<IResult> Create(Guid groupId, CreateSituationRequest request, 
+    private static async Task<IResult> Create(Guid groupId, CreateSituationRequest request,
         ISituationService situationService, CancellationToken cancellationToken)
     {
         var result = await situationService.AddAsync(request, cancellationToken);
@@ -72,7 +72,7 @@ public static class SituationEndpoint
         return TypedResults.NoContent();
     }
 
-    public static void MapSituationsApi(this IEndpointRouteBuilder routes)
+    private static RouteGroupBuilder MapSituationsApi(this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("/api/groups/{groupId:guid}/situations");
 
@@ -81,5 +81,7 @@ public static class SituationEndpoint
         group.MapPost("/", Create);
         group.MapPatch("/{situationId:guid}", Update);
         group.MapDelete("/{situationId:guid}", Delete);
+
+        return group;
     }
 }

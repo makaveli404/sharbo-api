@@ -2,11 +2,12 @@ using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Common;
 using SharboAPI.Application.Common.Errors;
+using SharboAPI.Application.DTO.Authentication;
 using SharboAPI.Application.DTO.User;
 
 namespace SharboAPI.Application.Services;
 
-public sealed class UserService(IUserRepository userRepository, 
+public sealed class UserService(IUserRepository userRepository,
 	IAuthenticationService authenticationService, IFirebaseService firebaseService) : IUserService
 {
 	public async Task<Result<List<UserDetailsResult>>> GetAllAsync(CancellationToken cancellationToken)
@@ -81,5 +82,4 @@ public sealed class UserService(IUserRepository userRepository,
 			? Result.Failure<string>(result.Error)
 			: result;
 	}
-
 }

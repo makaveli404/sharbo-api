@@ -1,3 +1,4 @@
+using SharboAPI.Application.DTO.Authentication;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Application.Abstractions.Services;
@@ -9,4 +10,6 @@ public interface IFirebaseService
 	Task<(string uid, string email)> GetByEmailAsync(string email, CancellationToken cancellation);
 	Task<string> RegisterAsync(string email, string password, CancellationToken cancellationToken);
 	Task<bool> IsUserExistAsync(string email, CancellationToken cancellationToken);
+	Task<LoginResult> SignInAsync(string email, string password, CancellationToken cancellationToken);
+	Task<LoginResult> RefreshToken(string refreshToken, CancellationToken cancellationToken);
 }

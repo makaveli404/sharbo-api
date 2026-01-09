@@ -3,11 +3,11 @@ using SharboAPI.Application.DTO.Quote;
 
 namespace SharboAPI.Endpoints;
 
-public static class QuoteEndpoint
+public static class QuoteEndpoints
 {
-    public static void MapQuoteEndpoints(this IEndpointRouteBuilder routes) => MapQuotesApi(routes);
+    public static RouteGroupBuilder MapQuoteEndpoints(this IEndpointRouteBuilder routes) => MapQuotesApi(routes);
 
-    private static async Task<IResult> GetAll(Guid groupId, IQuoteService quoteService, 
+    private static async Task<IResult> GetAll(Guid groupId, IQuoteService quoteService,
         CancellationToken cancellationToken)
     {
         var result = await quoteService.GetAllForGroupAsync(groupId, cancellationToken);
@@ -72,7 +72,7 @@ public static class QuoteEndpoint
         return TypedResults.NoContent();
     }
 
-    public static void MapQuotesApi(this IEndpointRouteBuilder routes)
+    private static RouteGroupBuilder MapQuotesApi(this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("/api/groups/{groupId:guid}/quotes");
 
@@ -81,5 +81,7 @@ public static class QuoteEndpoint
         group.MapPost("/", Create);
         group.MapPatch("/{quoteId:guid}", Update);
         group.MapDelete("/{quoteId:guid}", Delete);
+
+        return group;
     }
 }

@@ -1,12 +1,20 @@
 using FirebaseAdmin.Auth;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Common.Exceptions;
+using SharboAPI.Application.DTO.Authentication;
 using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Services;
 
 public class FirebaseService : IFirebaseService
 {
+	private readonly IJwtProvider _jwtProvider;
+
+	public FirebaseService(IJwtProvider jwtProvider)
+	{
+		_jwtProvider = jwtProvider;
+	}
+
 	public async Task<List<(string uid, string email)>> GetAllAsync(List<User> domainUsers, CancellationToken cancellationToken)
 	{
 		try
@@ -109,6 +117,42 @@ public class FirebaseService : IFirebaseService
 			    ((FirebaseAuthException)ex).AuthErrorCode is AuthErrorCode.UserNotFound)
 			{
 				return false;
+			}
+
+			throw new Exception($"Unexpected error: { ex.Message }");
+		}
+	}
+
+	public async Task<LoginResult> SignInAsync(string email, string password, CancellationToken cancellationToken)
+	{
+		try
+		{
+			return await _jwtProvider.GetForCredentialsAsync(email, password, cancellationToken);
+		}
+		catch (Exception ex)
+		{
+			if (ex is FirebaseAuthException &&
+			    ((FirebaseAuthException)ex).AuthErrorCode is AuthErrorCode.UserNotFound)
+			{
+				throw new FirebaseException($"Firebase error has occurred: { ex.Message }");
+			}
+
+			throw new Exception($"Unexpected error: { ex.Message }");
+		}
+	}
+
+	public async Task<LoginResult> RefreshToken(string refreshToken, CancellationToken cancellationToken)
+	{
+		try
+		{
+			return await _jwtProvider.RefreshTokenAsync(refreshToken, cancellationToken);
+		}
+		catch (Exception ex)
+		{
+			if (ex is FirebaseAuthException &&
+			    ((FirebaseAuthException)ex).AuthErrorCode is AuthErrorCode.UserNotFound)
+			{
+				throw new FirebaseException($"Firebase error has occurred: { ex.Message }");
 			}
 
 			throw new Exception($"Unexpected error: { ex.Message }");
