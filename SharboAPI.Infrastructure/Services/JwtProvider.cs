@@ -1,25 +1,22 @@
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
-using Microsoft.Extensions.Configuration;
+using System.Text.Json;
+using Microsoft.Extensions.Options;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.DTO.Authentication;
+using SharboAPI.Infrastructure.Auth;
+using SharboAPI.Infrastructure.Auth.Firebase;
 
 namespace SharboAPI.Infrastructure.Services;
 
 public sealed class JwtProvider : IJwtProvider
 {
 	private readonly HttpClient _httpClient;
-	private readonly string _apiKey;
-	private readonly string _secureTokenBaseUri;
+	private readonly FirebaseAuthOptions _options;
 
-	public JwtProvider(HttpClient httpClient, IConfiguration configuration)
+	public JwtProvider(HttpClient httpClient, IOptions<FirebaseAuthOptions> options)
 	{
 		_httpClient = httpClient;
-		_apiKey = configuration["Authentication:ApiKey"]
-		          ?? throw new InvalidOperationException("Authentication:ApiKey not found in configuration.");
-
-		_secureTokenBaseUri = configuration["Authentication:SecureTokenBaseUri"]
-		                      ?? throw new InvalidOperationException("Authentication:SecureTokenBaseUri not found in configuration.");
+		_options = options.Value;
 	}
 
 	public async Task<LoginResult> GetForCredentialsAsync(string email, string password, CancellationToken cancellationToken)
@@ -30,17 +27,27 @@ public sealed class JwtProvider : IJwtProvider
 			password,
 			returnSecureToken = true
 		};
+		var url = $"{_options.Endpoints.Auth}?key={_options.ApiKey}";
 
-		var response = await _httpClient.PostAsJsonAsync($"accounts:signInWithPassword?key={_apiKey}", request, cancellationToken);
-		var authToken = await response.Content.ReadFromJsonAsync<AuthToken>(cancellationToken: cancellationToken);
+		var response = await _httpClient.PostAsJsonAsync(url, request, cancellationToken);
+		if (!response.IsSuccessStatusCode)
+		{
+			throw new InvalidOperationException(response.ToString());
+		}
 
+		var authToken = await response.Content.ReadFromJsonAsync<AuthTokenResponse>(cancellationToken: cancellationToken);
+
+		if (authToken is null)
+		{
+			throw new InvalidOperationException("Firebase returned empty response.");
+		}
 
 		return new LoginResult(authToken.AccessToken, authToken.RefreshToken, authToken.ExpiresIn);
 	}
 
 	public async Task<LoginResult> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
 	{
-		var refreshUrl = $"{_secureTokenBaseUri}token?key={_apiKey}";
+		var url = $"{_options.Endpoints.RefreshToken}?key={_options.ApiKey}";
 
 		var request = new FormUrlEncodedContent(new[]
 		{
@@ -48,40 +55,21 @@ public sealed class JwtProvider : IJwtProvider
 			new KeyValuePair<string, string>("refresh_token", refreshToken)
 		});
 
-		var response = await _httpClient.PostAsync(refreshUrl, request, cancellationToken);
+		var response = await _httpClient.PostAsync(url, request, cancellationToken);
+
+		if (!response.IsSuccessStatusCode)
+		{
+			throw new InvalidOperationException(response.ToString());
+		}
+
 		var authToken = await response.Content.ReadFromJsonAsync<RefreshTokenResponse>(cancellationToken: cancellationToken);
+
+		if (authToken is null)
+		{
+			throw new InvalidOperationException("Firebase returned empty response.");
+		}
 
 		return new LoginResult(authToken.IdToken, authToken.RefreshToken, authToken.ExpiresIn);
 	}
-}
 
-public class AuthToken
-{
-	[JsonPropertyName("idToken")]
-	public string AccessToken { get; set; }
-	[JsonPropertyName("refreshToken")]
-	public string RefreshToken { get; set; }
-	[JsonPropertyName("email")]
-	public string Email { get; set; }
-	[JsonPropertyName("localId")]
-	public string UserId { get; set; }
-	[JsonPropertyName("registered")]
-	public bool Registered { get; set; }
-	[JsonPropertyName("expiresIn")]
-	public string ExpiresIn { get; set; }
-}
-
-public sealed class RefreshTokenResponse
-{
-	[JsonPropertyName("id_token")]
-	public string IdToken { get; set; } = default!;
-
-	[JsonPropertyName("refresh_token")]
-	public string RefreshToken { get; set; } = default!;
-
-	[JsonPropertyName("expires_in")]
-	public string ExpiresIn { get; set; } = default!;
-
-	[JsonPropertyName("user_id")]
-	public string UserId { get; set; } = default!;
 }
