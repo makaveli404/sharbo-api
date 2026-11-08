@@ -1,0 +1,51 @@
+// Sharbo database schema (current code model, Entries mapped as Table-per-Hierarchy).
+// Paste into https://dbdiagram.io to render, then export PNG as database_diagram.png.
+
+Table Users {
+  Id varchar [pk, note: 'Firebase UID']
+  Nickname varchar [not null]
+  Email varchar [not null]
+  Password varchar [not null, note: 'To be removed in phase 2: Firebase owns passwords']
+}
+
+Table Groups {
+  Id uuid [pk]
+  Name varchar [not null]
+  ImagePath varchar
+  CreatedById varchar [not null, ref: > Users.Id]
+  LastModifiedById varchar [not null, ref: > Users.Id]
+  CreationDate timestamp [not null]
+  ModificationDate timestamp [not null]
+}
+
+Table GroupParticipants {
+  Id uuid [pk]
+  GroupId uuid [not null, ref: > Groups.Id]
+  UserId varchar [not null, ref: > Users.Id]
+}
+
+Table Roles {
+  Id int [pk]
+  RoleType int [not null, note: 'Participant | Moderator | Admin']
+  Name varchar [not null]
+}
+
+Table GroupParticipantRoles {
+  GroupParticipantId uuid [not null, ref: > GroupParticipants.Id]
+  RoleId int [not null, ref: > Roles.Id]
+
+  indexes {
+    (GroupParticipantId, RoleId) [pk]
+  }
+}
+
+Table Entries {
+  Id uuid [pk]
+  Type varchar(20) [not null, note: 'Discriminator: Meme | Quote | Situation (CHECK constraint CK_Entries_Type)']
+  Text varchar [note: 'Required for Quote and Situation, optional for Meme (enforced in domain and validators)']
+  ImagePath varchar [note: 'Meme only']
+  CreatedById uuid [not null, ref: > GroupParticipants.Id]
+  LastModifiedById uuid [not null, ref: > GroupParticipants.Id]
+  CreationDate timestamp [not null]
+  LastModificationDate timestamp [not null]
+}

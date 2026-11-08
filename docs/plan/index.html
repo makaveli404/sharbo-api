@@ -1,0 +1,994 @@
+<title>Sharbo Blueprint</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Baloo+2:wght@600;800&display=swap">
+<style>
+/* Layout: one reading column (~68ch) with a sticky section bar; the mockup section breaks wider into screen list + phone + annotation. */
+:root {
+  --paper: #F4F5F8;
+  --surface: #FFFFFF;
+  --ink: #1B2030;
+  --muted: #5A6276;
+  --line: #DCE0E8;
+  --mark: #F2B705;        /* highlighter accent */
+  --mark-soft: #FCEFC2;
+  --mark-ink: #1B2030;    /* text on --mark */
+  --link: #2C47C9;
+  --new: #1E7F55;
+  --gone: #B23A3A;
+  --phone: #0F1219;
+  --shadow: 0 1px 2px rgba(27,32,48,.06), 0 8px 24px rgba(27,32,48,.08);
+  --f-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Instrument Sans", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --f-app: "Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif; /* playful in-app face */
+  --s-1: .8125rem; --s0: 1rem; --s1: 1.25rem; --s2: 1.625rem; --s3: 2.25rem; --s4: 3rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #12151D; --surface: #1A1E29; --ink: #E7E9F0; --muted: #9AA1B3; --line: #2B3142;
+    --mark: #F5C542; --mark-soft: #3A3218; --mark-ink: #15171E; --link: #8EA2FF;
+    --new: #5CC995; --gone: #F07C7C; --phone: #05070B;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #12151D; --surface: #1A1E29; --ink: #E7E9F0; --muted: #9AA1B3; --line: #2B3142;
+  --mark: #F5C542; --mark-soft: #3A3218; --mark-ink: #15171E; --link: #8EA2FF;
+  --new: #5CC995; --gone: #F07C7C; --phone: #05070B;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 64px); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 400 var(--s0)/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+a { color: var(--link); }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 4px; }
+code, .mono { font-family: var(--f-mono); font-size: .875em; }
+code { background: var(--mark-soft); padding: .05em .35em; border-radius: 4px; }
+
+.wrap { max-width: 68rem; margin: 0 auto; }
+.col { max-width: 44rem; }
+
+/* Header */
+header.top { padding-block: 3rem 1.5rem; display: grid; gap: 1rem; }
+.eyebrow { font: 500 var(--s-1)/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: clamp(2.25rem, 6vw, var(--s4)); font-weight: 700; letter-spacing: -.02em; }
+h1 .hl { background: linear-gradient(transparent 58%, var(--mark) 58%, var(--mark) 92%, transparent 92%); padding: 0 .1em; }
+.lede { font-size: var(--s1); color: var(--muted); max-width: 40rem; margin: 0; }
+.meta { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; font: 400 var(--s-1)/1.4 var(--f-mono); color: var(--muted); }
+
+/* Section bar */
+nav.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+nav.bar ul { list-style: none; margin: 0 auto; padding: 0; max-width: 68rem; display: flex; gap: 1.25rem; overflow-x: auto; scrollbar-width: none; }
+nav.bar a { display: block; padding-block: .85rem; white-space: nowrap; color: var(--muted); text-decoration: none; font-weight: 500; font-size: .9375rem; }
+nav.bar a:hover { color: var(--ink); }
+
+/* Sections */
+main { display: grid; gap: 4.5rem; padding-block: 3rem 5rem; }
+section { display: grid; gap: 1.25rem; }
+h2 { font-size: var(--s3); font-weight: 700; letter-spacing: -.015em; }
+h3 { font-size: var(--s1); font-weight: 700; }
+p { margin: 0; }
+.sub { color: var(--muted); max-width: 44rem; }
+
+/* Glossary */
+dl.gloss { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin: 0; }
+dl.gloss > div { background: var(--surface); padding: 1rem 1.1rem; display: grid; gap: .25rem; align-content: start; }
+dl.gloss dt { font-family: var(--f-display); font-weight: 700; font-size: 1.0625rem; }
+dl.gloss dd { margin: 0; color: var(--muted); font-size: .9375rem; }
+
+/* Table */
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 40rem; font-size: .9375rem; }
+th, td { text-align: left; vertical-align: top; padding: .8rem 1rem; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 var(--s-1)/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+td:first-child { font-weight: 600; white-space: nowrap; }
+td:nth-child(2) strong { background: var(--mark-soft); padding: 0 .2em; border-radius: 3px; }
+td:last-child { color: var(--muted); }
+
+.tbd { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+tr.group td { font: 500 var(--s-1)/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--paper); padding-block: .6rem; }
+.tbd-tag { display: inline-block; font: 500 .75rem/1 var(--f-mono); padding: .25rem .5rem; border-radius: 999px; border: 1px dashed var(--muted); color: var(--muted); }
+tr.tbd-row td:first-child { font-weight: 500; }
+.chip { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: 999px; border: 1px dashed var(--muted); font-size: .875rem; color: var(--muted); }
+
+/* Figures */
+figure { margin: 0; display: grid; gap: .75rem; }
+.fig-box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; overflow-x: auto; color: var(--ink); }
+.fig-box svg { display: block; width: 100%; height: auto; min-width: 640px; }
+.fig-box svg.er { min-width: 880px; }
+figcaption { color: var(--muted); font-size: .9375rem; max-width: 44rem; }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; font: 400 var(--s-1)/1.4 var(--f-mono); color: var(--muted); }
+.legend b { font-weight: 500; }
+.legend .n { color: var(--new); } .legend .g { color: var(--gone); } .legend .c { color: var(--link); }
+
+/* Mockups */
+.mock-grid { display: grid; grid-template-columns: 14rem auto 1fr; gap: 2rem; align-items: start; }
+@media (max-width: 960px) { .mock-grid { grid-template-columns: 1fr; justify-items: center; } .screens, .notes { width: 100%; max-width: 30rem; } }
+.screens { list-style: none; margin: 0; padding: 0; display: grid; gap: .25rem; }
+.screens button {
+  width: 100%; text-align: left; font: 500 .9375rem/1.3 var(--f-body); color: var(--muted);
+  background: none; border: 0; border-radius: 8px; padding: .55rem .75rem; cursor: pointer;
+  display: grid; grid-template-columns: 1.5rem 1fr; gap: .5rem; align-items: baseline;
+}
+.screens button span { font: 400 var(--s-1)/1 var(--f-mono); }
+.screens button:hover { background: var(--surface); color: var(--ink); }
+.screens button[aria-pressed="true"] { background: var(--mark); color: var(--mark-ink); }
+@media (max-width: 960px) { .screens { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; padding-bottom: .25rem; } }
+
+.phone { width: 300px; max-width: 100%; aspect-ratio: 300 / 620; background: var(--phone); border-radius: 40px; padding: 10px; box-shadow: var(--shadow); }
+.phone-in { position: relative; height: 100%; border-radius: 31px; overflow: hidden; background: var(--paper); display: flex; flex-direction: column; }
+.status { flex: none; display: flex; justify-content: space-between; padding: .55rem 1.3rem .2rem; font: 500 .6875rem/1 var(--f-mono); color: var(--ink); }
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; font-size: .8125rem; line-height: 1.4; }
+.scroll { flex: 1; overflow-y: auto; padding: .5rem .9rem 1rem; display: flex; flex-direction: column; gap: .6rem; }
+.appbar { flex: none; display: flex; align-items: center; gap: .5rem; padding: .5rem .9rem; }
+.appbar h4 { margin: 0; font: 700 1.0625rem/1.2 var(--f-display); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ib { border: 0; background: var(--surface); color: var(--ink); width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center; font: 600 .875rem/1 var(--f-body); cursor: pointer; flex: none; box-shadow: 0 0 0 1px var(--line); }
+.card { background: var(--surface); border-radius: 14px; padding: .75rem .85rem; display: grid; gap: .45rem; box-shadow: 0 0 0 1px var(--line); text-align: left; color: var(--ink); font: inherit; border: 0; cursor: pointer; width: 100%; }
+.card:hover { box-shadow: 0 0 0 2px var(--mark); }
+.kind { font: 500 .625rem/1 var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.quote { font: 500 .9375rem/1.35 var(--f-display); }
+.who { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; }
+.tag { background: var(--mark-soft); color: var(--ink); border-radius: 999px; padding: .1rem .5rem; font-size: .6875rem; font-weight: 600; }
+.foot { display: flex; flex-wrap: wrap; gap: .15rem .6rem; font: 400 .6875rem/1.35 var(--f-mono); color: var(--muted); }
+.memeimg { aspect-ratio: 4 / 3; border-radius: 10px; background: repeating-linear-gradient(135deg, var(--mark-soft) 0 10px, var(--paper) 10px 20px); display: grid; place-items: center; font: 700 .875rem/1.2 var(--f-display); text-align: center; padding: 1rem; color: var(--ink); }
+.fab { position: absolute; right: 1rem; bottom: 1.1rem; width: 3rem; height: 3rem; border-radius: 16px; border: 0; background: var(--mark); color: var(--mark-ink); font: 600 1.5rem/1 var(--f-body); cursor: pointer; box-shadow: var(--shadow); }
+.chips { display: flex; gap: .35rem; overflow-x: auto; flex: none; padding: 0 .9rem .25rem; scrollbar-width: none; }
+.chips span { flex: none; padding: .3rem .65rem; border-radius: 999px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); font-size: .75rem; font-weight: 500; }
+.chips span.on { background: var(--ink); color: var(--paper); box-shadow: none; }
+.av { display: flex; }
+.av i { width: 1.6rem; height: 1.6rem; border-radius: 50%; display: grid; place-items: center; font: 600 .625rem/1 var(--f-body); font-style: normal; background: var(--surface); box-shadow: 0 0 0 2px var(--paper); margin-left: -.35rem; color: var(--ink); }
+.av i:first-child { margin-left: 0; }
+.av i.y { background: var(--mark); color: var(--mark-ink); }
+.row { display: flex; align-items: center; gap: .65rem; }
+.gimg { width: 2.6rem; height: 2.6rem; border-radius: 12px; flex: none; display: grid; place-items: center; font: 700 1rem/1 var(--f-display); background: var(--mark-soft); color: var(--ink); }
+.grow { flex: 1; min-width: 0; display: grid; gap: .1rem; }
+.grow b { font-weight: 600; font-size: .875rem; }
+.small { font-size: .6875rem; color: var(--muted); }
+.dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--mark); flex: none; }
+.btn { border: 0; border-radius: 12px; padding: .7rem .9rem; font: 600 .8125rem/1 var(--f-body); cursor: pointer; width: 100%; background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.btn.pri { background: var(--mark); color: var(--mark-ink); box-shadow: none; }
+.btn.dark { background: var(--ink); color: var(--paper); box-shadow: none; }
+.field { display: grid; gap: .3rem; }
+.field label { font-size: .6875rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.input { background: var(--surface); border-radius: 10px; padding: .55rem .7rem; box-shadow: 0 0 0 1px var(--line); }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border-radius: 10px; padding: 3px; box-shadow: 0 0 0 1px var(--line); }
+.seg span { text-align: center; padding: .4rem 0; border-radius: 8px; font-weight: 600; font-size: .75rem; color: var(--muted); }
+.seg span.on { background: var(--ink); color: var(--paper); }
+.pick { display: flex; flex-wrap: wrap; gap: .3rem; }
+.pick span { padding: .3rem .6rem; border-radius: 999px; box-shadow: 0 0 0 1px var(--line); background: var(--surface); font-size: .75rem; }
+.pick span.on { background: var(--mark); color: var(--mark-ink); box-shadow: none; font-weight: 600; }
+.map { height: 7.5rem; border-radius: 12px; position: relative; overflow: hidden; box-shadow: 0 0 0 1px var(--line);
+  background:
+    linear-gradient(90deg, transparent 47%, var(--line) 47% 53%, transparent 53%) 0 0 / 100% 100%,
+    linear-gradient(0deg, transparent 30%, var(--line) 30% 34%, transparent 34%) 0 0 / 100% 100%,
+    repeating-linear-gradient(0deg, var(--paper) 0 18px, var(--surface) 18px 19px),
+    var(--paper); }
+.pin { position: absolute; left: 48%; top: 22%; width: 1.4rem; height: 1.4rem; background: var(--mark); border: 3px solid var(--ink); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+.code { font: 500 1.75rem/1 var(--f-mono); letter-spacing: .12em; text-align: center; padding: 1rem 0; background: var(--mark-soft); border-radius: 12px; }
+.role { font: 500 .625rem/1 var(--f-mono); text-transform: uppercase; letter-spacing: .06em; padding: .25rem .45rem; border-radius: 6px; box-shadow: 0 0 0 1px var(--line); color: var(--muted); }
+.role.a { background: var(--ink); color: var(--paper); box-shadow: none; }
+.login { justify-content: center; padding: 1.5rem 1.25rem; gap: .6rem; }
+.logo { font: 700 2.25rem/1 var(--f-display); letter-spacing: -.03em; text-align: center; }
+.logo b { background: var(--mark); color: var(--mark-ink); padding: 0 .12em; border-radius: 6px; font-weight: 700; }
+.tagline { text-align: center; color: var(--muted); margin-bottom: 1.25rem; }
+.sep { text-align: center; font-size: .6875rem; color: var(--muted); padding: .25rem 0; }
+.fine { text-align: center; font-size: .625rem; color: var(--muted); margin-top: 1rem; }
+
+.notes { display: grid; gap: 1rem; align-content: start; }
+.notes h3 { font-size: var(--s2); }
+.notes p { color: var(--muted); max-width: 32rem; }
+.hint { font-size: .875rem; color: var(--muted); border-left: 3px solid var(--mark); padding-left: .75rem; }
+
+/* Roadmap */
+ol.road { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-left: 2px solid var(--line); margin-left: .6rem; }
+ol.road > li { position: relative; padding: 0 0 2rem 1.75rem; display: grid; gap: .5rem; }
+ol.road > li:last-child { padding-bottom: 0; }
+ol.road > li::before { content: ""; position: absolute; left: -.5rem; top: .35rem; width: .9rem; height: .9rem; border-radius: 50%; background: var(--paper); border: 2px solid var(--muted); }
+ol.road > li.done::before { background: var(--mark); border-color: var(--mark); }
+.road-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .75rem; }
+.road-head .eyebrow { min-width: 4.5rem; }
+.pill { font: 500 .6875rem/1 var(--f-mono); padding: .3rem .55rem; border-radius: 999px; box-shadow: 0 0 0 1px var(--line); color: var(--muted); }
+.pill.done { background: var(--mark); color: var(--mark-ink); box-shadow: none; }
+ol.road ul { margin: 0; padding-left: 1.1rem; color: var(--muted); display: grid; gap: .3rem; max-width: 44rem; }
+ol.road ul li::marker { color: var(--mark); }
+
+footer { border-top: 1px solid var(--line); padding-block: 1.5rem 3rem; color: var(--muted); font-size: .875rem; }
+
+/* Playful app layer: emoji wallpaper, sticker cards, tape, reactions */
+.app-in::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='132' height='132'><g font-size='19' opacity='.2' font-family='Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif'><text x='6' y='26' transform='rotate(-14 16 20)'>😂</text><text x='74' y='20' transform='rotate(16 84 14)'>🍕</text><text x='40' y='64' transform='rotate(9 50 58)'>💀</text><text x='96' y='82' transform='rotate(-10 106 76)'>🤡</text><text x='8' y='108' transform='rotate(-6 18 102)'>🫠</text><text x='62' y='120' transform='rotate(20 72 114)'>🔥</text></g></svg>");
+  background-size: 132px 132px;
+}
+.status, .screen { position: relative; z-index: 1; }
+.app .appbar h4, .app .quote, .logo, .app .grow b, .code { font-family: var(--f-app); }
+.app .appbar h4 { font-weight: 800; font-size: 1.1875rem; }
+.app .quote { font-weight: 600; font-size: 1rem; line-height: 1.3; }
+.app .scroll > .card { position: relative; transition: transform .15s ease; }
+.app .scroll > .card:nth-of-type(odd) { transform: rotate(-.9deg); }
+.app .scroll > .card:nth-of-type(even) { transform: rotate(.8deg); }
+.app .scroll > .card:hover { transform: rotate(0) scale(1.01); }
+.card.taped::before { content: ""; position: absolute; top: -7px; left: 50%; width: 3.4rem; height: .95rem; transform: translateX(-50%) rotate(-4deg); background: color-mix(in srgb, var(--mark) 55%, transparent); border-radius: 2px; }
+.app .kind { justify-self: start; background: var(--paper); border-radius: 999px; padding: .25rem .5rem; letter-spacing: .05em; }
+.reacts { display: flex; flex-wrap: wrap; gap: .3rem; }
+.reacts span { font-size: .75rem; font-weight: 600; padding: .15rem .45rem; border-radius: 999px; background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
+.reacts span.me { background: var(--mark-soft); box-shadow: 0 0 0 1px var(--mark); }
+.reacts span.add { color: var(--muted); }
+.stickers { display: flex; justify-content: center; gap: .4rem; font-size: 2.1rem; line-height: 1; margin-bottom: .25rem; }
+.stickers span { display: inline-block; filter: drop-shadow(0 2px 0 var(--surface)) drop-shadow(0 4px 6px rgba(0,0,0,.15)); }
+.stickers span:nth-child(1) { transform: rotate(-14deg) translateY(4px); }
+.stickers span:nth-child(2) { transform: rotate(6deg) scale(1.2); }
+.stickers span:nth-child(3) { transform: rotate(16deg) translateY(6px); }
+.logo b { display: inline-block; transform: rotate(-8deg); }
+.app .gimg { font-size: 1.35rem; }
+.fab { transition: transform .2s ease; }
+.fab:hover { transform: rotate(90deg); }
+.btn.pri { font-family: var(--f-app); font-weight: 800; font-size: .9375rem; }
+.code { transform: rotate(-1.5deg); font-weight: 800; }
+/* Device toggle + web mockups */
+.device-toggle { display: inline-grid; grid-auto-flow: column; gap: 3px; padding: 3px; border-radius: 12px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); justify-self: start; }
+.device-toggle button { border: 0; background: none; color: var(--muted); font: 600 .9375rem/1 var(--f-body); padding: .6rem 1rem; border-radius: 9px; cursor: pointer; }
+.device-toggle button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.mock-grid.is-web { grid-template-columns: 14rem minmax(0, 1fr); }
+.mock-grid.is-web .notes { grid-column: 2; }
+@media (max-width: 960px) { .mock-grid.is-web { grid-template-columns: 1fr; } .mock-grid.is-web .notes { grid-column: auto; } }
+.web-scroll { width: 100%; overflow-x: auto; padding-bottom: .25rem; }
+.browser { min-width: 780px; border-radius: 14px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow), 0 0 0 1px var(--line); }
+.bchrome { display: flex; align-items: center; gap: .9rem; padding: .55rem .8rem; background: var(--paper); border-bottom: 1px solid var(--line); }
+.bdots { display: flex; gap: .35rem; }
+.bdots i { width: .65rem; height: .65rem; border-radius: 50%; background: var(--line); }
+.burl { flex: 1; max-width: 26rem; font: 400 .75rem/1 var(--f-mono); color: var(--muted); background: var(--surface); border-radius: 999px; padding: .4rem .8rem; box-shadow: 0 0 0 1px var(--line); }
+.web-in { position: relative; height: 560px; background: var(--paper); font-size: .8125rem; line-height: 1.4; overflow: hidden; }
+.wlogin, .wshell { position: relative; z-index: 1; height: 100%; }
+.wlogin { display: grid; place-items: center; }
+.wlogin-card { width: 20rem; display: grid; gap: .6rem; background: var(--surface); border-radius: 20px; padding: 1.75rem 1.5rem; box-shadow: var(--shadow), 0 0 0 1px var(--line); transform: rotate(-1deg); }
+.wshell { display: grid; grid-template-columns: 13rem minmax(0, 1fr); }
+.wside { background: var(--surface); border-right: 1px solid var(--line); padding: 1rem .75rem; display: flex; flex-direction: column; gap: .35rem; min-height: 0; }
+.wside .logo { font-size: 1.6rem; text-align: left; padding: 0 .4rem .6rem; }
+.wside .lbl { font: 500 .625rem/1 var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: .6rem .4rem .3rem; }
+.gitem { display: flex; align-items: center; gap: .55rem; padding: .45rem .4rem; border-radius: 10px; border: 0; background: none; color: var(--ink); font: 600 .8125rem/1.2 var(--f-app); text-align: left; cursor: pointer; width: 100%; }
+.gitem:hover { background: var(--paper); }
+.gitem.on { background: var(--mark-soft); }
+.gitem .gimg { width: 1.9rem; height: 1.9rem; border-radius: 9px; font-size: 1rem; }
+.gitem .grow { font-weight: 600; }
+.wside .spacer { flex: 1; }
+.wside .btn { font-size: .75rem; padding: .55rem .7rem; text-align: left; }
+.wmain { position: relative; min-height: 0; overflow-y: auto; padding: 1.1rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: .9rem; }
+.whead { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.whead h4 { margin: 0; font: 800 1.5rem/1.1 var(--f-app); flex: 1; min-width: 0; }
+.whead .btn { width: auto; padding: .55rem .8rem; }
+.wchips { display: flex; gap: .35rem; flex-wrap: wrap; }
+.wchips span { padding: .3rem .7rem; border-radius: 999px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); font-size: .75rem; font-weight: 500; }
+.wchips span.on { background: var(--ink); color: var(--paper); box-shadow: none; }
+.wfeed { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.app .wfeed > .card { position: relative; transition: transform .15s ease; }
+.app .wfeed > .card:nth-child(odd) { transform: rotate(-.9deg); }
+.app .wfeed > .card:nth-child(even) { transform: rotate(.8deg); }
+.app .wfeed > .card:hover { transform: rotate(0) scale(1.01); }
+.wtiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.wtile { border: 0; cursor: pointer; text-align: left; background: var(--surface); color: var(--ink); border-radius: 16px; padding: 1rem; display: grid; gap: .6rem; box-shadow: 0 0 0 1px var(--line); font: inherit; }
+.wtile:nth-child(odd) { transform: rotate(-1deg); }
+.wtile:nth-child(even) { transform: rotate(1deg); }
+.wtile:hover { box-shadow: 0 0 0 2px var(--mark); }
+.wtile .gimg { width: 3rem; height: 3rem; font-size: 1.6rem; border-radius: 14px; }
+.wtile b { font: 800 1.0625rem/1.2 var(--f-app); }
+.wtile.ghost { background: none; box-shadow: none; border: 2px dashed var(--line); place-content: center; justify-items: center; color: var(--muted); font-weight: 600; min-height: 9rem; }
+.wover { position: absolute; inset: 0; z-index: 3; background: color-mix(in srgb, var(--ink) 35%, transparent); display: grid; place-items: center; }
+.wdialog { width: 30rem; max-width: 92%; max-height: 92%; overflow-y: auto; background: var(--paper); border-radius: 18px; padding: 1.1rem 1.25rem 1.25rem; display: grid; gap: .75rem; box-shadow: var(--shadow); }
+.wdialog h5 { margin: 0; font: 800 1.25rem/1.2 var(--f-app); display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.wdialog .two { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.wdialog .actions { display: flex; justify-content: flex-end; gap: .5rem; }
+.wdialog .actions .btn { width: auto; }
+.wpanel { position: absolute; top: 0; right: 0; bottom: 0; width: 20rem; z-index: 3; background: var(--surface); border-left: 1px solid var(--line); box-shadow: var(--shadow); padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: .7rem; overflow-y: auto; }
+.wpanel .whead h4 { font-size: 1.125rem; }
+.linkrow { display: flex; gap: .4rem; align-items: center; }
+.linkrow .input { flex: 1; font: 400 .75rem/1.2 var(--f-mono); }
+.linkrow .btn { width: auto; }
+.wsettings { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 1.25rem; align-items: start; }
+.wbox { background: var(--surface); border-radius: 16px; padding: 1rem; display: grid; gap: .7rem; box-shadow: 0 0 0 1px var(--line); }
+.wbox h5 { margin: 0; font: 800 1rem/1.2 var(--f-app); }
+.danger { color: var(--gone); }
+@media (prefers-reduced-motion: reduce) { .app .wfeed > .card, .app .wfeed > .card:hover, .wtile, .wlogin-card { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .app .scroll > .card, .app .scroll > .card:hover, .fab:hover { transform: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Dokument projektu · sharbo-api</div>
+    <h1>Sharbo: <span class="hl">wasze żarty</span>, tylko dla was</h1>
+    <p class="lede">Ustalenia technologiczne, model danych, makiety i kolejność prac nad API. Dokument żyje w repo (<code>docs/plan/index.html</code>) i aktualizujemy go po każdej fazie.</p>
+    <div class="meta"><span>Stan na 8 listopada 2026</span><span>Backend: .NET 10 · PostgreSQL · Azure Blob · Firebase Auth</span></div>
+  </header>
+</div>
+
+<nav class="bar" aria-label="Sekcje">
+  <ul>
+    <li><a href="#wizja">Wizja</a></li>
+    <li><a href="#stack">Stack</a></li>
+    <li><a href="#architektura">Architektura</a></li>
+    <li><a href="#model">Model danych</a></li>
+    <li><a href="#makiety">Makiety</a></li>
+    <li><a href="#roadmapa">Roadmapa</a></li>
+  </ul>
+</nav>
+
+<main class="wrap">
+
+  <section id="wizja">
+    <h2>Wizja</h2>
+    <div class="col" style="display:grid;gap:1rem">
+      <p>Sharbo przechowuje wewnętrzne memy, cytaty i sytuacje, które rozumie tylko zamknięta grupa ludzi. Grupa może mieć dwie osoby (jak rozmowa 1:1) albo całą ekipę. Każdy wpis można przypisać członkom grupy i ma datę, godzinę oraz miejsce, żeby po latach dało się wrócić do kontekstu.</p>
+      <p>Backend w C# obsługuje dwa klienty: aplikację mobilną (robi ją inna osoba) i prosty frontend webowy w React. Kontraktem między nimi jest specyfikacja OpenAPI.</p>
+    </div>
+    <h3>Słowniczek</h3>
+    <dl class="gloss">
+      <div><dt>Grupa</dt><dd>Zamknięta przestrzeń kilku osób. Tylko jej członkowie widzą wpisy.</dd></div>
+      <div><dt>Uczestnik</dt><dd>Użytkownik w konkretnej grupie, z rolą: Admin, Moderator albo Uczestnik.</dd></div>
+      <div><dt>Wpis</dt><dd>Mem (obrazek z opcjonalnym tekstem), cytat albo sytuacja (opis zdarzenia).</dd></div>
+      <div><dt>Przypisanie</dt><dd>Wskazanie, kogo dotyczy wpis: kto to powiedział albo kto brał udział.</dd></div>
+      <div><dt>Moment i miejsce</dt><dd>Kiedy to się wydarzyło (nie kiedy dodano wpis) oraz współrzędne z nazwą miejsca.</dd></div>
+      <div><dt>Zaproszenie</dt><dd>Kod albo link z datą ważności, przez który ktoś dołącza do grupy.</dd></div>
+    </dl>
+  </section>
+
+  <section id="stack">
+    <h2>Ustalony stack</h2>
+    <p class="sub">Decyzje na najbliższe fazy. Co nie jest tu wpisane, zostaje otwarte.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Obszar</th><th>Wybór</th><th>Dlaczego</th></tr></thead>
+        <tbody>
+          <tr><td>Runtime</td><td><strong>.NET 10 (LTS)</strong>, C# 14</td><td>Wsparcie do listopada 2028. Przy okazji paczki <code>9.0.0-rc</code> zamieniamy na stabilne.</td></tr>
+          <tr><td>Lokalnie</td><td><strong>Docker Compose</strong>: API, PostgreSQL, Azurite</td><td>Rozszerzamy istniejące <code>docker-compose.yml</code> i <code>Dockerfile</code>. Azurite emuluje Azure Blob na laptopie.</td></tr>
+          <tr><td>Baza</td><td><strong>PostgreSQL</strong>, EF Core 10</td><td>Rezygnujemy z SQLite: jeden provider i jeden zestaw migracji. Lokalizacja jako szerokość, długość i nazwa miejsca.</td></tr>
+          <tr><td>Auth</td><td><strong>Firebase Authentication</strong></td><td>Klient loguje się przez SDK Firebase (Google, Apple, e-mail), a API tylko weryfikuje ID token. Własne JWT, refresh tokeny i kolumna z hasłem znikają.</td></tr>
+          <tr><td>Pliki</td><td><strong>Azure Blob Storage</strong>, upload przez API</td><td>API sprawdza typ po zawartości pliku i limit rozmiaru, nadaje własną nazwę, usuwa EXIF (z lokalizacją GPS) i zapisuje WebP (ImageSharp). Odczyt bezpośrednio z prywatnego kontenera przez krótko ważny adres SAS. Okazja do nauki Azure.</td></tr>
+          <tr><td>Kontrakt API</td><td><strong>OpenAPI</strong> z .NET + Scalar</td><td>Spec <code>openapi.json</code> w repo jest umową z osobą od mobilki. Scalar zastępuje Swaggera jako podgląd.</td></tr>
+          <tr><td>Błędy</td><td><strong>ProblemDetails</strong> + FluentValidation</td><td>Każdy błąd ma ten sam kształt JSON, z którego korzystają oba klienty.</td></tr>
+          <tr><td>CI/CD</td><td><strong>GitHub Actions</strong></td><td>Już działa: build, testy z pokryciem i obraz Dockera w GHCR przy tagu <code>v*</code>. Krok deploy dojdzie razem z wyborem hostingu.</td></tr>
+          <tr><td>Testy</td><td>xUnit v3, <strong>Testcontainers</strong>, AwesomeAssertions</td><td>Testy endpointów na prawdziwym Postgresie w kontenerze. FluentAssertions 8 jest płatne komercyjnie, a AwesomeAssertions to darmowy fork z tym samym API.</td></tr>
+          <tr class="group"><td colspan="3">Do ustalenia</td></tr>
+          <tr class="tbd-row"><td>Frontend web</td><td><span class="tbd-tag">TBD</span></td><td><span class="tbd-tag">TBD</span></td></tr>
+          <tr class="tbd-row"><td>Powiadomienia</td><td><span class="tbd-tag">TBD</span></td><td><span class="tbd-tag">TBD</span></td></tr>
+          <tr class="tbd-row"><td>Paginacja list</td><td><span class="tbd-tag">TBD</span></td><td><span class="tbd-tag">TBD</span></td></tr>
+          <tr class="tbd-row"><td>Hosting API</td><td><span class="tbd-tag">TBD</span></td><td><span class="tbd-tag">TBD</span></td></tr>
+          <tr class="tbd-row"><td>Hosting bazy</td><td><span class="tbd-tag">TBD</span></td><td><span class="tbd-tag">TBD</span></td></tr>
+          <tr class="tbd-row"><td>Sekrety w chmurze</td><td><span class="tbd-tag">TBD</span></td><td><span class="tbd-tag">TBD</span></td></tr>
+          <tr class="tbd-row"><td>Logi i monitoring</td><td><span class="tbd-tag">TBD</span></td><td><span class="tbd-tag">TBD</span></td></tr>
+          <tr class="tbd-row"><td>E-maile</td><td><span class="tbd-tag">TBD</span></td><td><span class="tbd-tag">TBD</span></td></tr>
+          <tr class="tbd-row"><td>Mapy i wyszukiwanie miejsc</td><td><span class="tbd-tag">TBD</span></td><td><span class="tbd-tag">TBD</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tbd" aria-label="Funkcje do decyzji">
+      <span class="eyebrow">Funkcje do decyzji</span>
+      <span class="chip">Reakcje emoji</span>
+      <span class="chip">Role jako enum zamiast tabeli</span>
+    </div>
+  </section>
+
+  <section id="architektura">
+    <h2>Architektura</h2>
+    <p class="sub">Trzy usługi zewnętrzne, jedno API. Zapis pliku przechodzi przez API, które go sprawdza i czyści. Odczyt idzie bezpośrednio z Blob Storage, żeby API nie przepuszczało każdego wyświetlenia obrazka.</p>
+    <figure>
+      <div class="fig-box">
+        <svg viewBox="0 0 760 360" role="img" aria-label="Klienci logują się w Firebase i wysyłają do API zapytania z ID tokenem, także pliki memów. API weryfikuje token, zapisuje dane w PostgreSQL, a sprawdzone pliki w Azure Blob Storage. Klient pobiera obrazki bezpośrednio z Blob Storage przez adres SAS tylko do odczytu.">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+            <marker id="ahm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D9A100"/></marker>
+          </defs>
+          <g font-family="Instrument Sans, system-ui, sans-serif" font-size="12" fill="currentColor">
+            <!-- clients container -->
+            <rect x="10" y="20" width="200" height="210" rx="12" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="4 4"/>
+            <text x="22" y="40" font-size="11" fill-opacity=".7" font-family="JetBrains Mono, monospace">KLIENCI</text>
+            <rect x="30" y="55" width="160" height="56" rx="10" fill="none" stroke="currentColor"/>
+            <text x="110" y="80" text-anchor="middle" font-weight="600" font-size="13">Aplikacja mobilna</text>
+            <text x="110" y="98" text-anchor="middle" fill-opacity=".7">inna osoba</text>
+            <rect x="30" y="150" width="160" height="56" rx="10" fill="none" stroke="currentColor" stroke-dasharray="5 4"/>
+            <text x="110" y="175" text-anchor="middle" font-weight="600" font-size="13">Web (React)</text>
+            <text x="110" y="193" text-anchor="middle" fill-opacity=".7">później, TBD</text>
+
+            <!-- API -->
+            <rect x="300" y="115" width="180" height="80" rx="12" fill="none" stroke="currentColor" stroke-width="2"/>
+            <text x="390" y="148" text-anchor="middle" font-weight="700" font-size="14">Sharbo API</text>
+            <text x="390" y="167" text-anchor="middle" fill-opacity=".7">.NET 10 · Minimal API</text>
+
+            <!-- stores -->
+            <rect x="580" y="30" width="160" height="56" rx="10" fill="none" stroke="#D9A100" stroke-width="2"/>
+            <text x="660" y="55" text-anchor="middle" font-weight="600" font-size="13">Azure Blob Storage</text>
+            <text x="660" y="73" text-anchor="middle" fill-opacity=".7">lokalnie: Azurite</text>
+            <rect x="580" y="150" width="160" height="56" rx="10" fill="none" stroke="currentColor"/>
+            <text x="660" y="175" text-anchor="middle" font-weight="600" font-size="13">PostgreSQL</text>
+            <text x="660" y="193" text-anchor="middle" fill-opacity=".7">dane grup i wpisów</text>
+            <rect x="20" y="280" width="180" height="56" rx="10" fill="none" stroke="currentColor"/>
+            <text x="110" y="305" text-anchor="middle" font-weight="600" font-size="13">Firebase Auth</text>
+            <text x="110" y="323" text-anchor="middle" fill-opacity=".7">konta i logowanie</text>
+
+            <!-- edges -->
+            <line x1="190" y1="62" x2="576" y2="62" stroke="currentColor" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+            <text x="395" y="54" text-anchor="middle" fill-opacity=".8">GET obrazka (SAS tylko do odczytu)</text>
+
+            <line x1="190" y1="98" x2="297" y2="135" stroke="#D9A100" stroke-width="2" marker-end="url(#ahm)"/>
+            <text x="246" y="108" text-anchor="middle" font-weight="600" transform="rotate(19 246 108)">HTTPS + ID token</text>
+            <text x="238" y="140" text-anchor="middle" fill-opacity=".8" transform="rotate(19 238 140)">+ plik mema</text>
+            <line x1="190" y1="178" x2="297" y2="172" stroke="currentColor" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+
+            <path d="M455,115 L455,100 L576,80" fill="none" stroke="#D9A100" stroke-width="2" marker-end="url(#ahm)"/>
+            <text x="522" y="108" text-anchor="middle" font-weight="600">zapis po walidacji</text>
+
+            <line x1="480" y1="178" x2="576" y2="178" stroke="currentColor" marker-end="url(#ah)"/>
+            <text x="528" y="170" text-anchor="middle" fill-opacity=".8">EF Core</text>
+
+            <line x1="110" y1="230" x2="110" y2="276" stroke="currentColor" marker-end="url(#ah)"/>
+            <text x="120" y="258" fill-opacity=".8">logowanie, ID token</text>
+
+            <path d="M390,195 L390,308 L204,308" fill="none" stroke="currentColor" marker-end="url(#ah)"/>
+            <text x="398" y="250" fill-opacity=".8">weryfikuje token</text>
+            <text x="398" y="266" fill-opacity=".8">kluczami publicznymi</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Żółta ścieżka to upload: plik trafia do Blob Storage dopiero wtedy, gdy API sprawdzi typ i rozmiar, nada nazwę i usunie metadane. Hasło nigdy nie trafia do API, zostaje w Firebase.</figcaption>
+    </figure>
+  </section>
+
+  <section id="model">
+    <h2>Model danych MVP</h2>
+    <p class="sub">Docelowy schemat bazy dla MVP, z typami kolumn PostgreSQL. Punkt odniesienia: porównaj go z kodem, żeby zobaczyć, czego jeszcze brakuje.</p>
+    <figure>
+      <div class="fig-box">
+        <svg class="er" viewBox="0 -16 1000 544" role="img" aria-label="Docelowy schemat bazy MVP z typami kolumn PostgreSQL: Users, GroupParticipants, Groups, GroupParticipantRoles, Roles, Entries, EntryParticipants i GroupInvites wraz z relacjami.">
+          <g fill="none" stroke="currentColor" stroke-opacity=".55" stroke-width="1.4">
+          <path d="M290,80 H360"/>
+          <path d="M640,70 H710"/>
+          <path d="M850,20 V4 H150 V20"/>
+          <path d="M290,210 H330 V100 H360"/>
+          <path d="M150,248 V290"/>
+          <path d="M500,118 V200"/>
+          <path d="M640,264 H680 V150 H710"/>
+          <path d="M850,198 V240"/>
+          <path d="M290,460 H360"/>
+          </g><g font-family="Instrument Sans, system-ui, sans-serif" font-size="11" fill="currentColor" fill-opacity=".75">
+          <text x="325" y="73" text-anchor="middle">1 : N</text>
+          <text x="675" y="63" text-anchor="middle">N : 1</text>
+          <text x="500" y="-2" text-anchor="middle">Groups.CreatedById, LastModifiedById → Users</text>
+          <text x="336" y="160" >role</text>
+          <text x="508" y="164" >tworzy / edytuje</text>
+          <text x="646" y="256" >grupa</text>
+          <text x="858" y="224" >zaproszenia</text>
+          <text x="325" y="453" text-anchor="middle">N : M</text>
+          <text x="20" y="520" >EntryParticipants.ParticipantId → GroupParticipants.Id</text>
+          </g><g font-family="JetBrains Mono, monospace" font-size="11.5" fill="currentColor">
+          <rect x="10" y="20" width="280" height="98" rx="8" fill="none" stroke="currentColor"/>
+          <text x="22" y="40" font-family="Bricolage Grotesque, system-ui, sans-serif" font-size="13.5" font-weight="600">Users</text>
+          <line x1="10" y1="50" x2="290" y2="50" stroke="currentColor" stroke-opacity=".35"/>
+          <text x="22" y="64" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="48" y="64" >Id</text>
+          <text x="278" y="64" text-anchor="end" fill-opacity=".7">varchar(128)</text>
+          <text x="48" y="84" >Nickname</text>
+          <text x="278" y="84" text-anchor="end" fill-opacity=".7">varchar(50)</text>
+          <text x="22" y="104" font-size="9.5" fill-opacity=".6">UQ</text>
+          <text x="48" y="104" >Email</text>
+          <text x="278" y="104" text-anchor="end" fill-opacity=".7">varchar(254)</text>
+          <rect x="360" y="20" width="280" height="98" rx="8" fill="none" stroke="currentColor"/>
+          <text x="372" y="40" font-family="Bricolage Grotesque, system-ui, sans-serif" font-size="13.5" font-weight="600">GroupParticipants</text>
+          <line x1="360" y1="50" x2="640" y2="50" stroke="currentColor" stroke-opacity=".35"/>
+          <text x="372" y="64" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="398" y="64" >Id</text>
+          <text x="628" y="64" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="372" y="84" font-size="9.5" fill-opacity=".6">FK</text>
+          <text x="398" y="84" >GroupId</text>
+          <text x="628" y="84" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="372" y="104" font-size="9.5" fill-opacity=".6">FK</text>
+          <text x="398" y="104" >UserId</text>
+          <text x="628" y="104" text-anchor="end" fill-opacity=".7">varchar(128)</text>
+          <rect x="710" y="20" width="280" height="178" rx="8" fill="none" stroke="currentColor"/>
+          <text x="722" y="40" font-family="Bricolage Grotesque, system-ui, sans-serif" font-size="13.5" font-weight="600">Groups</text>
+          <line x1="710" y1="50" x2="990" y2="50" stroke="currentColor" stroke-opacity=".35"/>
+          <text x="722" y="64" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="748" y="64" >Id</text>
+          <text x="978" y="64" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="748" y="84" >Name</text>
+          <text x="978" y="84" text-anchor="end" fill-opacity=".7">varchar(100)</text>
+          <text x="748" y="104" >ImageBlob</text>
+          <text x="978" y="104" text-anchor="end" fill-opacity=".7">varchar(300)?</text>
+          <text x="722" y="124" font-size="9.5" fill-opacity=".6">FK</text>
+          <text x="748" y="124" >CreatedById</text>
+          <text x="978" y="124" text-anchor="end" fill-opacity=".7">varchar(128)</text>
+          <text x="722" y="144" font-size="9.5" fill-opacity=".6">FK</text>
+          <text x="748" y="144" >LastModifiedById</text>
+          <text x="978" y="144" text-anchor="end" fill-opacity=".7">varchar(128)</text>
+          <text x="748" y="164" >CreationDate</text>
+          <text x="978" y="164" text-anchor="end" fill-opacity=".7">timestamptz</text>
+          <text x="748" y="184" >ModificationDate</text>
+          <text x="978" y="184" text-anchor="end" fill-opacity=".7">timestamptz</text>
+          <rect x="10" y="170" width="280" height="78" rx="8" fill="none" stroke="currentColor"/>
+          <text x="22" y="190" font-family="Bricolage Grotesque, system-ui, sans-serif" font-size="13.5" font-weight="600">GroupParticipantRoles</text>
+          <line x1="10" y1="200" x2="290" y2="200" stroke="currentColor" stroke-opacity=".35"/>
+          <text x="22" y="214" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="48" y="214" >GroupParticipantId</text>
+          <text x="278" y="214" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="22" y="234" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="48" y="234" >RoleId</text>
+          <text x="278" y="234" text-anchor="end" fill-opacity=".7">int</text>
+          <rect x="10" y="290" width="280" height="98" rx="8" fill="none" stroke="currentColor"/>
+          <text x="22" y="310" font-family="Bricolage Grotesque, system-ui, sans-serif" font-size="13.5" font-weight="600">Roles</text>
+          <line x1="10" y1="320" x2="290" y2="320" stroke="currentColor" stroke-opacity=".35"/>
+          <text x="22" y="334" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="48" y="334" >Id</text>
+          <text x="278" y="334" text-anchor="end" fill-opacity=".7">int</text>
+          <text x="48" y="354" >RoleType</text>
+          <text x="278" y="354" text-anchor="end" fill-opacity=".7">int</text>
+          <text x="48" y="374" >Name</text>
+          <text x="278" y="374" text-anchor="end" fill-opacity=".7">varchar(100)</text>
+          <rect x="360" y="200" width="280" height="298" rx="8" fill="none" stroke="currentColor"/>
+          <text x="372" y="220" font-family="Bricolage Grotesque, system-ui, sans-serif" font-size="13.5" font-weight="600">Entries</text>
+          <line x1="360" y1="230" x2="640" y2="230" stroke="currentColor" stroke-opacity=".35"/>
+          <text x="372" y="244" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="398" y="244" >Id</text>
+          <text x="628" y="244" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="372" y="264" font-size="9.5" fill-opacity=".6">FK</text>
+          <text x="398" y="264" >GroupId</text>
+          <text x="628" y="264" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="398" y="284" >Type</text>
+          <text x="628" y="284" text-anchor="end" fill-opacity=".7">varchar(20)</text>
+          <text x="398" y="304" >Text</text>
+          <text x="628" y="304" text-anchor="end" fill-opacity=".7">text?</text>
+          <text x="398" y="324" >ImageBlob</text>
+          <text x="628" y="324" text-anchor="end" fill-opacity=".7">varchar(300)?</text>
+          <text x="398" y="344" >OccurredAt</text>
+          <text x="628" y="344" text-anchor="end" fill-opacity=".7">timestamptz</text>
+          <text x="398" y="364" >Latitude</text>
+          <text x="628" y="364" text-anchor="end" fill-opacity=".7">double precision?</text>
+          <text x="398" y="384" >Longitude</text>
+          <text x="628" y="384" text-anchor="end" fill-opacity=".7">double precision?</text>
+          <text x="398" y="404" >PlaceName</text>
+          <text x="628" y="404" text-anchor="end" fill-opacity=".7">varchar(200)?</text>
+          <text x="372" y="424" font-size="9.5" fill-opacity=".6">FK</text>
+          <text x="398" y="424" >CreatedById</text>
+          <text x="628" y="424" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="372" y="444" font-size="9.5" fill-opacity=".6">FK</text>
+          <text x="398" y="444" >LastModifiedById</text>
+          <text x="628" y="444" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="398" y="464" >CreationDate</text>
+          <text x="628" y="464" text-anchor="end" fill-opacity=".7">timestamptz</text>
+          <text x="398" y="484" >LastModificationDate</text>
+          <text x="628" y="484" text-anchor="end" fill-opacity=".7">timestamptz</text>
+          <rect x="710" y="240" width="280" height="158" rx="8" fill="none" stroke="currentColor"/>
+          <text x="722" y="260" font-family="Bricolage Grotesque, system-ui, sans-serif" font-size="13.5" font-weight="600">GroupInvites</text>
+          <line x1="710" y1="270" x2="990" y2="270" stroke="currentColor" stroke-opacity=".35"/>
+          <text x="722" y="284" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="748" y="284" >Id</text>
+          <text x="978" y="284" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="722" y="304" font-size="9.5" fill-opacity=".6">FK</text>
+          <text x="748" y="304" >GroupId</text>
+          <text x="978" y="304" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="722" y="324" font-size="9.5" fill-opacity=".6">UQ</text>
+          <text x="748" y="324" >Code</text>
+          <text x="978" y="324" text-anchor="end" fill-opacity=".7">varchar(12)</text>
+          <text x="748" y="344" >ExpiresAt</text>
+          <text x="978" y="344" text-anchor="end" fill-opacity=".7">timestamptz</text>
+          <text x="722" y="364" font-size="9.5" fill-opacity=".6">FK</text>
+          <text x="748" y="364" >CreatedById</text>
+          <text x="978" y="364" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="748" y="384" >CreationDate</text>
+          <text x="978" y="384" text-anchor="end" fill-opacity=".7">timestamptz</text>
+          <rect x="10" y="420" width="280" height="78" rx="8" fill="none" stroke="currentColor"/>
+          <text x="22" y="440" font-family="Bricolage Grotesque, system-ui, sans-serif" font-size="13.5" font-weight="600">EntryParticipants</text>
+          <line x1="10" y1="450" x2="290" y2="450" stroke="currentColor" stroke-opacity=".35"/>
+          <text x="22" y="464" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="48" y="464" >EntryId</text>
+          <text x="278" y="464" text-anchor="end" fill-opacity=".7">uuid</text>
+          <text x="22" y="484" font-size="9.5" fill-opacity=".6">PK</text>
+          <text x="48" y="484" >ParticipantId</text>
+          <text x="278" y="484" text-anchor="end" fill-opacity=".7">uuid</text>
+          </g>
+        </svg>
+      </div>
+      <div class="legend"><span><b>PK</b> klucz główny</span><span><b>FK</b> klucz obcy</span><span><b>UQ</b> wartość unikalna</span><span><b>?</b> może być NULL</span></div>
+      <figcaption>Memy, cytaty i sytuacje to jedna tabela <code>Entries</code> (mapowanie TPH) z kolumną <code>Type</code>: <code>Meme</code>, <code>Quote</code> albo <code>Situation</code>. Wpis należy bezpośrednio do grupy przez <code>GroupId</code>, a osoby, których dotyczy, wskazuje <code>EntryParticipants</code>. Daty to <code>timestamptz</code> zapisywane w UTC, <code>Users.Id</code> to Firebase UID, a <code>ImageBlob</code> to nazwa pliku w Azure Blob Storage.</figcaption>
+    </figure>
+  </section>
+
+  <section id="makiety">
+    <h2>Makiety</h2>
+    <p class="sub">Szkic przepływu, nie finalny wygląd aplikacji. Klikaj w makiecie albo w liście ekranów i przełączaj między telefonem a webem. Frontend webowy jest jeszcze TBD, więc wersja web pokazuje tylko proponowany układ.</p>
+    <div class="device-toggle" role="group" aria-label="Rodzaj makiet">
+      <button type="button" id="dev-phone" data-device="phone" aria-pressed="true">📱 Telefon</button>
+      <button type="button" id="dev-web" data-device="web" aria-pressed="false">🖥️ Web</button>
+    </div>
+    <div class="mock-grid" id="mock-grid">
+      <ul class="screens" id="screen-list" aria-label="Ekrany">
+        <li><button type="button" id="s-login" data-go="login" aria-pressed="true"><span>1</span>Logowanie</button></li>
+        <li><button type="button" id="s-groups" data-go="groups" aria-pressed="false"><span>2</span>Lista grup</button></li>
+        <li><button type="button" id="s-feed" data-go="feed" aria-pressed="false"><span>3</span>Feed grupy</button></li>
+        <li><button type="button" id="s-add" data-go="add" aria-pressed="false"><span>4</span>Nowy wpis</button></li>
+        <li><button type="button" id="s-entry" data-go="entry" aria-pressed="false"><span>5</span>Szczegóły wpisu</button></li>
+        <li><button type="button" id="s-invite" data-go="invite" aria-pressed="false"><span>6</span>Zaproszenie</button></li>
+        <li><button type="button" id="s-settings" data-go="settings" aria-pressed="false"><span>7</span>Ustawienia grupy</button></li>
+      </ul>
+
+      <div class="phone app" id="device-phone" aria-label="Podgląd ekranu aplikacji mobilnej">
+        <div class="phone-in app-in">
+          <div class="status"><span>21:37</span><span>5G ▮▮▮</span></div>
+
+          <!-- 1 Login -->
+          <div class="screen login" data-screen="login">
+            <div class="stickers" aria-hidden="true"><span>😂</span><span>🤪</span><span>🍕</span></div>
+            <div class="logo"><b>s</b>harbo</div>
+            <p class="tagline">Wasze żarty. Tylko dla was.<br>Reszta świata i tak by nie zrozumiała.</p>
+            <button class="btn dark" type="button" data-go="groups">Kontynuuj z Google</button>
+            <button class="btn" type="button" data-go="groups">Kontynuuj z Apple</button>
+            <div class="sep">albo</div>
+            <button class="btn" type="button" data-go="groups">E-mail i hasło</button>
+            <p class="fine">Logując się, akceptujesz regulamin.<br>Za suchary nie odpowiadamy.</p>
+          </div>
+
+          <!-- 2 Groups -->
+          <div class="screen" data-screen="groups" hidden>
+            <div class="appbar"><h4>Twoje grupy</h4><button class="ib" type="button" aria-label="Dołącz kodem" data-go="invite">#</button></div>
+            <div class="scroll">
+              <button class="card" type="button" data-go="feed">
+                <div class="row"><div class="gimg" aria-hidden="true">🛏️</div><div class="grow"><b>Ekipa z akademika</b><span class="small">5 osób · nowy cytat 2 godz. temu</span></div><span class="dot" aria-label="nowe wpisy"></span></div>
+              </button>
+              <button class="card" type="button" data-go="feed">
+                <div class="row"><div class="gimg" aria-hidden="true">💞</div><div class="grow"><b>Ola i ja</b><span class="small">2 osoby · wczoraj</span></div></div>
+              </button>
+              <button class="card" type="button" data-go="feed">
+                <div class="row"><div class="gimg" aria-hidden="true">🏔️</div><div class="grow"><b>Bieszczady 2026</b><span class="small">7 osób · 3 tyg. temu</span></div></div>
+              </button>
+              <button class="btn" type="button" data-go="invite">Dołącz do grupy kodem</button>
+            </div>
+            <button class="fab" type="button" aria-label="Nowa grupa">+</button>
+          </div>
+
+          <!-- 3 Feed -->
+          <div class="screen" data-screen="feed" hidden>
+            <div class="appbar"><button class="ib" type="button" aria-label="Wróć" data-go="groups">‹</button><h4>Ekipa z akademika</h4><button class="ib" type="button" aria-label="Ustawienia grupy" data-go="settings">⋯</button></div>
+            <div class="chips"><span class="on">Wszystko</span><span>Cytaty</span><span>Memy</span><span>Sytuacje</span></div>
+            <div class="scroll">
+              <button class="card" type="button" data-go="entry">
+                <span class="kind">💬 Cytat</span>
+                <span class="quote">„To nie jest kebab, to jest stan umysłu.”</span>
+                <span class="who"><span class="tag">Kuba</span></span>
+                <span class="foot"><span>14.03.2026, 02:13</span><span>Kebab u Aliego, Łódź</span></span>
+                <span class="reacts"><span class="me">😂 4</span><span>🌯 2</span><span class="add">+ 🙂</span></span>
+              </button>
+              <button class="card taped" type="button" data-go="entry">
+                <span class="kind">🖼️ Mem</span>
+                <span class="memeimg">Michał o 7:58 przed kolokwium 🫠</span>
+                <span class="who"><span class="tag">Michał</span></span>
+                <span class="foot"><span>02.02.2026, 07:58</span><span>Wydział Fizyki</span></span>
+                <span class="reacts"><span>💀 5</span><span class="me">😭 3</span><span class="add">+ 🙂</span></span>
+              </button>
+              <button class="card" type="button" data-go="entry">
+                <span class="kind">🎬 Sytuacja</span>
+                <span>Zosia zamówiła taksówkę pod adres, pod którym właśnie stała.</span>
+                <span class="who"><span class="tag">Zosia</span><span class="tag">Ola</span></span>
+                <span class="foot"><span>21.12.2025, 23:40</span><span>Piotrkowska 120</span></span>
+                <span class="reacts"><span>🤦 4</span><span>🚕 2</span><span class="add">+ 🙂</span></span>
+              </button>
+            </div>
+            <button class="fab" type="button" aria-label="Nowy wpis" data-go="add">+</button>
+          </div>
+
+          <!-- 4 Add -->
+          <div class="screen" data-screen="add" hidden>
+            <div class="appbar"><button class="ib" type="button" aria-label="Anuluj" data-go="feed">✕</button><h4>Nowy wpis</h4></div>
+            <div class="scroll">
+              <div class="seg" aria-label="Typ wpisu"><span>🖼️ Mem</span><span class="on">💬 Cytat</span><span>🎬 Sytuacja</span></div>
+              <div class="field"><label>Treść</label><div class="input">To nie jest kebab, to jest stan umysłu.</div></div>
+              <div class="field"><label>Kto to palnął?</label><div class="pick"><span class="on">Kuba</span><span>Ola</span><span>Michał</span><span>Zosia</span><span>Ty</span></div></div>
+              <div class="field"><label>Kiedy</label><div class="input mono">14.03.2026 · 02:13</div></div>
+              <div class="field"><label>Gdzie</label><div class="input">Kebab u Aliego, Łódź<br><span class="small mono">51.7663° N, 19.4573° E</span></div></div>
+              <button class="btn pri" type="button" data-go="feed">Zapisz, zanim zapomnicie</button>
+            </div>
+          </div>
+
+          <!-- 5 Entry -->
+          <div class="screen" data-screen="entry" hidden>
+            <div class="appbar"><button class="ib" type="button" aria-label="Wróć" data-go="feed">‹</button><h4>Cytat</h4><button class="ib" type="button" aria-label="Edytuj">✎</button></div>
+            <div class="scroll">
+              <p class="quote" style="font-size:1.25rem">„To nie jest kebab, to jest stan umysłu.”</p>
+              <div class="who"><span class="small">Palnął:</span><span class="tag">Kuba</span></div>
+              <div class="reacts"><span class="me">😂 4</span><span>🌯 2</span><span>🧠 1</span><span class="add">+ 🙂</span></div>
+              <div class="map" aria-label="Mapa z pinezką"><span class="pin"></span></div>
+              <div class="foot"><span>Kebab u Aliego, Łódź</span><span>51.7663° N, 19.4573° E</span></div>
+              <div class="foot"><span>Wydarzyło się 14.03.2026, 02:13</span></div>
+              <div class="foot"><span>Dodała Ola · edytowano 15.03.2026</span></div>
+            </div>
+          </div>
+
+          <!-- 6 Invite -->
+          <div class="screen" data-screen="invite" hidden>
+            <div class="appbar"><button class="ib" type="button" aria-label="Wróć" data-go="settings">‹</button><h4>Zaproś do grupy</h4></div>
+            <div class="scroll">
+              <p class="small">Wciągnij kogoś do ekipy. Ekipa z akademika · 5 osób</p>
+              <div class="code" aria-label="Kod zaproszenia">KBB‑47Q</div>
+              <div class="foot" style="justify-content:center"><span>sharbo.app/j/KBB-47Q</span></div>
+              <div class="foot" style="justify-content:center"><span>Ważny do 22.11.2026</span></div>
+              <button class="btn pri" type="button">Udostępnij link</button>
+              <button class="btn" type="button">Wygeneruj nowy kod</button>
+              <p class="small" style="text-align:center">Nowy kod unieważnia poprzedni.</p>
+            </div>
+          </div>
+
+          <!-- 7 Settings -->
+          <div class="screen" data-screen="settings" hidden>
+            <div class="appbar"><button class="ib" type="button" aria-label="Wróć" data-go="feed">‹</button><h4>Ustawienia grupy</h4></div>
+            <div class="scroll">
+              <div class="row"><div class="gimg" aria-hidden="true">🛏️</div><div class="grow"><b>Ekipa z akademika</b><span class="small">Zmień nazwę lub zdjęcie</span></div></div>
+              <div class="field"><label>Członkowie (5)</label></div>
+              <div class="row"><div class="av"><i class="y">O</i></div><div class="grow"><b>Ola</b></div><span class="role a">Admin</span></div>
+              <div class="row"><div class="av"><i>K</i></div><div class="grow"><b>Kuba</b></div><span class="role">Moderator</span></div>
+              <div class="row"><div class="av"><i>M</i></div><div class="grow"><b>Michał</b></div><span class="role">Uczestnik</span></div>
+              <div class="row"><div class="av"><i>Z</i></div><div class="grow"><b>Zosia</b></div><span class="role">Uczestnik</span></div>
+              <div class="row"><div class="av"><i>T</i></div><div class="grow"><b>Ty</b></div><span class="role">Uczestnik</span></div>
+              <button class="btn pri" type="button" data-go="invite">Zaproś osobę</button>
+              <button class="btn" type="button" data-go="groups">Opuść grupę</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="web-scroll" id="device-web" hidden>
+        <div class="browser app" aria-label="Podgląd strony w przeglądarce">
+          <div class="bchrome"><span class="bdots" aria-hidden="true"><i></i><i></i><i></i></span><span class="burl" id="burl">sharbo.app/zaloguj</span></div>
+          <div class="web-in app-in">
+
+            <!-- Web: login -->
+            <div class="wlogin" data-screen="login">
+              <div class="wlogin-card">
+                <div class="stickers" aria-hidden="true"><span>😂</span><span>🤪</span><span>🍕</span></div>
+                <div class="logo"><b>s</b>harbo</div>
+                <p class="tagline">Wasze żarty. Tylko dla was.<br>Reszta świata i tak by nie zrozumiała.</p>
+                <button class="btn dark" type="button" data-go="groups">Kontynuuj z Google</button>
+                <button class="btn" type="button" data-go="groups">Kontynuuj z Apple</button>
+                <div class="sep">albo</div>
+                <button class="btn" type="button" data-go="groups">E-mail i hasło</button>
+              </div>
+            </div>
+
+            <!-- Web: app shell -->
+            <div class="wshell" id="wshell" hidden>
+              <aside class="wside">
+                <div class="logo"><b>s</b>harbo</div>
+                <div class="lbl">Twoje grupy</div>
+                <button class="gitem on" type="button" data-go="feed"><span class="gimg" aria-hidden="true">🛏️</span><span class="grow">Ekipa z akademika</span><span class="dot" aria-label="nowe wpisy"></span></button>
+                <button class="gitem" type="button" data-go="feed"><span class="gimg" aria-hidden="true">💞</span><span class="grow">Ola i ja</span></button>
+                <button class="gitem" type="button" data-go="feed"><span class="gimg" aria-hidden="true">🏔️</span><span class="grow">Bieszczady 2026</span></button>
+                <div class="spacer"></div>
+                <button class="btn" type="button" data-go="groups">+ Nowa grupa</button>
+                <button class="btn" type="button" data-go="invite"># Dołącz kodem</button>
+                <button class="gitem" type="button" data-go="login"><span class="av"><i class="y">T</i></span><span class="grow">Ty · wyloguj</span></button>
+              </aside>
+
+              <main class="wmain">
+                <div data-wmain="groups">
+                  <div class="whead"><h4>Twoje grupy</h4></div>
+                  <div class="wtiles" style="margin-top:.9rem">
+                    <button class="wtile" type="button" data-go="feed"><span class="gimg" aria-hidden="true">🛏️</span><b>Ekipa z akademika</b><span class="small">5 osób · nowy cytat 2 godz. temu</span></button>
+                    <button class="wtile" type="button" data-go="feed"><span class="gimg" aria-hidden="true">💞</span><b>Ola i ja</b><span class="small">2 osoby · wczoraj</span></button>
+                    <button class="wtile" type="button" data-go="feed"><span class="gimg" aria-hidden="true">🏔️</span><b>Bieszczady 2026</b><span class="small">7 osób · 3 tyg. temu</span></button>
+                    <button class="wtile ghost" type="button">＋ Nowa grupa</button>
+                  </div>
+                </div>
+
+                <div data-wmain="feed" hidden>
+                  <div class="whead">
+                    <h4>🛏️ Ekipa z akademika</h4>
+                    <span class="av" aria-label="5 członków"><i class="y">O</i><i>K</i><i>M</i><i>Z</i><i>T</i></span>
+                    <button class="btn" type="button" data-go="invite">Zaproś</button>
+                    <button class="btn" type="button" data-go="settings">Ustawienia</button>
+                    <button class="btn pri" type="button" data-go="add">+ Nowy wpis</button>
+                  </div>
+                  <div class="wchips" style="margin-block:.8rem 1.1rem"><span class="on">Wszystko</span><span>💬 Cytaty</span><span>🖼️ Memy</span><span>🎬 Sytuacje</span></div>
+                  <div class="wfeed">
+                <button class="card" type="button" data-go="entry"><span class="kind">💬 Cytat</span><span class="quote">„To nie jest kebab, to jest stan umysłu.”</span><span class="who"><span class="tag">Kuba</span></span><span class="foot"><span>14.03.2026, 02:13</span><span>Kebab u Aliego, Łódź</span></span><span class="reacts"><span class="me">😂 4</span><span>🌯 2</span><span class="add">+ 🙂</span></span></button>
+                <button class="card taped" type="button" data-go="entry"><span class="kind">🖼️ Mem</span><span class="memeimg">Michał o 7:58 przed kolokwium 🫠</span><span class="who"><span class="tag">Michał</span></span><span class="foot"><span>02.02.2026, 07:58</span><span>Wydział Fizyki</span></span><span class="reacts"><span>💀 5</span><span class="me">😭 3</span><span class="add">+ 🙂</span></span></button>
+                <button class="card" type="button" data-go="entry"><span class="kind">🎬 Sytuacja</span><span>Zosia zamówiła taksówkę pod adres, pod którym właśnie stała.</span><span class="who"><span class="tag">Zosia</span><span class="tag">Ola</span></span><span class="foot"><span>21.12.2025, 23:40</span><span>Piotrkowska 120</span></span><span class="reacts"><span>🤦 4</span><span>🚕 2</span><span class="add">+ 🙂</span></span></button>
+                <button class="card" type="button" data-go="entry"><span class="kind">💬 Cytat</span><span class="quote">„Ja tylko na jedno.”</span><span class="who"><span class="tag">Ola</span></span><span class="foot"><span>08.11.2025, 21:05</span><span>Pub Lornetka</span></span><span class="reacts"><span>🍺 6</span><span class="me">🤥 4</span><span class="add">+ 🙂</span></span></button>
+                <button class="card" type="button" data-go="entry"><span class="kind">🎬 Sytuacja</span><span>Kuba przez pół godziny szukał telefonu, świecąc sobie latarką z tego telefonu.</span><span class="who"><span class="tag">Kuba</span></span><span class="foot"><span>30.10.2025, 01:12</span><span>Akademik DS-3</span></span><span class="reacts"><span>🔦 5</span><span>😂 3</span><span class="add">+ 🙂</span></span></button>
+                <button class="card taped" type="button" data-go="entry"><span class="kind">🖼️ Mem</span><span class="memeimg">Grupowy projekt: 1 osoba robi, 4 osoby „są na bieżąco” 🤡</span><span class="who"><span class="tag">Ty</span><span class="tag">Michał</span></span><span class="foot"><span>15.01.2026, 23:59</span><span>Discord</span></span><span class="reacts"><span class="me">💯 4</span><span>🫡 2</span><span class="add">+ 🙂</span></span></button>
+                  </div>
+                </div>
+
+                <div data-wmain="settings" hidden>
+                  <div class="whead"><button class="ib" type="button" aria-label="Wróć" data-go="feed">‹</button><h4>Ustawienia grupy</h4></div>
+                  <div class="wsettings" style="margin-top:.9rem">
+                    <div class="wbox">
+                      <h5>Grupa</h5>
+                      <div class="row"><div class="gimg" aria-hidden="true">🛏️</div><div class="grow"><b>Zdjęcie grupy</b><span class="small">Zmień zdjęcie</span></div></div>
+                      <div class="field"><label>Nazwa</label><div class="input">Ekipa z akademika</div></div>
+                      <button class="btn pri" type="button">Zapisz zmiany</button>
+                      <button class="btn danger" type="button" data-go="groups">Opuść grupę</button>
+                    </div>
+                    <div class="wbox">
+                      <h5>Członkowie (5)</h5>
+                      <div class="row"><div class="av"><i class="y">O</i></div><div class="grow"><b>Ola</b></div><span class="role a">Admin</span></div>
+                      <div class="row"><div class="av"><i>K</i></div><div class="grow"><b>Kuba</b></div><span class="role">Moderator</span></div>
+                      <div class="row"><div class="av"><i>M</i></div><div class="grow"><b>Michał</b></div><span class="role">Uczestnik</span></div>
+                      <div class="row"><div class="av"><i>Z</i></div><div class="grow"><b>Zosia</b></div><span class="role">Uczestnik</span></div>
+                      <div class="row"><div class="av"><i>T</i></div><div class="grow"><b>Ty</b></div><span class="role">Uczestnik</span></div>
+                      <button class="btn" type="button" data-go="invite">Zaproś osobę</button>
+                    </div>
+                  </div>
+                </div>
+              </main>
+
+              <!-- Web: overlays -->
+              <div class="wover" data-wover="add" hidden>
+                <div class="wdialog" role="dialog" aria-label="Nowy wpis">
+                  <h5>Nowy wpis <button class="ib" type="button" aria-label="Zamknij" data-go="feed">✕</button></h5>
+                  <div class="seg" aria-label="Typ wpisu"><span>🖼️ Mem</span><span class="on">💬 Cytat</span><span>🎬 Sytuacja</span></div>
+                  <div class="field"><label>Treść</label><div class="input">To nie jest kebab, to jest stan umysłu.</div></div>
+                  <div class="field"><label>Kto to palnął?</label><div class="pick"><span class="on">Kuba</span><span>Ola</span><span>Michał</span><span>Zosia</span><span>Ty</span></div></div>
+                  <div class="two">
+                    <div class="field"><label>Kiedy</label><div class="input mono">14.03.2026 · 02:13</div></div>
+                    <div class="field"><label>Gdzie</label><div class="input">Kebab u Aliego, Łódź</div></div>
+                  </div>
+                  <div class="actions"><button class="btn" type="button" data-go="feed">Anuluj</button><button class="btn pri" type="button" data-go="feed">Zapisz, zanim zapomnicie</button></div>
+                </div>
+              </div>
+
+              <div class="wpanel" data-wover="entry" hidden>
+                <div class="whead"><h4>💬 Cytat</h4><button class="ib" type="button" aria-label="Edytuj">✎</button><button class="ib" type="button" aria-label="Zamknij" data-go="feed">✕</button></div>
+                <p class="quote" style="font-size:1.25rem">„To nie jest kebab, to jest stan umysłu.”</p>
+                <div class="who"><span class="small">Palnął:</span><span class="tag">Kuba</span></div>
+                <div class="reacts"><span class="me">😂 4</span><span>🌯 2</span><span>🧠 1</span><span class="add">+ 🙂</span></div>
+                <div class="map" aria-label="Mapa z pinezką"><span class="pin"></span></div>
+                <div class="foot"><span>Kebab u Aliego, Łódź</span><span>51.7663° N, 19.4573° E</span></div>
+                <div class="foot"><span>Wydarzyło się 14.03.2026, 02:13</span></div>
+                <div class="foot"><span>Dodała Ola · edytowano 15.03.2026</span></div>
+              </div>
+
+              <div class="wover" data-wover="invite" hidden>
+                <div class="wdialog" role="dialog" aria-label="Zaproś do grupy">
+                  <h5>Wciągnij kogoś do ekipy <button class="ib" type="button" aria-label="Zamknij" data-go="feed">✕</button></h5>
+                  <p class="small">Ekipa z akademika · 5 osób</p>
+                  <div class="code" aria-label="Kod zaproszenia">KBB‑47Q</div>
+                  <div class="linkrow"><div class="input">sharbo.app/j/KBB-47Q</div><button class="btn pri" type="button">Kopiuj link</button></div>
+                  <div class="foot"><span>Ważny do 22.11.2026</span><span>Nowy kod unieważnia poprzedni</span></div>
+                  <div class="actions"><button class="btn" type="button">Wygeneruj nowy kod</button></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="notes" id="notes" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="roadmapa">
+    <h2>Roadmapa</h2>
+    <p class="sub">Każda faza to osobne issue i PR. Testy dopisujemy w trakcie każdej fazy, nie na końcu.</p>
+    <ol class="road">
+      <li class="done">
+        <div class="road-head"><span class="eyebrow">Krok 1</span><h3>Dokument i makiety</h3><span class="pill done">Gotowe</span></div>
+        <ul><li>Ten dokument: stack, architektura, model danych, makiety.</li><li>Model z fazy 3 do potwierdzenia na makietach.</li></ul>
+      </li>
+      <li>
+        <div class="road-head"><span class="eyebrow">Faza 1</span><h3>Fundament</h3><span class="pill">Zaplanowane</span></div>
+        <ul>
+          <li>.NET 10 i stabilne paczki w <code>global.json</code>, projektach, <code>Dockerfile</code> i CI.</li>
+          <li>Usunięcie SQLite; <code>docker-compose.yml</code> z Postgresem i Azurite; sekrety przez user-secrets i zmienne środowiskowe.</li>
+          <li>Nowa migracja <code>Initial</code> od zera.</li>
+        </ul>
+      </li>
+      <li>
+        <div class="road-head"><span class="eyebrow">Faza 2</span><h3>Auth i uprawnienia</h3><span class="pill">Zaplanowane</span></div>
+        <ul>
+          <li>Weryfikacja Firebase ID tokenu; bieżący użytkownik z tokenu zamiast wpisanego na sztywno ID w serwisach.</li>
+          <li>Dostęp do danych grupy tylko dla jej członków, z uwzględnieniem ról.</li>
+          <li>Profil użytkownika zakładany po pierwszym logowaniu; koniec publicznej listy użytkowników; usunięcie kolumny z hasłem.</li>
+        </ul>
+      </li>
+      <li>
+        <div class="road-head"><span class="eyebrow">Faza 3</span><h3>Model domeny</h3><span class="pill">Zaplanowane</span></div>
+        <ul><li>Gotowe w kodzie: memy, cytaty i sytuacje w jednej tabeli <code>Entries</code> z enumem <code>EntryType</code> (TPH).</li><li>Wpis: grupa, moment zdarzenia, miejsce, przypisane osoby.</li><li>Zaproszenia kodem lub linkiem z datą ważności.</li><li>Do rozważenia: role jako enum zamiast tabeli <code>Roles</code>.</li></ul>
+      </li>
+      <li>
+        <div class="road-head"><span class="eyebrow">Faza 4</span><h3>Jakość API</h3><span class="pill">Zaplanowane</span></div>
+        <ul><li>Wszystkie błędy jako ProblemDetails; poprawne odpowiedzi <code>201 Created</code>.</li><li>OpenAPI ze Scalarem i <code>openapi.json</code> w repo dla mobilki.</li></ul>
+      </li>
+      <li>
+        <div class="road-head"><span class="eyebrow">Faza 5</span><h3>Pliki na Azure Blob</h3><span class="pill">Zaplanowane</span></div>
+        <ul><li>Upload przez API (multipart): sprawdzenie typu po zawartości, limit rozmiaru, własna nazwa blobu, usunięcie EXIF, konwersja do WebP.</li><li>Odczyt z prywatnego kontenera przez krótko ważny adres SAS tylko do odczytu.</li><li>Lokalnie Azurite, w chmurze konto Storage założone w Azure.</li></ul>
+      </li>
+    </ol>
+  </section>
+</main>
+
+<footer class="wrap">Źródło: <code>docs/plan/index.html</code> w repozytorium sharbo-api. Zmiany w planie wprowadzamy tutaj i publikujemy ponownie.</footer>
+
+<script>
+(function () {
+  var notes = {
+    phone: {
+      login: { t: "Logowanie", d: "Logowanie przez Google, Apple albo e-mail i hasło. Konta obsługuje Firebase.", h: "Po pierwszym logowaniu aplikacja prosi o pseudonim widoczny w grupach." },
+      groups: { t: "Lista grup", d: "Grupy użytkownika z liczbą osób i informacją o ostatnim wpisie. Kropka oznacza nowe wpisy.", h: "Stąd zakłada się nową grupę (+) albo dołącza do istniejącej kodem (#)." },
+      feed: { t: "Feed grupy", d: "Wszystkie wpisy grupy w jednym strumieniu, z filtrem po typie. Karta pokazuje treść, przypisane osoby, moment, miejsce i reakcje.", h: "Reakcje emoji to pomysł do decyzji, nie ma ich jeszcze w modelu danych." },
+      add: { t: "Nowy wpis", d: "Typ, treść albo obrazek, przypisane osoby, moment i miejsce.", h: "„Kiedy” to moment zdarzenia, a nie dodania wpisu. Miejsce jest opcjonalne." },
+      entry: { t: "Szczegóły wpisu", d: "Pełna treść, przypisane osoby, mapa z miejscem i historia zmian.", h: "Edytować i usuwać może autor wpisu albo Moderator lub Admin grupy." },
+      invite: { t: "Zaproszenie", d: "Kod i link do grupy z datą ważności. Osoba z kodem dołącza jako Uczestnik.", h: "Zaproszenia wystawia Admin lub Moderator. Nowy kod unieważnia poprzedni." },
+      settings: { t: "Ustawienia grupy", d: "Nazwa i zdjęcie grupy, członkowie z rolami, zapraszanie i wyjście z grupy.", h: "Role członków zmienia Admin." }
+    },
+    web: {
+      login: { t: "Logowanie", d: "Te same metody logowania co w aplikacji, w karcie na środku ekranu.", h: "Szkic układu: stack frontendu jest jeszcze TBD." },
+      groups: { t: "Lista grup", d: "Grupy są na stałe w lewym panelu, a strona startowa pokazuje je jako kafelki.", h: "Lewy panel zostaje widoczny na każdym ekranie, więc przełączanie grup to jedno kliknięcie." },
+      feed: { t: "Feed grupy", d: "Szerszy ekran mieści feed w trzech kolumnach. Akcje grupy są w nagłówku: zaproszenie, ustawienia i nowy wpis.", h: "Filtr typów działa tak samo jak w aplikacji mobilnej." },
+      add: { t: "Nowy wpis", d: "Formularz otwiera się w okienku nad feedem, więc nie traci się kontekstu.", h: "Pola są te same co w aplikacji; „Kiedy” i „Gdzie” stoją obok siebie." },
+      entry: { t: "Szczegóły wpisu", d: "Szczegóły otwierają się w panelu bocznym, a feed zostaje widoczny obok.", h: "Mapa i historia zmian jak w aplikacji mobilnej." },
+      invite: { t: "Zaproszenie", d: "Kod i link w okienku, z przyciskiem do skopiowania linku.", h: "To samo okienko otwiera się z „Dołącz kodem” w lewym panelu." },
+      settings: { t: "Ustawienia grupy", d: "Osobna strona w obszarze głównym: dane grupy po lewej, członkowie z rolami po prawej.", h: "„Opuść grupę” jest oznaczone jako akcja nieodwracalna." }
+    }
+  };
+  var urls = {
+    login: "sharbo.app/zaloguj", groups: "sharbo.app/grupy", feed: "sharbo.app/g/ekipa-z-akademika",
+    add: "sharbo.app/g/ekipa-z-akademika/nowy", entry: "sharbo.app/g/ekipa-z-akademika/w/kebab",
+    invite: "sharbo.app/g/ekipa-z-akademika/zapros", settings: "sharbo.app/g/ekipa-z-akademika/ustawienia"
+  };
+  var mainFor = { groups: "groups", feed: "feed", add: "feed", entry: "feed", invite: "feed", settings: "settings" };
+
+  var device = "phone", current = "login";
+  var notesEl = document.getElementById("notes");
+  var grid = document.getElementById("mock-grid");
+  var phone = document.getElementById("device-phone");
+  var web = document.getElementById("device-web");
+  var shell = document.getElementById("wshell");
+  var burl = document.getElementById("burl");
+
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function each(sel, fn) { Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
+
+  function render() {
+    each("[data-screen]", function (s) { s.hidden = s.getAttribute("data-screen") !== current; });
+    shell.hidden = current === "login";
+    each("[data-wmain]", function (m) { m.hidden = m.getAttribute("data-wmain") !== mainFor[current]; });
+    each("[data-wover]", function (o) { o.hidden = o.getAttribute("data-wover") !== current; });
+    burl.textContent = urls[current];
+    each("#screen-list button", function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-go") === current)); });
+    each(".device-toggle button", function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-device") === device)); });
+    phone.hidden = device !== "phone";
+    web.hidden = device !== "web";
+    grid.classList.toggle("is-web", device === "web");
+    var n = notes[device][current];
+    notesEl.innerHTML = '<span class="eyebrow">' + (device === "web" ? "Web" : "Telefon") + ' · ekran</span><h3>' + esc(n.t) +
+      '</h3><p>' + esc(n.d) + '</p><p class="hint">' + esc(n.h) + '</p>';
+  }
+
+  document.addEventListener("click", function (ev) {
+    var d = ev.target.closest("[data-device]");
+    if (d) { device = d.getAttribute("data-device"); render(); return; }
+    var t = ev.target.closest("[data-go]");
+    if (t) { current = t.getAttribute("data-go"); render(); }
+  });
+  render();
+})();
+</script>
