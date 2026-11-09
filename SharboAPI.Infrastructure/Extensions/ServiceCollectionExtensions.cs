@@ -1,5 +1,3 @@
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +29,8 @@ public static class ServiceCollectionExtensions
 		return services;
 	}
 
-	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration,
+		bool requireFirebaseAtStartup)
 	{
 		services.AddScoped<IGroupRepository, GroupRepository>();
 		services.AddScoped<IGroupParticipantRepository, GroupParticipantRepository>();
@@ -42,18 +41,8 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IQuoteRepository, QuoteRepository>();
 		services.AddScoped<IFirebaseService, FirebaseService>();
 		services.AddScoped<IAuthenticationService, AuthenticationService>();
+		services.AddFirebase(configuration, requireFirebaseAtStartup);
 
-		var json = configuration.GetSection("Firebase:Credentials").Value;
-
-		if (string.IsNullOrWhiteSpace(json))
-		{
-			throw new InvalidOperationException("Firebase credentials not found in configuration.");
-		}
-
-		FirebaseApp.Create(new AppOptions
-		{
-			Credential = GoogleCredential.FromJson(json)
-		});
 		return services;
 	}
 }

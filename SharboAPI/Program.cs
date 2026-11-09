@@ -6,6 +6,7 @@ using SharboAPI.Endpoints;
 using Serilog;
 using SharboAPI.Infrastructure;
 using SharboAPI.Infrastructure.Extensions;
+using SharboAPI.Infrastructure.Options;
 using SharboAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,7 @@ var configuration = builder.Configuration;
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-builder.Services.AddInfrastructure(configuration);
+builder.Services.AddInfrastructure(configuration, requireFirebaseAtStartup: !builder.Environment.IsDevelopment());
 builder.Services.AddApplication();
 builder.Services.AddOpenApi();
 
@@ -38,6 +39,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+if (!FirebaseOptions.From(configuration).IsConfigured)
+{
+	app.Logger.LogWarning("Firebase is not configured (Firebase:Credentials). The API runs, but user registration and user lookups will fail until it is set.");
+}
 
 app.UseExceptionHandler();
 

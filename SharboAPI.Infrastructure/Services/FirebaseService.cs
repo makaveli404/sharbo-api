@@ -5,7 +5,7 @@ using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Infrastructure.Services;
 
-public class FirebaseService : IFirebaseService
+public class FirebaseService(FirebaseAuth firebaseAuth) : IFirebaseService
 {
 	public async Task<List<(string uid, string email)>> GetAllAsync(List<User> domainUsers, CancellationToken cancellationToken)
 	{
@@ -16,7 +16,7 @@ public class FirebaseService : IFirebaseService
 				.Select(u => new EmailIdentifier(u.Email))
 				.ToList();
 
-			var userResult = await FirebaseAuth.DefaultInstance.GetUsersAsync(identifiers, cancellationToken);
+			var userResult = await firebaseAuth.GetUsersAsync(identifiers, cancellationToken);
 
 			foreach (var user in userResult.Users)
 			{
@@ -36,7 +36,7 @@ public class FirebaseService : IFirebaseService
 	{
 		try
 		{
-			var userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(id, cancellation);
+			var userRecord = await firebaseAuth.GetUserAsync(id, cancellation);
 			return (userRecord.Uid, userRecord.Email);
 		}
 
@@ -55,7 +55,7 @@ public class FirebaseService : IFirebaseService
 	{
 		try
 		{
-			var userRecord = await FirebaseAuth.DefaultInstance.GetUserByEmailAsync(email, cancellation);
+			var userRecord = await firebaseAuth.GetUserByEmailAsync(email, cancellation);
 			return (userRecord.Uid, userRecord.Email);
 		}
 
@@ -80,7 +80,7 @@ public class FirebaseService : IFirebaseService
 				Password = password
 			};
 
-			var userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(userArgs, cancellationToken);
+			var userRecord = await firebaseAuth.CreateUserAsync(userArgs, cancellationToken);
 			return userRecord.Uid;
 		}
 
@@ -99,7 +99,7 @@ public class FirebaseService : IFirebaseService
 	{
 		try
 		{
-			var userRecord = await FirebaseAuth.DefaultInstance.GetUserByEmailAsync(email, cancellationToken);
+			var userRecord = await firebaseAuth.GetUserByEmailAsync(email, cancellationToken);
 			return userRecord is not null;
 		}
 
