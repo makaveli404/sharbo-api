@@ -21,7 +21,7 @@ Users can create teams (even just two-person ones) and within each team they can
 
 **Server:** .NET 9.0/C#12, ASP.NET Core Minimal API, Entity Framework Core, Firebase, SignalR, SendGrid, SeriLog, Sieve, FluentValidation, AutoMapper, xUnit, Moq, FluentAssertions, Swagger
 
-**Database:** SQLite, PostgreSQL
+**Database:** PostgreSQL
 
 
 ## Database

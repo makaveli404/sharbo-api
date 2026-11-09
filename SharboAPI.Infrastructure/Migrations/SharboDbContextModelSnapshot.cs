@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SharboAPI.Infrastructure;
 
 #nullable disable
@@ -15,25 +16,34 @@ namespace SharboAPI.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.0-rc.1.24451.1");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "10.0.14")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Entry", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("CreatedById")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("LastModificationDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("LastModifiedById")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
 
@@ -41,35 +51,42 @@ namespace SharboAPI.Infrastructure.Migrations
 
                     b.HasIndex("LastModifiedById");
 
-                    b.ToTable("Entries", (string)null);
+                    b.ToTable("Entries", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Entries_Type", "\"Type\" IN ('Meme', 'Quote', 'Situation')");
+                        });
 
-                    b.UseTptMappingStrategy();
+                    b.HasDiscriminator<string>("Type");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Group", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("TEXT");
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ImagePath")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("LastModifiedById")
-                        .HasColumnType("TEXT");
+                    b.Property<string>("LastModifiedById")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("ModificationDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -84,13 +101,14 @@ namespace SharboAPI.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("GroupId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -104,10 +122,10 @@ namespace SharboAPI.Infrastructure.Migrations
             modelBuilder.Entity("SharboAPI.Domain.Models.GroupParticipantRole", b =>
                 {
                     b.Property<Guid>("GroupParticipantId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<int>("RoleId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("GroupParticipantId", "RoleId");
 
@@ -120,14 +138,16 @@ namespace SharboAPI.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<int>("RoleType")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -136,21 +156,20 @@ namespace SharboAPI.Infrastructure.Migrations
 
             modelBuilder.Entity("SharboAPI.Domain.Models.User", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Nickname")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -163,12 +182,19 @@ namespace SharboAPI.Infrastructure.Migrations
 
                     b.Property<string>("ImagePath")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Text")
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("text")
+                        .HasColumnName("Text");
 
-                    b.ToTable("Memes", (string)null);
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_Entries_Type", "\"Type\" IN ('Meme', 'Quote', 'Situation')");
+                        });
+
+                    b.HasDiscriminator().HasValue("Meme");
                 });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Quote", b =>
@@ -177,9 +203,16 @@ namespace SharboAPI.Infrastructure.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("text")
+                        .HasColumnName("Text");
 
-                    b.ToTable("Quotes", (string)null);
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_Entries_Type", "\"Type\" IN ('Meme', 'Quote', 'Situation')");
+                        });
+
+                    b.HasDiscriminator().HasValue("Quote");
                 });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Situation", b =>
@@ -188,9 +221,16 @@ namespace SharboAPI.Infrastructure.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("text")
+                        .HasColumnName("Text");
 
-                    b.ToTable("Situations", (string)null);
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("CK_Entries_Type", "\"Type\" IN ('Meme', 'Quote', 'Situation')");
+                        });
+
+                    b.HasDiscriminator().HasValue("Situation");
                 });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Entry", b =>
@@ -267,33 +307,6 @@ namespace SharboAPI.Infrastructure.Migrations
                     b.Navigation("GroupParticipant");
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("SharboAPI.Domain.Models.Meme", b =>
-                {
-                    b.HasOne("SharboAPI.Domain.Models.Entry", null)
-                        .WithOne()
-                        .HasForeignKey("SharboAPI.Domain.Models.Meme", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("SharboAPI.Domain.Models.Quote", b =>
-                {
-                    b.HasOne("SharboAPI.Domain.Models.Entry", null)
-                        .WithOne()
-                        .HasForeignKey("SharboAPI.Domain.Models.Quote", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("SharboAPI.Domain.Models.Situation", b =>
-                {
-                    b.HasOne("SharboAPI.Domain.Models.Entry", null)
-                        .WithOne()
-                        .HasForeignKey("SharboAPI.Domain.Models.Situation", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("SharboAPI.Domain.Models.Group", b =>
