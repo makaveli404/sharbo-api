@@ -8,6 +8,9 @@ public class SituationConfiguration : IEntityTypeConfiguration<Situation>
 {
 	public void Configure(EntityTypeBuilder<Situation> builder)
 	{
-		builder.ToTable("Situations");
+		// Shares the Entries.Text column with the other entry types (TPH).
+		builder
+			.Property(e => e.Text)
+			.HasColumnName(EntryConfiguration.TextColumnName);
 	}
 }

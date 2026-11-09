@@ -1,10 +1,12 @@
+using SharboAPI.Domain.Enums;
+
 namespace SharboAPI.Domain.Models;
 
 public class Situation : Entry
 {
 	public string Text { get; private set; }
 
-	private Situation() {}
+	private Situation() : base(EntryType.Situation) {}
 
 	#region Factory_Methods
 	public static Situation Create(Guid createdById, string text)

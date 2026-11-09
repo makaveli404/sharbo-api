@@ -8,6 +8,9 @@ public class MemeConfiguration : IEntityTypeConfiguration<Meme>
 {
 	public void Configure(EntityTypeBuilder<Meme> builder)
 	{
-		builder.ToTable("Memes");
+		// Shares the Entries.Text column with the other entry types (TPH).
+		builder
+			.Property(e => e.Text)
+			.HasColumnName(EntryConfiguration.TextColumnName);
 	}
 }

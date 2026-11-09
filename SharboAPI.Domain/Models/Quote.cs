@@ -1,10 +1,12 @@
+using SharboAPI.Domain.Enums;
+
 namespace SharboAPI.Domain.Models;
 
 public class Quote : Entry
 {
 	public string Text { get; private set; }
 
-	private Quote() {}
+	private Quote() : base(EntryType.Quote) {}
 
 	#region Factory_Methods
 	public static Quote Create(Guid createdById, string text)

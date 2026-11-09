@@ -1,3 +1,5 @@
+using SharboAPI.Domain.Enums;
+
 namespace SharboAPI.Domain.Models;
 
 public class Meme : Entry
@@ -5,7 +7,7 @@ public class Meme : Entry
 	public string ImagePath { get; private set; }
 	public string? Text { get; private set; }
 
-	private Meme() {}
+	private Meme() : base(EntryType.Meme) {}
 
 	#region Factory_Methods
 	public static Meme Create(Guid createdById, string imagePath, string? text = null)
