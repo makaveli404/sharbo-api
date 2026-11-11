@@ -329,11 +329,11 @@ var assemblies = [
   {
     "name": "SharboAPI.Domain",
     "classes": [
-      { "name": "SharboAPI.Domain.Models.Entry", "rp": "SharboAPI.Domain_Entry.html", "cl": 16, "ucl": 2, "cal": 18, "tl": 32, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Domain.Models.Entry", "rp": "SharboAPI.Domain_Entry.html", "cl": 15, "ucl": 2, "cal": 17, "tl": 30, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Domain.Models.Group", "rp": "SharboAPI.Domain_Group.html", "cl": 32, "ucl": 8, "cal": 40, "tl": 63, "cb": 2, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Domain.Models.GroupParticipant", "rp": "SharboAPI.Domain_GroupParticipant.html", "cl": 16, "ucl": 6, "cal": 22, "tl": 40, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Domain.Models.GroupParticipantRole", "rp": "SharboAPI.Domain_GroupParticipantRole.html", "cl": 11, "ucl": 1, "cal": 12, "tl": 25, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Domain.Models.Meme", "rp": "SharboAPI.Domain_Meme.html", "cl": 16, "ucl": 0, "cal": 16, "tl": 29, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Domain.Models.Meme", "rp": "SharboAPI.Domain_Meme.html", "cl": 17, "ucl": 0, "cal": 17, "tl": 30, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Domain.Models.Quote", "rp": "SharboAPI.Domain_Quote.html", "cl": 14, "ucl": 0, "cal": 14, "tl": 27, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Domain.Models.Role", "rp": "SharboAPI.Domain_Role.html", "cl": 13, "ucl": 1, "cal": 14, "tl": 30, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Domain.Models.Situation", "rp": "SharboAPI.Domain_Situation.html", "cl": 14, "ucl": 0, "cal": 14, "tl": 27, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -342,16 +342,16 @@ var assemblies = [
   {
     "name": "SharboAPI.Infrastructure",
     "classes": [
-      { "name": "SharboAPI.Infrastructure.Configurations.EntryConfiguration", "rp": "SharboAPI.Infrastructure_EntryConfiguration.html", "cl": 0, "ucl": 11, "cal": 11, "tl": 23, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.Configurations.GroupConfiguration", "rp": "SharboAPI.Infrastructure_GroupConfiguration.html", "cl": 0, "ucl": 15, "cal": 15, "tl": 27, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.Configurations.GroupParticipantConfiguration", "rp": "SharboAPI.Infrastructure_GroupParticipantConfiguration.html", "cl": 0, "ucl": 12, "cal": 12, "tl": 23, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.Configurations.GroupParticipantRoleConfiguration", "rp": "SharboAPI.Infrastructure_GroupParticipantRoleConfiguration.html", "cl": 0, "ucl": 13, "cal": 13, "tl": 25, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.Configurations.MemeConfiguration", "rp": "SharboAPI.Infrastructure_MemeConfiguration.html", "cl": 0, "ucl": 3, "cal": 3, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.Configurations.QuoteConfiguration", "rp": "SharboAPI.Infrastructure_QuoteConfiguration.html", "cl": 0, "ucl": 3, "cal": 3, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.Configurations.SituationConfiguration", "rp": "SharboAPI.Infrastructure_SituationConfiguration.html", "cl": 0, "ucl": 3, "cal": 3, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.Extensions.ServiceCollectionExtensions", "rp": "SharboAPI.Infrastructure_ServiceCollectionExtensions.html", "cl": 0, "ucl": 45, "cal": 45, "tl": 81, "cb": 0, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.Migrations.Initial", "rp": "SharboAPI.Infrastructure_Initial.html", "cl": 0, "ucl": 511, "cal": 511, "tl": 592, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.Migrations.SharboDbContextModelSnapshot", "rp": "SharboAPI.Infrastructure_SharboDbContextModelSnapshot.html", "cl": 0, "ucl": 282, "cal": 282, "tl": 320, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Configurations.EntryConfiguration", "rp": "SharboAPI.Infrastructure_EntryConfiguration.html", "cl": 14, "ucl": 0, "cal": 14, "tl": 32, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Configurations.GroupConfiguration", "rp": "SharboAPI.Infrastructure_GroupConfiguration.html", "cl": 15, "ucl": 0, "cal": 15, "tl": 27, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Configurations.GroupParticipantConfiguration", "rp": "SharboAPI.Infrastructure_GroupParticipantConfiguration.html", "cl": 12, "ucl": 0, "cal": 12, "tl": 23, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Configurations.GroupParticipantRoleConfiguration", "rp": "SharboAPI.Infrastructure_GroupParticipantRoleConfiguration.html", "cl": 13, "ucl": 0, "cal": 13, "tl": 25, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Configurations.MemeConfiguration", "rp": "SharboAPI.Infrastructure_MemeConfiguration.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 16, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Configurations.QuoteConfiguration", "rp": "SharboAPI.Infrastructure_QuoteConfiguration.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 16, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Configurations.SituationConfiguration", "rp": "SharboAPI.Infrastructure_SituationConfiguration.html", "cl": 5, "ucl": 0, "cal": 5, "tl": 16, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Extensions.ServiceCollectionExtensions", "rp": "SharboAPI.Infrastructure_ServiceCollectionExtensions.html", "cl": 0, "ucl": 32, "cal": 32, "tl": 59, "cb": 0, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Migrations.Initial", "rp": "SharboAPI.Infrastructure_Initial.html", "cl": 0, "ucl": 452, "cal": 452, "tl": 527, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.Migrations.SharboDbContextModelSnapshot", "rp": "SharboAPI.Infrastructure_SharboDbContextModelSnapshot.html", "cl": 278, "ucl": 0, "cal": 278, "tl": 315, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Infrastructure.Repositories.GroupParticipantRepository", "rp": "SharboAPI.Infrastructure_GroupParticipantRepository.html", "cl": 0, "ucl": 31, "cal": 31, "tl": 50, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Infrastructure.Repositories.GroupRepository", "rp": "SharboAPI.Infrastructure_GroupRepository.html", "cl": 0, "ucl": 23, "cal": 23, "tl": 42, "cb": 0, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Infrastructure.Repositories.MemeRepository", "rp": "SharboAPI.Infrastructure_MemeRepository.html", "cl": 0, "ucl": 15, "cal": 15, "tl": 33, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -362,7 +362,7 @@ var assemblies = [
       { "name": "SharboAPI.Infrastructure.Seeder", "rp": "SharboAPI.Infrastructure_Seeder.html", "cl": 0, "ucl": 16, "cal": 16, "tl": 29, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Infrastructure.Services.AuthenticationService", "rp": "SharboAPI.Infrastructure_AuthenticationService.html", "cl": 0, "ucl": 25, "cal": 25, "tl": 48, "cb": 0, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SharboAPI.Infrastructure.Services.FirebaseService", "rp": "SharboAPI.Infrastructure_FirebaseService.html", "cl": 0, "ucl": 66, "cal": 66, "tl": 117, "cb": 0, "tb": 14, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SharboAPI.Infrastructure.SharboDbContext", "rp": "SharboAPI.Infrastructure_SharboDbContext.html", "cl": 0, "ucl": 14, "cal": 14, "tl": 23, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SharboAPI.Infrastructure.SharboDbContext", "rp": "SharboAPI.Infrastructure_SharboDbContext.html", "cl": 14, "ucl": 0, "cal": 14, "tl": 23, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -396,12 +396,6 @@ var riskHotspots = [
     ]},
   {
     "assembly": "SharboAPI.Application", "class": "SharboAPI.Application.Services.UserService", "reportPath": "SharboAPI.Application_UserService.html", "methodName": "GetByIdAsync()", "methodShortName": "GetByIdAsync()", "fileIndex": 0, "line": 37,
-    "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
-    ]},
-  {
-    "assembly": "SharboAPI.Infrastructure", "class": "SharboAPI.Infrastructure.Extensions.ServiceCollectionExtensions", "reportPath": "SharboAPI.Infrastructure_ServiceCollectionExtensions.html", "methodName": "AddDatabaseConfiguration(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)", "methodShortName": "AddDatabaseConfiguration(...)", "fileIndex": 0, "line": 19,
     "metrics": [
       { "value": 42, "exceeded": true },
       { "value": 6, "exceeded": false },
