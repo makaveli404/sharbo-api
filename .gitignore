@@ -489,3 +489,4 @@ CLAUDE.local.md
 .idea/**/discord.xml
 .idea/**/dataSources/
 .idea/**/dataSources*.xml
+.idea/**/httpRequests/
