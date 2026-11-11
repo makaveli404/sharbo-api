@@ -6,18 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Build like CI: `dotnet build --configuration Release`
 - Test: `dotnet test` (single test: `dotnet test --filter "FullyQualifiedName~MemeServiceTests.GetByIdAsync"`)
-- Run: `dotnet run --project SharboAPI` (Development → SQLite file `sharbolocaldb.db`; Swagger only in Development)
-- Full stack (API + Postgres 17): `docker compose up --build`
+- Run: `dotnet run --project SharboAPI` (needs `ConnectionStrings:SharboDbConnection` in user secrets, e.g. pointing at the compose database on `127.0.0.1:$POSTGRES_PORT`; Swagger only in Development)
+- API + Postgres 18: `cp .env.example .env`, fill in `POSTGRES_PASSWORD` (and `POSTGRES_PORT` if 5432 is taken), then `docker compose up --build`
 
 ## Local setup
 
 - Startup throws unless `Firebase:Credentials` (service-account JSON string) is configured. Locally it comes from user secrets: `dotnet user-secrets set "Firebase:Credentials" "<json>" --project SharboAPI`. Never commit it to appsettings.
-- `DatabaseProvider` (`SQLite` | `PostgreSQL`) selects the EF provider in `SharboAPI.Infrastructure/Extensions/ServiceCollectionExtensions.cs`; both share one `SharboDbContext` and one migration set.
+- PostgreSQL only (Npgsql), configured in `SharboAPI.Infrastructure/Extensions/ServiceCollectionExtensions.cs`. `dotnet ef` builds the API host, so it needs the same configuration as running the API (connection string, and for now the Firebase key).
 - Pending migrations are auto-applied on startup and `Seeder` seeds roles.
 
 ## Migrations
 
-Do NOT add, edit, or regenerate EF Core migrations without asking first (a hook enforces this for `SharboAPI.Infrastructure/Migrations/`). When approved: `dotnet ef migrations add <Name> -p SharboAPI.Infrastructure -s SharboAPI`.
+Do NOT add, edit, or regenerate EF Core migrations without asking first (a hook enforces this for `SharboAPI.Infrastructure/Migrations/`). When approved: `dotnet tool restore`, then `dotnet ef migrations add <Name> -p SharboAPI.Infrastructure -s SharboAPI`. Migrations are also applied automatically on API startup.
 
 ## Architecture conventions
 
@@ -35,7 +35,7 @@ xUnit + Moq + FluentAssertions, Arrange/Act/Assert comments, names like `Method_
 
 ## Gotchas
 
-- The Dockerfile copies each `.csproj` explicitly before `dotnet restore`; adding a new project to the solution requires adding a `COPY` line there or the image build breaks.
+- The Dockerfile restores only `SharboAPI.csproj` after copying the `.csproj` files it references; a new project referenced by the API needs its own `COPY` line there or the image build breaks (test projects don't).
 
 ## Git
 

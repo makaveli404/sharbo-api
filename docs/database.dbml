@@ -41,7 +41,7 @@ Table GroupParticipantRoles {
 
 Table Entries {
   Id uuid [pk]
-  Type varchar(20) [not null, note: 'Discriminator: Meme | Quote | Situation (CHECK constraint CK_Entries_Type)']
+  Type varchar(20) [not null, note: 'Discriminator = entity class name: Meme | Quote | Situation']
   Text varchar [note: 'Required for Quote and Situation, optional for Meme (enforced in domain and validators)']
   ImagePath varchar [note: 'Meme only']
   CreatedById uuid [not null, ref: > GroupParticipants.Id]

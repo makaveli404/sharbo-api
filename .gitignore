@@ -487,3 +487,5 @@ CLAUDE.local.md
 
 # JetBrains personal plugins
 .idea/**/discord.xml
+.idea/**/dataSources/
+.idea/**/dataSources*.xml

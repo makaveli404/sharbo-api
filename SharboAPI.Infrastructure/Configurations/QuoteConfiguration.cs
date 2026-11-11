@@ -8,6 +8,9 @@ public class QuoteConfiguration : IEntityTypeConfiguration<Quote>
 {
 	public void Configure(EntityTypeBuilder<Quote> builder)
 	{
-		builder.ToTable("Quotes");
+		// Shares the Entries.Text column with the other entry types (TPH).
+		builder
+			.Property(e => e.Text)
+			.HasColumnName(EntryConfiguration.TextColumnName);
 	}
 }

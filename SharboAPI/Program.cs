@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using SharboAPI.Application.Extensions;
 using SharboAPI.Endpoints;
 using Serilog;
