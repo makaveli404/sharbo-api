@@ -1,22 +1,14 @@
-using SharboAPI.Domain.Enums;
-
 namespace SharboAPI.Domain.Models;
 
 public abstract class Entry
 {
 	public Guid Id { get; protected set; }
-	public EntryType Type { get; private set; }
 	public DateTime CreationDate { get; protected set; }
 	public DateTime LastModificationDate { get; protected set; }
 	public Guid CreatedById { get; protected set; }
 	public GroupParticipant CreatedBy { get; protected set; }
 	public Guid LastModifiedById { get; protected set; }
 	public GroupParticipant LastModifiedBy { get; protected set; }
-
-	protected Entry(EntryType type)
-	{
-		Type = type;
-	}
 
 	#region Factory_Methods
 	protected static void Set(Entry entry, Guid createdById)

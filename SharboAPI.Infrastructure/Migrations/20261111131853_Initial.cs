@@ -99,18 +99,17 @@ namespace SharboAPI.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Type = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
                     LastModifiedById = table.Column<Guid>(type: "uuid", nullable: false),
+                    Type = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     ImagePath = table.Column<string>(type: "text", nullable: true),
                     Text = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Entries", x => x.Id);
-                    table.CheckConstraint("CK_Entries_Type", "\"Type\" IN ('Meme', 'Quote', 'Situation')");
                     table.ForeignKey(
                         name: "FK_Entries_GroupParticipants_CreatedById",
                         column: x => x.CreatedById,

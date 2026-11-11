@@ -15,10 +15,10 @@ public class EntryMappingTests
 	}
 
 	[Theory]
-	[InlineData(typeof(Meme))]
-	[InlineData(typeof(Quote))]
-	[InlineData(typeof(Situation))]
-	public void EntryTypes_AreMappedToSharedEntriesTable(Type entryType)
+	[InlineData(typeof(Meme), nameof(Meme))]
+	[InlineData(typeof(Quote), nameof(Quote))]
+	[InlineData(typeof(Situation), nameof(Situation))]
+	public void EntryTypes_AreMappedToSharedEntriesTableWithTypeDiscriminator(Type entryType, string expectedDiscriminator)
 	{
 		// Arrange
 		using var context = CreateContext();
@@ -28,11 +28,12 @@ public class EntryMappingTests
 
 		// Assert
 		entity.GetTableName().Should().Be("Entries");
-		entity.FindDiscriminatorProperty()!.Name.Should().Be(nameof(Entry.Type));
+		entity.FindDiscriminatorProperty()!.Name.Should().Be("Type");
+		entity.GetDiscriminatorValue().Should().Be(expectedDiscriminator);
 	}
 
 	[Fact]
-	public void CreateScript_ContainsSingleEntriesTableWithOneTextColumnAndTypeCheck()
+	public void CreateScript_ContainsSingleEntriesTableWithOneTextColumn()
 	{
 		// Arrange
 		using var context = CreateContext();
@@ -45,8 +46,20 @@ public class EntryMappingTests
 		script.Should().NotContain("CREATE TABLE \"Memes\"");
 		script.Should().NotContain("CREATE TABLE \"Quotes\"");
 		script.Should().NotContain("CREATE TABLE \"Situations\"");
-		script.Should().Contain("CONSTRAINT \"CK_Entries_Type\" CHECK (\"Type\" IN ('Meme', 'Quote', 'Situation'))");
 		script.Should().Contain("\"Text\" text,");
 		script.Should().NotContainAny("\"Quote_Text\"", "\"Situation_Text\"", "\"Meme_Text\"");
+	}
+
+	[Fact]
+	public void Model_HasNoChangesMissingFromMigrations()
+	{
+		// Arrange
+		using var context = CreateContext();
+
+		// Act
+		var hasPendingChanges = context.Database.HasPendingModelChanges();
+
+		// Assert
+		hasPendingChanges.Should().BeFalse("every model change needs a migration (dotnet ef migrations add)");
 	}
 }

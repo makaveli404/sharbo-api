@@ -51,12 +51,9 @@ namespace SharboAPI.Infrastructure.Migrations
 
                     b.HasIndex("LastModifiedById");
 
-                    b.ToTable("Entries", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Entries_Type", "\"Type\" IN ('Meme', 'Quote', 'Situation')");
-                        });
+                    b.ToTable("Entries", (string)null);
 
-                    b.HasDiscriminator<string>("Type");
+                    b.HasDiscriminator<string>("Type").HasValue("Entry");
 
                     b.UseTphMappingStrategy();
                 });
@@ -189,11 +186,6 @@ namespace SharboAPI.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Text");
 
-                    b.ToTable(t =>
-                        {
-                            t.HasCheckConstraint("CK_Entries_Type", "\"Type\" IN ('Meme', 'Quote', 'Situation')");
-                        });
-
                     b.HasDiscriminator().HasValue("Meme");
                 });
 
@@ -207,11 +199,6 @@ namespace SharboAPI.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Text");
 
-                    b.ToTable(t =>
-                        {
-                            t.HasCheckConstraint("CK_Entries_Type", "\"Type\" IN ('Meme', 'Quote', 'Situation')");
-                        });
-
                     b.HasDiscriminator().HasValue("Quote");
                 });
 
@@ -224,11 +211,6 @@ namespace SharboAPI.Infrastructure.Migrations
                         .ValueGeneratedOnUpdateSometimes()
                         .HasColumnType("text")
                         .HasColumnName("Text");
-
-                    b.ToTable(t =>
-                        {
-                            t.HasCheckConstraint("CK_Entries_Type", "\"Type\" IN ('Meme', 'Quote', 'Situation')");
-                        });
 
                     b.HasDiscriminator().HasValue("Situation");
                 });
