@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Local setup
 
-- Firebase (`Firebase:Credentials` service-account JSON, optional `Firebase:ProjectId`) is created lazily on first use (`AddFirebase` in `SharboAPI.Infrastructure/Extensions/FirebaseServiceCollectionExtensions.cs`). Outside Development a missing key blocks startup; in Development the API starts with a warning and only user registration/lookups fail. Use a separate dev Firebase project; set its key via `dotnet user-secrets set "Firebase:Credentials" "<json>" --project SharboAPI` or `FIREBASE_CREDENTIALS` in `.env`. Never commit it.
+- Firebase (`Firebase:Credentials` service-account JSON, optional `Firebase:ProjectId`) is registered by `AddFirebase` and created at startup by `InitializeFirebase` (`SharboAPI.Infrastructure/Extensions/FirebaseServiceCollectionExtensions.cs`, called in `Program.cs` before migrations). Outside Development a missing or invalid key stops startup; in Development it only logs a warning and user registration/lookups fail on use. Use a separate dev Firebase project; set its key via `dotnet user-secrets set "Firebase:Credentials" "<json>" --project SharboAPI` or `FIREBASE_CREDENTIALS` in `.env`. Never commit it.
 - PostgreSQL only (Npgsql), configured in `SharboAPI.Infrastructure/Extensions/ServiceCollectionExtensions.cs`. `dotnet ef` builds the API host, so it needs the connection string configured (user secrets or env).
 - Pending migrations are auto-applied on startup and `Seeder` seeds roles.
 

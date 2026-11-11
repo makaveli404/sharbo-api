@@ -17,12 +17,7 @@ public class FirebaseService(FirebaseAuth firebaseAuth) : IFirebaseService
 				.ToList();
 
 			var userResult = await firebaseAuth.GetUsersAsync(identifiers, cancellationToken);
-
-			foreach (var user in userResult.Users)
-			{
-				users.Add((user.Uid, user.Email));
-			}
-
+			users.AddRange(userResult.Users.Select(user => (user.Uid, user.Email)));
 			return users;
 		}
 

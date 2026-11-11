@@ -6,71 +6,90 @@ using SharboAPI.Endpoints;
 using Serilog;
 using SharboAPI.Infrastructure;
 using SharboAPI.Infrastructure.Extensions;
-using SharboAPI.Infrastructure.Options;
 using SharboAPI.Middleware;
 
-var builder = WebApplication.CreateBuilder(args);
+// Bootstrap logger: catches failures that happen before the configured logger is built.
+Log.Logger = new LoggerConfiguration()
+	.WriteTo.Console()
+	.CreateBootstrapLogger();
 
-var configuration = builder.Configuration;
-
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();
-
-builder.Services.AddInfrastructure(configuration, requireFirebaseAtStartup: !builder.Environment.IsDevelopment());
-builder.Services.AddApplication();
-builder.Services.AddOpenApi();
-
-builder.Host.UseSerilog((context, config) =>
-	config.ReadFrom.Configuration(context.Configuration));
-
-builder.Services.AddControllers()
-	.AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddDatabaseConfiguration(configuration);
-
-builder.Services.AddSwaggerGen(c =>
+try
 {
-	c.SwaggerDoc("v1", new OpenApiInfo
+	var builder = WebApplication.CreateBuilder(args);
+
+	var configuration = builder.Configuration;
+
+	builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+	builder.Services.AddProblemDetails();
+
+	builder.Services.AddInfrastructure(configuration);
+	builder.Services.AddApplication();
+	builder.Services.AddOpenApi();
+
+	builder.Host.UseSerilog((context, config) =>
+		config.ReadFrom.Configuration(context.Configuration));
+
+	builder.Services.AddControllers()
+		.AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+	builder.Services.AddEndpointsApiExplorer();
+	builder.Services.AddDatabaseConfiguration(configuration);
+
+	builder.Services.AddSwaggerGen(c =>
 	{
-		Title = "Sharbo API",
-		Version = "v1",
-		Description = "Sharbo API"
+		c.SwaggerDoc("v1", new OpenApiInfo
+		{
+			Title = "Sharbo API",
+			Version = "v1",
+			Description = "Sharbo API"
+		});
 	});
-});
 
-var app = builder.Build();
+	var app = builder.Build();
 
-if (!FirebaseOptions.From(configuration).IsConfigured)
-{
-	app.Logger.LogWarning("Firebase is not configured (Firebase:Credentials). The API runs, but user registration and user lookups will fail until it is set.");
+	// Outside Development a missing or invalid Firebase key stops startup here, before migrations run.
+	app.Services.InitializeFirebase(required: !app.Environment.IsDevelopment(), app.Logger);
+
+	app.UseExceptionHandler();
+
+	app.MapGroupEndpoints();
+	app.MapUserEndpoints();
+	app.MapMemeEndpoints();
+	app.MapSituationEndpoints();
+	app.MapQuoteEndpoints();
+
+	if (app.Environment.IsDevelopment())
+	{
+		app.MapOpenApi();
+		app.UseSwagger();
+		app.UseSwaggerUI();
+	}
+
+	using var scope = app.Services.CreateScope();
+	ApplyMigration<SharboDbContext>(scope);
+
+	var seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
+	await seeder.Seed();
+
+	app.UseSerilogRequestLogging();
+
+	app.UseHttpsRedirection();
+	app.MapControllers();
+	app.Run();
+
+	return 0;
 }
-
-app.UseExceptionHandler();
-
-app.MapGroupEndpoints();
-app.MapUserEndpoints();
-app.MapMemeEndpoints();
-app.MapSituationEndpoints();
-app.MapQuoteEndpoints();
-
-if (app.Environment.IsDevelopment())
+// HostAbortedException is how EF Core tools (dotnet ef) stop the host on purpose; it isn't a failure.
+catch (Exception ex) when (ex is not HostAbortedException)
 {
-	app.MapOpenApi();
-	app.UseSwagger();
-	app.UseSwaggerUI();
+	// Log and exit with a non-zero code instead of letting the runtime abort(): as PID 1 in a container
+	// an abort is ignored and the process spins at 100% CPU instead of exiting.
+	Log.Fatal(ex, "Application failed to start or terminated unexpectedly.");
+	return 1;
 }
-
-using var scope = app.Services.CreateScope();
-ApplyMigration<SharboDbContext>(scope);
-
-var seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
-await seeder.Seed();
-
-app.UseSerilogRequestLogging();
-
-app.UseHttpsRedirection();
-app.MapControllers();
-app.Run();
+finally
+{
+	await Log.CloseAndFlushAsync();
+}
 
 
 static void ApplyMigration<TDbContext>(IServiceScope scope)

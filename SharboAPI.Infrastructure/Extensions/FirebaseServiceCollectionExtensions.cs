@@ -3,6 +3,7 @@ using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SharboAPI.Infrastructure.Options;
 
@@ -10,39 +11,50 @@ namespace SharboAPI.Infrastructure.Extensions;
 
 public static class FirebaseServiceCollectionExtensions
 {
-	private const string FirebaseAppName = "sharbo";
+	private const string _firebaseAppName = "sharbo";
 
 	/// <summary>
-	/// Registers Firebase without contacting it at startup: the Firebase app is created on first use of <see cref="FirebaseAuth"/>.
-	/// With <paramref name="requireAtStartup"/> the app refuses to start when Firebase is not configured.
+	/// Registers Firebase options and <see cref="FirebaseAuth"/>; the Firebase app itself is created by <see cref="InitializeFirebase"/>
+	/// at startup or, if that failed in Development, on first use.
 	/// </summary>
-	public static IServiceCollection AddFirebase(this IServiceCollection services, IConfiguration configuration,
-		bool requireAtStartup)
+	public static IServiceCollection AddFirebase(this IServiceCollection services, IConfiguration configuration)
 	{
-		var options = services
+		services
 			.AddOptions<FirebaseOptions>()
 			.Configure(o => configuration.GetSection(FirebaseOptions.SectionName).Bind(o))
 			.Validate(o => o.IsConfigured,
-				$"Firebase is not configured. Set '{FirebaseOptions.SectionName}:Credentials' (user secrets or the Firebase__Credentials environment variable).");
-
-		if (requireAtStartup)
-		{
-			options.ValidateOnStart();
-		}
+				$"Firebase is not configured.");
 
 		services.AddSingleton(serviceProvider =>
 		{
 			var firebaseOptions = serviceProvider.GetRequiredService<IOptions<FirebaseOptions>>().Value;
 
-			var app = FirebaseApp.GetInstance(FirebaseAppName) ?? FirebaseApp.Create(new AppOptions
+			var app = FirebaseApp.GetInstance(_firebaseAppName) ?? FirebaseApp.Create(new AppOptions
 			{
 				Credential = GoogleCredential.FromJson(firebaseOptions.Credentials),
 				ProjectId = firebaseOptions.ProjectId
-			}, FirebaseAppName);
+			}, _firebaseAppName);
 
 			return FirebaseAuth.GetAuth(app);
 		});
 
 		return services;
+	}
+
+	/// <summary>
+	/// Creates <see cref="FirebaseAuth"/> at startup. When <paramref name="required"/>, a missing or invalid key stops the application;
+	/// otherwise the problem is only logged and Firebase-dependent endpoints fail on use.
+	/// </summary>
+	public static void InitializeFirebase(this IServiceProvider services, bool required, ILogger logger)
+	{
+		try
+		{
+			services.GetRequiredService<FirebaseAuth>();
+		}
+		catch (Exception ex) when (!required)
+		{
+			logger.LogWarning("Firebase is not available: {Reason} The API runs, but user registration and user lookups will fail.",
+				ex.Message);
+		}
 	}
 }

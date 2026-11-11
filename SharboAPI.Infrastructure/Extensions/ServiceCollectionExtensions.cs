@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
 		if (string.IsNullOrWhiteSpace(connectionString))
 		{
 			throw new InvalidOperationException(
-				"Connection string 'SharboDbConnection' is not configured. Set it in user secrets or the ConnectionStrings__SharboDbConnection environment variable.");
+				"Connection string 'SharboDbConnection' is not configured.");
 		}
 
 		services.AddDbContext<SharboDbContext>(options =>
@@ -29,8 +29,7 @@ public static class ServiceCollectionExtensions
 		return services;
 	}
 
-	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration,
-		bool requireFirebaseAtStartup)
+	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
 	{
 		services.AddScoped<IGroupRepository, GroupRepository>();
 		services.AddScoped<IGroupParticipantRepository, GroupParticipantRepository>();
@@ -41,7 +40,7 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IQuoteRepository, QuoteRepository>();
 		services.AddScoped<IFirebaseService, FirebaseService>();
 		services.AddScoped<IAuthenticationService, AuthenticationService>();
-		services.AddFirebase(configuration, requireFirebaseAtStartup);
+		services.AddFirebase(configuration);
 
 		return services;
 	}
