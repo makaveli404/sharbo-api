@@ -6,8 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Build like CI: `dotnet build --configuration Release`
 - Test: `dotnet test` (single test: `dotnet test --filter "FullyQualifiedName~MemeServiceTests.GetByIdAsync"`)
-- Run: `dotnet run --project SharboAPI` (needs `ConnectionStrings:SharboDbConnection` in user secrets, e.g. pointing at the compose database on `127.0.0.1:$POSTGRES_PORT`; Swagger only in Development)
-- API + Postgres 18: `cp .env.example .env`, fill in `POSTGRES_PASSWORD` (and `POSTGRES_PORT` if 5432 is taken), then `docker compose up --build`
+- Run: `docker compose up -d db`, then `dotnet run --project SharboAPI` (Swagger only in Development)
+- API + Postgres 18: `docker compose up --build`
+- Config split: `.env` is read only by docker compose; .NET reads `appsettings*.json`. `appsettings.Development.json` holds the dev connection string (`127.0.0.1:5434`, password `sharbo_dev`) matching the compose defaults, so keep them in sync. It's a local-only dev password; real secrets never go into appsettings.
 
 ## Local setup
 
