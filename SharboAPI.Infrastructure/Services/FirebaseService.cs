@@ -7,67 +7,35 @@ namespace SharboAPI.Infrastructure.Services;
 
 public class FirebaseService(FirebaseAuth firebaseAuth) : IFirebaseService
 {
-	public async Task<List<(string uid, string email)>> GetAllAsync(List<User> domainUsers, CancellationToken cancellationToken)
-	{
-		try
+	public Task<List<(string uid, string email)>> GetAllAsync(List<User> domainUsers, CancellationToken cancellationToken) =>
+		ExecuteAsync(async () =>
 		{
-			List<(string uid, string email)> users = [];
 			var identifiers = domainUsers
 				.Select(u => new EmailIdentifier(u.Email))
 				.ToList();
 
 			var userResult = await firebaseAuth.GetUsersAsync(identifiers, cancellationToken);
-			users.AddRange(userResult.Users.Select(user => (user.Uid, user.Email)));
-			return users;
-		}
+			return userResult.Users
+				.Select(user => (user.Uid, user.Email))
+				.ToList();
+		});
 
-		catch (Exception ex)
-		{
-			throw new Exception($"An error occured while getting firebase users: { ex.Message }");
-		}
-	}
-
-	public async Task<(string uid, string email)> GetByIdAsync(string id, CancellationToken cancellation)
-	{
-		try
+	public Task<(string uid, string email)> GetByIdAsync(string id, CancellationToken cancellation) =>
+		ExecuteAsync(async () =>
 		{
 			var userRecord = await firebaseAuth.GetUserAsync(id, cancellation);
 			return (userRecord.Uid, userRecord.Email);
-		}
+		});
 
-		catch (Exception ex)
-		{
-			if (ex is FirebaseAuthException)
-			{
-				throw new FirebaseException($"Firebase error has occurred: {ex.Message}");
-			}
-
-			throw new Exception($"Unexpected error: {ex.Message}");
-		}
-	}
-
-	public async Task<(string uid, string email)> GetByEmailAsync(string email, CancellationToken cancellation)
-	{
-		try
+	public Task<(string uid, string email)> GetByEmailAsync(string email, CancellationToken cancellation) =>
+		ExecuteAsync(async () =>
 		{
 			var userRecord = await firebaseAuth.GetUserByEmailAsync(email, cancellation);
 			return (userRecord.Uid, userRecord.Email);
-		}
+		});
 
-		catch (Exception ex)
-		{
-			if (ex is FirebaseAuthException)
-			{
-				throw new FirebaseException($"Firebase error has occurred: { ex.Message }");
-			}
-
-			throw new Exception($"Unexpected error: { ex.Message }");
-		}
-	}
-
-	public async Task<string> RegisterAsync(string email, string password, CancellationToken cancellationToken)
-	{
-		try
+	public Task<string> RegisterAsync(string email, string password, CancellationToken cancellationToken) =>
+		ExecuteAsync(async () =>
 		{
 			var userArgs = new UserRecordArgs
 			{
@@ -77,36 +45,39 @@ public class FirebaseService(FirebaseAuth firebaseAuth) : IFirebaseService
 
 			var userRecord = await firebaseAuth.CreateUserAsync(userArgs, cancellationToken);
 			return userRecord.Uid;
-		}
+		});
 
-		catch (Exception ex)
+	public Task<bool> IsUserExistAsync(string email, CancellationToken cancellationToken) =>
+		ExecuteAsync(async () =>
 		{
-			if (ex is FirebaseAuthException)
+			try
 			{
-				throw new FirebaseException($"Firebase error has occurred: { ex.Message }");
+				await firebaseAuth.GetUserByEmailAsync(email, cancellationToken);
+				return true;
 			}
-
-			throw new Exception($"Unexpected error: { ex.Message }");
-		}
-	}
-
-	public async Task<bool> IsUserExistAsync(string email, CancellationToken cancellationToken)
-	{
-		try
-		{
-			var userRecord = await firebaseAuth.GetUserByEmailAsync(email, cancellationToken);
-			return userRecord is not null;
-		}
-
-		catch (Exception ex)
-		{
-			if (ex is FirebaseAuthException &&
-			    ((FirebaseAuthException)ex).AuthErrorCode is AuthErrorCode.UserNotFound)
+			catch (FirebaseAuthException ex) when (ex.AuthErrorCode is AuthErrorCode.UserNotFound)
 			{
 				return false;
 			}
+		});
 
-			throw new Exception($"Unexpected error: { ex.Message }");
+	private static async Task<T> ExecuteAsync<T>(Func<Task<T>> action)
+	{
+		try
+		{
+			return await action();
+		}
+		catch (OperationCanceledException)
+		{
+			throw;
+		}
+		catch (FirebaseAuthException ex)
+		{
+			throw new FirebaseException($"Firebase error has occurred: {ex.Message}");
+		}
+		catch (Exception ex)
+		{
+			throw new Exception($"Unexpected error: {ex.Message}", ex);
 		}
 	}
 }

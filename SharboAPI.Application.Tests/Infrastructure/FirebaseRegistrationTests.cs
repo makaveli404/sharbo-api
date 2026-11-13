@@ -2,6 +2,8 @@ using FirebaseAdmin.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using SharboAPI.Infrastructure.Extensions;
 
@@ -29,14 +31,16 @@ public class FirebaseRegistrationTests
 	{
 		// Arrange
 		using var provider = BuildProvider();
-		var logger = new CapturingLogger();
+		var logger = new FakeLogger();
 
 		// Act
 		var initialize = () => provider.InitializeFirebase(required: false, logger);
 
 		// Assert
 		initialize.Should().NotThrow();
-		logger.Warnings.Should().ContainSingle().Which.Should().Contain("Firebase is not configured");
+		logger.Collector.GetSnapshot()
+			.Should().ContainSingle(r => r.Level == LogLevel.Warning)
+			.Which.Message.Should().Contain("Firebase is not configured");
 	}
 
 	[Fact]
@@ -46,7 +50,7 @@ public class FirebaseRegistrationTests
 		using var provider = BuildProvider();
 
 		// Act
-		var initialize = () => provider.InitializeFirebase(required: true, new CapturingLogger());
+		var initialize = () => provider.InitializeFirebase(required: true, NullLogger.Instance);
 
 		// Assert
 		initialize.Should().Throw<OptionsValidationException>()
@@ -60,7 +64,7 @@ public class FirebaseRegistrationTests
 		using var provider = BuildProvider(credentials: "not-a-service-account-json");
 
 		// Act
-		var initialize = () => provider.InitializeFirebase(required: true, new CapturingLogger());
+		var initialize = () => provider.InitializeFirebase(required: true, NullLogger.Instance);
 
 		// Assert
 		initialize.Should().Throw<Exception>();
@@ -78,23 +82,5 @@ public class FirebaseRegistrationTests
 		// Assert
 		resolveAuth.Should().Throw<OptionsValidationException>()
 			.WithMessage("*Firebase is not configured*");
-	}
-
-	private sealed class CapturingLogger : ILogger
-	{
-		public List<string> Warnings { get; } = [];
-
-		public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-
-		public bool IsEnabled(LogLevel logLevel) => true;
-
-		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
-			Func<TState, Exception?, string> formatter)
-		{
-			if (logLevel == LogLevel.Warning)
-			{
-				Warnings.Add(formatter(state, exception));
-			}
-		}
 	}
 }
