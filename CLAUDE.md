@@ -6,13 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Build like CI: `dotnet build --configuration Release`
 - Test: `dotnet test` (single test: `dotnet test --filter "FullyQualifiedName~MemeServiceTests.GetByIdAsync"`)
-- Run: `dotnet run --project SharboAPI` (needs `ConnectionStrings:SharboDbConnection` in user secrets, e.g. pointing at the compose database on `127.0.0.1:$POSTGRES_PORT`; Swagger only in Development)
-- API + Postgres 18: `cp .env.example .env`, fill in `POSTGRES_PASSWORD` (and `POSTGRES_PORT` if 5432 is taken), then `docker compose up --build`
+- Run: `docker compose up -d db`, then `dotnet run --project SharboAPI` (Swagger only in Development)
+- API + Postgres 18: `docker compose up --build`
+- Config split: `.env` is read only by docker compose; .NET reads `appsettings*.json`. `appsettings.Development.json` holds the dev connection string (`127.0.0.1:5434`, password `sharbo_dev`) matching the compose defaults, so keep them in sync. It's a local-only dev password; real secrets never go into appsettings.
 
 ## Local setup
 
-- Startup throws unless `Firebase:Credentials` (service-account JSON string) is configured. Locally it comes from user secrets: `dotnet user-secrets set "Firebase:Credentials" "<json>" --project SharboAPI`. Never commit it to appsettings.
-- PostgreSQL only (Npgsql), configured in `SharboAPI.Infrastructure/Extensions/ServiceCollectionExtensions.cs`. `dotnet ef` builds the API host, so it needs the same configuration as running the API (connection string, and for now the Firebase key).
+- Firebase (`Firebase:Credentials` service-account JSON, optional `Firebase:ProjectId`) is registered by `AddFirebase` and created at startup by `InitializeFirebase` (`SharboAPI.Infrastructure/Extensions/FirebaseServiceCollectionExtensions.cs`, called in `Program.cs` before migrations). Outside Development a missing or invalid key stops startup; in Development it only logs a warning and user registration/lookups fail on use. Use a separate dev Firebase project; set its key via `dotnet user-secrets set "Firebase:Credentials" "<json>" --project SharboAPI` or `FIREBASE_CREDENTIALS` in `.env`. Never commit it.
+- PostgreSQL only (Npgsql), configured in `SharboAPI.Infrastructure/Extensions/ServiceCollectionExtensions.cs`. `dotnet ef` builds the API host, so it needs the connection string configured (user secrets or env).
 - Pending migrations are auto-applied on startup and `Seeder` seeds roles.
 
 ## Migrations

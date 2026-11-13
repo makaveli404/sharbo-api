@@ -1,5 +1,3 @@
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +18,7 @@ public static class ServiceCollectionExtensions
 		if (string.IsNullOrWhiteSpace(connectionString))
 		{
 			throw new InvalidOperationException(
-				"Connection string 'SharboDbConnection' is not configured. Set it in user secrets or the ConnectionStrings__SharboDbConnection environment variable.");
+				"Connection string 'SharboDbConnection' is not configured.");
 		}
 
 		services.AddDbContext<SharboDbContext>(options =>
@@ -42,18 +40,8 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IQuoteRepository, QuoteRepository>();
 		services.AddScoped<IFirebaseService, FirebaseService>();
 		services.AddScoped<IAuthenticationService, AuthenticationService>();
+		services.AddFirebase(configuration);
 
-		var json = configuration.GetSection("Firebase:Credentials").Value;
-
-		if (string.IsNullOrWhiteSpace(json))
-		{
-			throw new InvalidOperationException("Firebase credentials not found in configuration.");
-		}
-
-		FirebaseApp.Create(new AppOptions
-		{
-			Credential = GoogleCredential.FromJson(json)
-		});
 		return services;
 	}
 }

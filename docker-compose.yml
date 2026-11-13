@@ -5,8 +5,9 @@ services:
       - "7023:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__SharboDbConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-sharbodb};Username=${POSTGRES_USER:-sharbo_user};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      ConnectionStrings__SharboDbConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-sharbodb};Username=${POSTGRES_USER:-sharbo_user};Password=${POSTGRES_PASSWORD:-sharbo_dev}
       Firebase__Credentials: ${FIREBASE_CREDENTIALS:-}
+      Firebase__ProjectId: ${FIREBASE_PROJECT_ID:-}
     depends_on:
       db:
         condition: service_healthy
@@ -15,10 +16,10 @@ services:
     image: postgres:18
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-sharbo_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sharbo_dev}
       POSTGRES_DB: ${POSTGRES_DB:-sharbodb}
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5434}:5432"
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
