@@ -35,14 +35,14 @@ public static class MemeEndpoints
 	private static async Task<IResult> Create(Guid groupId, CreateMemeRequest request, IMemeService memeService, 
 		CancellationToken cancellationToken)
 	{
-		var result = await memeService.AddAsync(request, cancellationToken);
+		var result = await memeService.AddAsync(groupId, request, cancellationToken);
 
 		if (result.IsFailure)
 		{
 			return TypedResults.BadRequest();
 		}
 
-		return TypedResults.Created($"{request}/{result}", result);
+		return TypedResults.Created($"/api/groups/{groupId}/memes/{result.Value}", result.Value);
 	}
 
 	private static async Task<IResult> Update(Guid groupId, Guid memeId, UpdateMemeRequest request, 

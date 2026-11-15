@@ -36,14 +36,14 @@ public static class SituationEndpoint
     private static async Task<IResult> Create(Guid groupId, CreateSituationRequest request, 
         ISituationService situationService, CancellationToken cancellationToken)
     {
-        var result = await situationService.AddAsync(request, cancellationToken);
+        var result = await situationService.AddAsync(groupId, request, cancellationToken);
 
         if (result.IsFailure)
         {
             return TypedResults.BadRequest();
         }
 
-        return TypedResults.Created($"{request}/{result}", result);
+        return TypedResults.Created($"/api/groups/{groupId}/situations/{result.Value}", result.Value);
     }
 
     private static async Task<IResult> Update(Guid groupId, Guid situationId, UpdateSituationRequest request,

@@ -12,6 +12,7 @@ namespace SharboAPI.Application.Services;
 public sealed class MemeService(
 	IMemeRepository memeRepository, 
 	IGroupParticipantRepository groupParticipantRepository,
+	IGroupRepository groupRepository,
 	IValidator<CreateMemeRequest> createMemeRequestValidator, 
 	IValidator<UpdateMemeRequest> updateMemeRequestValidator, 
 	IHttpContextAccessor httpContextAccessor) : IMemeService
@@ -52,15 +53,20 @@ public sealed class MemeService(
 		return Result.Success<MemeResult?>(memeResult);
     }
 
-	public async Task<Result<Guid?>> AddAsync(CreateMemeRequest request, CancellationToken cancellationToken)
+	public async Task<Result<Guid?>> AddAsync(Guid groupId, CreateMemeRequest request, CancellationToken cancellationToken)
 	{
 		await createMemeRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+		if (!await groupRepository.IsExistById(groupId, cancellationToken))
+		{
+			return Result.Failure<Guid?>(Error.NotFound($"No group with ID: { groupId } found"));
+		}
 
 		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
 		var requestingUserId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2"; 
 
 		var groupParticipant = await groupParticipantRepository
-			.GetByUserIdAndGroupIdAsync(requestingUserId, request.GroupId, cancellationToken);
+			.GetByUserIdAndGroupIdAsync(requestingUserId, groupId, cancellationToken);
 
 		if (groupParticipant is null)
 		{

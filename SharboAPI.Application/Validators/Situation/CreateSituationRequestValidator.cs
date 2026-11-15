@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.DTO.Situation;
 
 namespace SharboAPI.Application.Validators.Situation;
@@ -8,12 +7,8 @@ public class CreateSituationRequestValidator : AbstractValidator<CreateSituation
 {
     private const short TEXT_MAX_LENGTH = 70;
 
-    public CreateSituationRequestValidator(IGroupRepository groupRepository)
+    public CreateSituationRequestValidator()
     {
-        RuleFor(req => req.GroupId)
-            .MustAsync(groupRepository.IsExistById)
-            .WithMessage("Group for given ID does not exist");
-
         RuleFor(req => req.Text)
             .NotEmpty()
             .WithMessage("Text for situation cannot be empty if given")

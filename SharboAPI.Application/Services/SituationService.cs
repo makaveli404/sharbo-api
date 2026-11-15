@@ -12,6 +12,7 @@ namespace SharboAPI.Application.Services;
 public sealed class SituationService(
     ISituationRepository situationRepository, 
     IGroupParticipantRepository groupParticipantRepository,
+    IGroupRepository groupRepository,
     IValidator<CreateSituationRequest> createSituationRequestValidator,
     IValidator<UpdateSituationRequest> updateSituationRequestValidator,
     IHttpContextAccessor httpContextAccessor) : ISituationService
@@ -51,15 +52,20 @@ public sealed class SituationService(
         return Result.Success<SituationResult?>(situationResult);
     }
 
-    public async Task<Result<Guid?>> AddAsync(CreateSituationRequest request, CancellationToken cancellationToken)
+    public async Task<Result<Guid?>> AddAsync(Guid groupId, CreateSituationRequest request, CancellationToken cancellationToken)
     {
         await createSituationRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        if (!await groupRepository.IsExistById(groupId, cancellationToken))
+        {
+            return Result.Failure<Guid?>(Error.NotFound($"No group with ID: { groupId } found"));
+        }
 
         // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
         var requestingUserId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
 
         var groupParticipant = await groupParticipantRepository
-            .GetByUserIdAndGroupIdAsync(requestingUserId, request.GroupId, cancellationToken);
+            .GetByUserIdAndGroupIdAsync(requestingUserId, groupId, cancellationToken);
 
         if (groupParticipant is null)
         {

@@ -1,4 +1,5 @@
 ﻿using SharboAPI.Application.Abstractions.Repositories;
+using SharboAPI.Application.Common.Errors;
 using SharboAPI.Application.DTO.Quote;
 using SharboAPI.Application.Services;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -29,6 +31,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -54,6 +57,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -65,6 +69,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -90,6 +95,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -97,6 +103,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -121,6 +128,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -128,6 +136,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -147,10 +156,12 @@ public class QuoteServiceTests
     public async Task AddAsync_ForCreateQuoteRequest_ThrowsArgumentException_WhenValidationFailed()
     {
         // Arrange 
+        Guid groupId = Guid.NewGuid();
         CreateQuoteRequest request = GetCreateQuoteRequest();
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -162,12 +173,13 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
 
         // Act
-        var result = async () => await quoteService.AddAsync(request, CancellationToken.None);
+        var result = async () => await quoteService.AddAsync(groupId, request, CancellationToken.None);
 
         // Assert
         await result
@@ -179,50 +191,92 @@ public class QuoteServiceTests
     public async Task AddAsync_ForCreateQuoteRequest_ReturnsFailuredResult_WhenNoGroupParticipantForRequestingUserId()
     {
         // Arrange 
+        Guid groupId = Guid.NewGuid();
         CreateQuoteRequest request = GetCreateQuoteRequest();
         GroupParticipant? groupParticipantResult = null;
         string expectedFailureMessage = "No participant found";
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
 
         SetupCreateValidatorMockToReturnValidationResult(validatorForCreateQuoteRequestMock);
+        SetupIsExistByIdToReturn(groupRepositoryMock, true);
         SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
 
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
 
         // Act
-        var result = await quoteService.AddAsync(request, CancellationToken.None);
+        var result = await quoteService.AddAsync(groupId, request, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Message.Should().Be(expectedFailureMessage);
     }
 
+    [Fact]
+    public async Task AddAsync_ForCreateQuoteRequest_ReturnsNotFoundResult_WhenGroupDoesNotExist()
+    {
+        // Arrange
+        Guid groupId = Guid.Parse("8f1e2a4b-3c5d-4e6f-9a7b-1c2d3e4f5a6b");
+        CreateQuoteRequest request = GetCreateQuoteRequest();
+        string expectedFailureMessage = "No group with ID: 8f1e2a4b-3c5d-4e6f-9a7b-1c2d3e4f5a6b found";
+
+        var quoteRepositoryMock = CreateQuoteRepositoryMock();
+        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
+        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
+        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
+        var httpContextAccessorMock = CreateHttpContextAccessorMock();
+
+        SetupCreateValidatorMockToReturnValidationResult(validatorForCreateQuoteRequestMock);
+        SetupIsExistByIdToReturn(groupRepositoryMock, false);
+
+        var quoteService = new QuoteService(
+            quoteRepositoryMock.Object,
+            groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
+            validatorForCreateQuoteRequestMock.Object,
+            validatorForUpdateQuoteRequestMock.Object,
+            httpContextAccessorMock.Object);
+
+        // Act
+        var result = await quoteService.AddAsync(groupId, request, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+        result.Error.Message.Should().Be(expectedFailureMessage);
+        quoteRepositoryMock.Verify(mock => mock.AddAsync(It.IsAny<Quote>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 
     [Fact]
     public async Task AddAsync_ForCreateQuoteRequest_ReturnsQuoteId_WhenQuoteSuccessfullyCreated()
     {
         // Arrange 
         Guid createdQuoteId = Guid.NewGuid();
+        Guid groupId = Guid.NewGuid();
         CreateQuoteRequest request = GetCreateQuoteRequest();
         GroupParticipant groupParticipantResult = GetGroupParticipantData();
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
 
         SetupCreateValidatorMockToReturnValidationResult(validatorForCreateQuoteRequestMock);
+        SetupIsExistByIdToReturn(groupRepositoryMock, true);
         SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
 
         quoteRepositoryMock
@@ -232,12 +286,13 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
 
         // Act
-        var result = await quoteService.AddAsync(request, CancellationToken.None);
+        var result = await quoteService.AddAsync(groupId, request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -254,6 +309,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -265,6 +321,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -290,6 +347,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -300,6 +358,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -325,6 +384,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -336,6 +396,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -360,6 +421,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -371,6 +433,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -394,6 +457,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -405,6 +469,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -426,6 +491,7 @@ public class QuoteServiceTests
 
         var quoteRepositoryMock = CreateQuoteRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
         var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -437,6 +503,7 @@ public class QuoteServiceTests
         var quoteService = new QuoteService(
             quoteRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateQuoteRequestMock.Object,
             validatorForUpdateQuoteRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -456,6 +523,7 @@ public class QuoteServiceTests
     private static Mock<IValidator<UpdateQuoteRequest>> CreateValidatorForUpdateQuoteRequestMock() => new();
     private static Mock<IQuoteRepository> CreateQuoteRepositoryMock() => new();
     private static Mock<IGroupParticipantRepository> CreateGroupParticipantRepositoryMock() => new();
+    private static Mock<IGroupRepository> CreateGroupRepositoryMock() => new();
     private static Mock<IHttpContextAccessor> CreateHttpContextAccessorMock() => new();
 
     private static void SetupGetByIdAsyncToReturnQuoteResult(Mock<IQuoteRepository> mock,
@@ -463,6 +531,11 @@ public class QuoteServiceTests
         => mock
             .Setup(mock => mock.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None))
             .ReturnsAsync(expectedQuoteResult);
+
+    private static void SetupIsExistByIdToReturn(Mock<IGroupRepository> mock, bool exists)
+        => mock
+            .Setup(mock => mock.IsExistById(It.IsAny<Guid>(), CancellationToken.None))
+            .ReturnsAsync(exists);
 
     private static void SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(Mock<IGroupParticipantRepository> mock,
                                                                                       GroupParticipant? groupParticipantResult)
@@ -482,7 +555,7 @@ public class QuoteServiceTests
             .Setup(mock => mock.ValidateAsync(It.IsAny<UpdateQuoteRequest>(), CancellationToken.None))
             .ReturnsAsync(result ?? new ValidationResult());
 
-    private static CreateQuoteRequest GetCreateQuoteRequest(string text = "quote text") => new(Guid.NewGuid(), text);
+    private static CreateQuoteRequest GetCreateQuoteRequest(string text = "quote text") => new(text);
     private static UpdateQuoteRequest GetUpdateQuoteRequest(string text = "quote text") => new(text);
 
     private static Quote GetQuoteData(Guid? CreatedById = null, string text = "test text")

@@ -1,4 +1,5 @@
 ﻿using SharboAPI.Application.Abstractions.Repositories;
+using SharboAPI.Application.Common.Errors;
 using SharboAPI.Application.DTO.Meme;
 using SharboAPI.Application.Services;
 using Microsoft.AspNetCore.Http;
@@ -22,6 +23,7 @@ public class MemeServiceTests
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -33,6 +35,7 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -58,6 +61,7 @@ public class MemeServiceTests
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -67,6 +71,7 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -92,6 +97,7 @@ public class MemeServiceTests
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -101,6 +107,7 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -121,10 +128,12 @@ public class MemeServiceTests
     public async Task AddAsync_ForCreateMemeRequest_ThrowsArgumentException_WhenValidationFailed()
     {
         // Arrange 
+        Guid groupId = Guid.NewGuid();
         CreateMemeRequest request = GetCreateMemeRequest();
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -136,12 +145,13 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
 
         // Act
-        var result = async () => await memeService.AddAsync(request, CancellationToken.None);
+        var result = async () => await memeService.AddAsync(groupId, request, CancellationToken.None);
 
         // Assert
         await result
@@ -153,28 +163,32 @@ public class MemeServiceTests
     public async Task AddAsync_ForCreateMemeRequest_ReturnsFailuredResult_WhenNoGroupParticipantForRequestingUserId()
     {
         // Arrange 
+        Guid groupId = Guid.NewGuid();
         CreateMemeRequest request = GetCreateMemeRequest();
         GroupParticipant? groupParticipantResult = null;
         string expectedFailureMessage = "No participant found";
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
 
         SetupCreateValidatorMockToReturnValidationResult(validatorForCreateMemeRequestMock);
+        SetupIsExistByIdToReturn(groupRepositoryMock, true);
         SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
 
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
 
         // Act
-        var result = await memeService.AddAsync(request, CancellationToken.None);
+        var result = await memeService.AddAsync(groupId, request, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -182,20 +196,59 @@ public class MemeServiceTests
     }
 
     [Fact]
-    public async Task AddAsync_ForCreateMemeRequest_ReturnsMemeId_WhenMemeSuccessfullyCreated()
+    public async Task AddAsync_ForCreateMemeRequest_ReturnsNotFoundResult_WhenGroupDoesNotExist()
     {
         // Arrange 
-        Guid createdMemeId = Guid.NewGuid();
+        Guid groupId = Guid.Parse("8f1e2a4b-3c5d-4e6f-9a7b-1c2d3e4f5a6b");
         CreateMemeRequest request = GetCreateMemeRequest();
-        GroupParticipant groupParticipantResult = GetGroupParticipantData();
+        string expectedFailureMessage = "No group with ID: 8f1e2a4b-3c5d-4e6f-9a7b-1c2d3e4f5a6b found";
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
 
         SetupCreateValidatorMockToReturnValidationResult(validatorForCreateMemeRequestMock);
+        SetupIsExistByIdToReturn(groupRepositoryMock, false);
+
+        var memeService = CreateMemeService(
+            memeRepositoryMock.Object,
+            groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
+            validatorForCreateMemeRequestMock.Object,
+            validatorForUpdateMemeRequestMock.Object,
+            httpContextAccessorMock.Object);
+
+        // Act
+        var result = await memeService.AddAsync(groupId, request, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+        result.Error.Message.Should().Be(expectedFailureMessage);
+        memeRepositoryMock.Verify(mock => mock.AddAsync(It.IsAny<Meme>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddAsync_ForCreateMemeRequest_ReturnsMemeId_WhenMemeSuccessfullyCreated()
+    {
+        // Arrange 
+        Guid createdMemeId = Guid.NewGuid();
+        Guid groupId = Guid.NewGuid();
+        CreateMemeRequest request = GetCreateMemeRequest();
+        GroupParticipant groupParticipantResult = GetGroupParticipantData();
+
+        var memeRepositoryMock = CreateMemeRepositoryMock();
+        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
+        var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
+        var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
+        var httpContextAccessorMock = CreateHttpContextAccessorMock();
+
+        SetupCreateValidatorMockToReturnValidationResult(validatorForCreateMemeRequestMock);
+        SetupIsExistByIdToReturn(groupRepositoryMock, true);
         SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
 
         memeRepositoryMock
@@ -205,12 +258,13 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
 
         // Act
-        var result = await memeService.AddAsync(request, CancellationToken.None);
+        var result = await memeService.AddAsync(groupId, request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -227,6 +281,7 @@ public class MemeServiceTests
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -238,6 +293,7 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -263,6 +319,7 @@ public class MemeServiceTests
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -273,6 +330,7 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -298,6 +356,7 @@ public class MemeServiceTests
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -309,6 +368,7 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -333,6 +393,7 @@ public class MemeServiceTests
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -344,6 +405,7 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -367,6 +429,7 @@ public class MemeServiceTests
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -378,6 +441,7 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -399,6 +463,7 @@ public class MemeServiceTests
 
         var memeRepositoryMock = CreateMemeRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateMemeRequestMock = CreateValidatorForCreateMemeRequestMock();
         var validatorForUpdateMemeRequestMock = CreateValidatorForUpdateMemeRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -410,6 +475,7 @@ public class MemeServiceTests
         var memeService = CreateMemeService(
             memeRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateMemeRequestMock.Object,
             validatorForUpdateMemeRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -427,15 +493,23 @@ public class MemeServiceTests
 
     private static Mock<IMemeRepository> CreateMemeRepositoryMock() => new();
     private static Mock<IGroupParticipantRepository> CreateGroupParticipantRepositoryMock() => new();
+    private static Mock<IGroupRepository> CreateGroupRepositoryMock() => new();
+
+    private static void SetupIsExistByIdToReturn(Mock<IGroupRepository> mock, bool exists)
+        => mock
+            .Setup(mock => mock.IsExistById(It.IsAny<Guid>(), CancellationToken.None))
+            .ReturnsAsync(exists);
+
     private static Mock<IValidator<CreateMemeRequest>> CreateValidatorForCreateMemeRequestMock() => new();
     private static Mock<IValidator<UpdateMemeRequest>> CreateValidatorForUpdateMemeRequestMock() => new();
     private static Mock<IHttpContextAccessor> CreateHttpContextAccessorMock() => new();
     private static MemeService CreateMemeService(IMemeRepository memeRepository,
                                                  IGroupParticipantRepository groupParticipantRepository,
+                                                 IGroupRepository groupRepository,
                                                  IValidator<CreateMemeRequest> createMemeRequestValidator,
                                                  IValidator<UpdateMemeRequest> updateMemeRequestValidator,
                                                  IHttpContextAccessor httpContextAccessor) 
-        => new(memeRepository, groupParticipantRepository, createMemeRequestValidator, updateMemeRequestValidator, httpContextAccessor);
+        => new(memeRepository, groupParticipantRepository, groupRepository, createMemeRequestValidator, updateMemeRequestValidator, httpContextAccessor);
 
     private static void SetupCreateValidatorMockToReturnValidationResult(Mock<IValidator<CreateMemeRequest>> createValidatorMock,
                                                                          ValidationResult? result = null)
@@ -461,10 +535,9 @@ public class MemeServiceTests
                 .Setup(mock => mock.GetByUserIdAndGroupIdAsync(It.IsAny<string>(), It.IsAny<Guid>(), CancellationToken.None))
                 .ReturnsAsync(groupParticipantResult);
 
-    private static CreateMemeRequest GetCreateMemeRequest(Guid? groupId = null,
-                                                          string imagePath = "https://myserver/imagePaths/meme32.jpg",
+    private static CreateMemeRequest GetCreateMemeRequest(string imagePath = "https://myserver/imagePaths/meme32.jpg",
                                                           string text = "meme32 description")
-        => new(groupId ?? Guid.NewGuid(), imagePath, text);
+        => new(imagePath, text);
 
     private static UpdateMemeRequest GetUpdateMemeRequest(string? text = "meme32 description") => new(text);
 

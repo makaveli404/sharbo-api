@@ -1,5 +1,4 @@
 ﻿using SharboAPI.Application.DTO.Meme;
-using SharboAPI.Application.Abstractions.Repositories;
 using FluentValidation;
 
 namespace SharboAPI.Application.Validators.Meme;
@@ -8,12 +7,8 @@ public class CreateMemeRequestValidator : AbstractValidator<CreateMemeRequest>
 {
 	private const short TEXT_MAX_LENGTH = 70;
 
-	public CreateMemeRequestValidator(IGroupRepository groupRepository)
+	public CreateMemeRequestValidator()
 	{
-		RuleFor(req => req.GroupId)
-			.MustAsync(groupRepository.IsExistById)
-			.WithMessage("Group for given ID does not exist");
-
 		RuleFor(req => req.Text)
 			.NotEmpty()
 			.WithMessage("Text for meme cannot be empty if given")

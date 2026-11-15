@@ -1,4 +1,5 @@
 ﻿using SharboAPI.Application.Abstractions.Repositories;
+using SharboAPI.Application.Common.Errors;
 using SharboAPI.Application.DTO.Situation;
 using SharboAPI.Application.Services;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -29,6 +31,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -54,6 +57,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -65,6 +69,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -90,6 +95,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -97,6 +103,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -121,6 +128,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -128,6 +136,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -147,10 +156,12 @@ public class SituationServiceTests
     public async Task AddAsync_ForCreateSituationRequest_ThrowsArgumentException_WhenValidationFailed()
     {
         // Arrange 
+        Guid groupId = Guid.NewGuid();
         CreateSituationRequest request = GetCreateSituationRequest();
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -162,12 +173,13 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
 
         // Act
-        var result = async () => await situationService.AddAsync(request, CancellationToken.None);
+        var result = async () => await situationService.AddAsync(groupId, request, CancellationToken.None);
 
         // Assert
         await result
@@ -179,28 +191,32 @@ public class SituationServiceTests
     public async Task AddAsync_ForCreateSituationRequest_ReturnsFailuredResult_WhenNoGroupParticipantForRequestingUserId()
     {
         // Arrange 
+        Guid groupId = Guid.NewGuid();
         CreateSituationRequest request = GetCreateSituationRequest();
         GroupParticipant? groupParticipantResult = null;
         string expectedFailureMessage = "No participant found";
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
 
         SetupCreateValidatorMockToReturnValidationResult(validatorForCreateSituationRequestMock);
+        SetupIsExistByIdToReturn(groupRepositoryMock, true);
         SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
 
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
 
         // Act
-        var result = await situationService.AddAsync(request, CancellationToken.None);
+        var result = await situationService.AddAsync(groupId, request, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -208,20 +224,59 @@ public class SituationServiceTests
     }
 
     [Fact]
-    public async Task AddAsync_ForCreateSituationRequest_ReturnsSituationId_WhenSituationSuccessfullyCreated()
+    public async Task AddAsync_ForCreateSituationRequest_ReturnsNotFoundResult_WhenGroupDoesNotExist()
     {
         // Arrange 
-        Guid createdSituationId = Guid.NewGuid();
+        Guid groupId = Guid.Parse("8f1e2a4b-3c5d-4e6f-9a7b-1c2d3e4f5a6b");
         CreateSituationRequest request = GetCreateSituationRequest();
-        GroupParticipant groupParticipantResult = GetGroupParticipantData();
+        string expectedFailureMessage = "No group with ID: 8f1e2a4b-3c5d-4e6f-9a7b-1c2d3e4f5a6b found";
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
 
         SetupCreateValidatorMockToReturnValidationResult(validatorForCreateSituationRequestMock);
+        SetupIsExistByIdToReturn(groupRepositoryMock, false);
+
+        var situationService = new SituationService(
+            situationRepositoryMock.Object,
+            groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
+            validatorForCreateSituationRequestMock.Object,
+            validatorForUpdateSituationRequestMock.Object,
+            httpContextAccessorMock.Object);
+
+        // Act
+        var result = await situationService.AddAsync(groupId, request, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+        result.Error.Message.Should().Be(expectedFailureMessage);
+        situationRepositoryMock.Verify(mock => mock.AddAsync(It.IsAny<Situation>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddAsync_ForCreateSituationRequest_ReturnsSituationId_WhenSituationSuccessfullyCreated()
+    {
+        // Arrange 
+        Guid createdSituationId = Guid.NewGuid();
+        Guid groupId = Guid.NewGuid();
+        CreateSituationRequest request = GetCreateSituationRequest();
+        GroupParticipant groupParticipantResult = GetGroupParticipantData();
+
+        var situationRepositoryMock = CreateSituationRepositoryMock();
+        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
+        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
+        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
+        var httpContextAccessorMock = CreateHttpContextAccessorMock();
+
+        SetupCreateValidatorMockToReturnValidationResult(validatorForCreateSituationRequestMock);
+        SetupIsExistByIdToReturn(groupRepositoryMock, true);
         SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
 
         situationRepositoryMock
@@ -231,12 +286,13 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
 
         // Act
-        var result = await situationService.AddAsync(request, CancellationToken.None);
+        var result = await situationService.AddAsync(groupId, request, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -253,6 +309,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -264,6 +321,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -289,6 +347,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -299,6 +358,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -324,6 +384,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -335,6 +396,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -359,6 +421,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -370,6 +433,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
             situationRepositoryMock.Object,
             groupParticipantRepositoryMock.Object,
+            groupRepositoryMock.Object,
             validatorForCreateSituationRequestMock.Object,
             validatorForUpdateSituationRequestMock.Object,
             httpContextAccessorMock.Object);
@@ -393,6 +457,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -404,6 +469,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
            situationRepositoryMock.Object,
            groupParticipantRepositoryMock.Object,
+           groupRepositoryMock.Object,
            validatorForCreateSituationRequestMock.Object,
            validatorForUpdateSituationRequestMock.Object,
            httpContextAccessorMock.Object);
@@ -425,6 +491,7 @@ public class SituationServiceTests
 
         var situationRepositoryMock = CreateSituationRepositoryMock();
         var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
+        var groupRepositoryMock = CreateGroupRepositoryMock();
         var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
         var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
         var httpContextAccessorMock = CreateHttpContextAccessorMock();
@@ -436,6 +503,7 @@ public class SituationServiceTests
         var situationService = new SituationService(
            situationRepositoryMock.Object,
            groupParticipantRepositoryMock.Object,
+           groupRepositoryMock.Object,
            validatorForCreateSituationRequestMock.Object,
            validatorForUpdateSituationRequestMock.Object,
            httpContextAccessorMock.Object);
@@ -455,6 +523,13 @@ public class SituationServiceTests
     private static Mock<IValidator<UpdateSituationRequest>> CreateValidatorForUpdateSituationRequestMock() => new();
     private static Mock<ISituationRepository> CreateSituationRepositoryMock() => new();
     private static Mock<IGroupParticipantRepository> CreateGroupParticipantRepositoryMock() => new();
+    private static Mock<IGroupRepository> CreateGroupRepositoryMock() => new();
+
+    private static void SetupIsExistByIdToReturn(Mock<IGroupRepository> mock, bool exists)
+        => mock
+            .Setup(mock => mock.IsExistById(It.IsAny<Guid>(), CancellationToken.None))
+            .ReturnsAsync(exists);
+
     private static Mock<IHttpContextAccessor> CreateHttpContextAccessorMock() => new();
 
     private static void SetupGetByIdAsyncToReturnSituationResult(Mock<ISituationRepository> mock,
@@ -481,7 +556,7 @@ public class SituationServiceTests
             .Setup(mock => mock.ValidateAsync(It.IsAny<UpdateSituationRequest>(), CancellationToken.None))
             .ReturnsAsync(result ?? new ValidationResult());
 
-    private static CreateSituationRequest GetCreateSituationRequest(string text = "situation text") => new(Guid.NewGuid(), text);
+    private static CreateSituationRequest GetCreateSituationRequest(string text = "situation text") => new(text);
     private static UpdateSituationRequest GetUpdateSituationRequest(string text = "situation text") => new(text);
 
     private static Situation GetSituationData(Guid? CreatedById = null, string text = "test text")
