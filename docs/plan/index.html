@@ -214,6 +214,22 @@ ol.road > li.done::before { background: var(--mark); border-color: var(--mark); 
 ol.road ul { margin: 0; padding-left: 1.1rem; color: var(--muted); display: grid; gap: .3rem; max-width: 44rem; }
 ol.road ul li::marker { color: var(--mark); }
 
+/* Sign-in flow */
+.fig-box svg.seq { min-width: 760px; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 1.25rem; align-items: start; }
+.pair > * { min-width: 0; }
+.snippet { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; overflow-x: auto; font: 400 .8125rem/1.6 var(--f-mono); color: var(--ink); tab-size: 2; }
+.snippet .c { color: var(--muted); }
+.snippet .k { color: var(--link); }
+ul.rules { margin: 0; padding-left: 1.1rem; display: grid; gap: .5rem; max-width: 44rem; }
+ul.rules li::marker { color: var(--mark); }
+.codes { display: flex; flex-wrap: wrap; gap: .3rem .5rem; }
+.codes span { white-space: nowrap; }
+.st { font: 500 .6875rem/1 var(--f-mono); padding: .2rem .45rem; border-radius: 999px; margin-right: .35rem; box-shadow: 0 0 0 1px var(--line); color: var(--muted); white-space: nowrap; }
+.st.ok { background: color-mix(in srgb, var(--new) 16%, transparent); color: var(--new); box-shadow: none; }
+.st.part { background: var(--mark-soft); color: var(--ink); box-shadow: none; }
+.pill.wip { background: var(--mark-soft); color: var(--ink); box-shadow: none; }
+
 footer { border-top: 1px solid var(--line); padding-block: 1.5rem 3rem; color: var(--muted); font-size: .875rem; }
 
 /* Playful app layer: emoji wallpaper, sticker cards, tape, reactions */
@@ -319,7 +335,7 @@ footer { border-top: 1px solid var(--line); padding-block: 1.5rem 3rem; color: v
     <div class="eyebrow">Dokument projektu · sharbo-api</div>
     <h1>Sharbo: <span class="hl">wasze żarty</span>, tylko dla was</h1>
     <p class="lede">Ustalenia technologiczne, model danych, makiety i kolejność prac nad API. Dokument żyje w repo (<code>docs/plan/index.html</code>) i aktualizujemy go po każdej fazie.</p>
-    <div class="meta"><span>Stan na 8 listopada 2026</span><span>Backend: .NET 10 · PostgreSQL · Azure Blob · Firebase Auth</span></div>
+    <div class="meta"><span>Stan na 15 listopada 2026</span><span>Backend: .NET 10 · PostgreSQL · Azure Blob · Firebase Auth</span></div>
   </header>
 </div>
 
@@ -328,6 +344,7 @@ footer { border-top: 1px solid var(--line); padding-block: 1.5rem 3rem; color: v
     <li><a href="#wizja">Wizja</a></li>
     <li><a href="#stack">Stack</a></li>
     <li><a href="#architektura">Architektura</a></li>
+    <li><a href="#logowanie">Logowanie</a></li>
     <li><a href="#model">Model danych</a></li>
     <li><a href="#makiety">Makiety</a></li>
     <li><a href="#roadmapa">Roadmapa</a></li>
@@ -363,7 +380,7 @@ footer { border-top: 1px solid var(--line); padding-block: 1.5rem 3rem; color: v
           <tr><td>Runtime</td><td><strong>.NET 10 (LTS)</strong>, C# 14</td><td>Wsparcie do listopada 2028. Przy okazji paczki <code>9.0.0-rc</code> zamieniamy na stabilne.</td></tr>
           <tr><td>Lokalnie</td><td><strong>Docker Compose</strong>: API, PostgreSQL, Azurite</td><td>Rozszerzamy istniejące <code>docker-compose.yml</code> i <code>Dockerfile</code>. Azurite emuluje Azure Blob na laptopie.</td></tr>
           <tr><td>Baza</td><td><strong>PostgreSQL</strong>, EF Core 10</td><td>Rezygnujemy z SQLite: jeden provider i jeden zestaw migracji. Lokalizacja jako szerokość, długość i nazwa miejsca.</td></tr>
-          <tr><td>Auth</td><td><strong>Firebase Authentication</strong></td><td>Klient loguje się przez SDK Firebase (Google, Apple, e-mail), a API tylko weryfikuje ID token. Własne JWT, refresh tokeny i kolumna z hasłem znikają.</td></tr>
+          <tr><td>Auth</td><td><strong>Firebase Authentication</strong></td><td>Klient loguje się przez SDK Firebase (Google, Apple, e-mail), a API tylko weryfikuje ID token kluczami publicznymi Google. W API nie ma SDK Firebase ani klucza serwisowego, wystarczy jawny project ID. Bez własnych JWT, refresh tokenów i kolumny z hasłem. Szczegóły w sekcji <a href="#logowanie">Logowanie</a>.</td></tr>
           <tr><td>Pliki</td><td><strong>Azure Blob Storage</strong>, upload przez API</td><td>API sprawdza typ po zawartości pliku i limit rozmiaru, nadaje własną nazwę, usuwa EXIF (z lokalizacją GPS) i zapisuje WebP (ImageSharp). Odczyt bezpośrednio z prywatnego kontenera przez krótko ważny adres SAS. Okazja do nauki Azure.</td></tr>
           <tr><td>Kontrakt API</td><td><strong>OpenAPI</strong> z .NET + Scalar</td><td>Spec <code>openapi.json</code> w repo jest umową z osobą od mobilki. Scalar zastępuje Swaggera jako podgląd.</td></tr>
           <tr><td>Błędy</td><td><strong>ProblemDetails</strong> + FluentValidation</td><td>Każdy błąd ma ten sam kształt JSON, z którego korzystają oba klienty.</td></tr>
@@ -452,6 +469,146 @@ footer { border-top: 1px solid var(--line); padding-block: 1.5rem 3rem; color: v
       </div>
       <figcaption>Żółta ścieżka to upload: plik trafia do Blob Storage dopiero wtedy, gdy API sprawdzi typ i rozmiar, nada nazwę i usunie metadane. Hasło nigdy nie trafia do API, zostaje w Firebase.</figcaption>
     </figure>
+  </section>
+
+  <section id="logowanie">
+    <h2>Logowanie i konto</h2>
+    <p class="sub">Konta, hasła i logowanie obsługuje Firebase. Klient rozmawia z Firebase tylko przy logowaniu, a potem dołącza otrzymany ID token do każdego zapytania do API. API sprawdza token samo, bez pytania Firebase, i z tokenu wie, kim jest użytkownik. Do jakich grup należy, wie z własnej bazy.</p>
+    <figure>
+      <div class="fig-box">
+        <svg class="seq" viewBox="0 0 900 640" role="img" aria-label="Diagram sekwencji. Klient loguje się w Firebase i dostaje ID token. Przy pierwszym wejściu woła GET /api/me, dostaje 404, więc wysyła POST /api/me z nickiem, a API zakłada wiersz w Users z UID i e-mailem z tokenu. Każde kolejne zapytanie, na przykład dodanie cytatu, idzie z tokenem; API sprawdza w GroupParticipants, czy użytkownik należy do grupy, i odpowiada 201 albo 404.">
+          <defs>
+            <marker id="sq" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+            <marker id="sqm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D9A100"/></marker>
+          </defs>
+          <g font-family="Instrument Sans, system-ui, sans-serif" font-size="12" fill="currentColor">
+            <!-- participants -->
+            <rect x="35" y="12" width="150" height="46" rx="10" fill="none" stroke="currentColor"/>
+            <text x="110" y="32" text-anchor="middle" font-weight="700" font-size="13">Klient</text>
+            <text x="110" y="49" text-anchor="middle" fill-opacity=".7" font-size="11">mobilka albo web</text>
+            <rect x="255" y="12" width="150" height="46" rx="10" fill="none" stroke="currentColor"/>
+            <text x="330" y="32" text-anchor="middle" font-weight="700" font-size="13">Firebase Auth</text>
+            <text x="330" y="49" text-anchor="middle" fill-opacity=".7" font-size="11">konta, hasła, tokeny</text>
+            <rect x="495" y="12" width="150" height="46" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
+            <text x="570" y="32" text-anchor="middle" font-weight="700" font-size="13">Sharbo API</text>
+            <text x="570" y="49" text-anchor="middle" fill-opacity=".7" font-size="11">sprawdza token</text>
+            <rect x="715" y="12" width="150" height="46" rx="10" fill="none" stroke="currentColor"/>
+            <text x="790" y="32" text-anchor="middle" font-weight="700" font-size="13">PostgreSQL</text>
+            <text x="790" y="49" text-anchor="middle" fill-opacity=".7" font-size="11">Users, członkostwa</text>
+
+            <!-- lifelines -->
+            <g stroke="currentColor" stroke-opacity=".3" stroke-dasharray="3 5">
+              <line x1="110" y1="58" x2="110" y2="632"/>
+              <line x1="330" y1="58" x2="330" y2="632"/>
+              <line x1="570" y1="58" x2="570" y2="632"/>
+              <line x1="790" y1="58" x2="790" y2="632"/>
+            </g>
+
+            <!-- phase bands -->
+            <g font-family="JetBrains Mono, monospace" font-size="11" fill-opacity=".75">
+              <rect x="10" y="74" width="880" height="22" rx="6" fill="currentColor" fill-opacity=".06"/>
+              <text x="22" y="89">A · LOGOWANIE (KAŻDE)</text>
+              <rect x="10" y="186" width="880" height="22" rx="6" fill="currentColor" fill-opacity=".06"/>
+              <text x="22" y="201">B · PIERWSZE WEJŚCIE: ZAKŁADANIE PROFILU</text>
+              <rect x="10" y="446" width="880" height="22" rx="6" fill="currentColor" fill-opacity=".06"/>
+              <text x="22" y="461">C · KAŻDE KOLEJNE ZAPYTANIE</text>
+            </g>
+
+            <!-- A -->
+            <line x1="110" y1="124" x2="326" y2="124" stroke="currentColor" marker-end="url(#sq)"/>
+            <text x="220" y="117" text-anchor="middle">e-mail i hasło, Google, Apple</text>
+            <line x1="330" y1="160" x2="114" y2="160" stroke="#D9A100" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#sqm)"/>
+            <text x="220" y="153" text-anchor="middle" font-weight="600">ID token (1 h) + refresh token</text>
+
+            <!-- B -->
+            <line x1="110" y1="236" x2="566" y2="236" stroke="#D9A100" stroke-width="2" marker-end="url(#sqm)"/>
+            <text x="340" y="229" text-anchor="middle" font-weight="600" font-family="JetBrains Mono, monospace" font-size="11.5">GET /api/me · Bearer token</text>
+            <text x="578" y="256" font-size="11" fill-opacity=".7">sprawdza podpis, iss, aud, exp</text>
+            <line x1="570" y1="284" x2="786" y2="284" stroke="currentColor" marker-end="url(#sq)"/>
+            <text x="680" y="277" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11">Users WHERE Id = sub</text>
+            <line x1="570" y1="316" x2="114" y2="316" stroke="currentColor" stroke-dasharray="6 4" marker-end="url(#sq)"/>
+            <text x="340" y="309" text-anchor="middle">404 · brak profilu, klient pyta o nick</text>
+            <line x1="110" y1="352" x2="566" y2="352" stroke="#D9A100" stroke-width="2" marker-end="url(#sqm)"/>
+            <text x="340" y="345" text-anchor="middle" font-weight="600" font-family="JetBrains Mono, monospace" font-size="11.5">POST /api/me { nickname } · Bearer</text>
+            <line x1="570" y1="388" x2="786" y2="388" stroke="currentColor" marker-end="url(#sq)"/>
+            <text x="680" y="381" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11">INSERT Users (sub, email)</text>
+            <line x1="570" y1="420" x2="114" y2="420" stroke="currentColor" stroke-dasharray="6 4" marker-end="url(#sq)"/>
+            <text x="340" y="413" text-anchor="middle">201 · profil</text>
+
+            <!-- C -->
+            <path d="M110,490 H160 V514 H114" fill="none" stroke="currentColor" marker-end="url(#sq)"/>
+            <text x="170" y="506">getIdToken(): SDK sam wymienia token co godzinę</text>
+            <line x1="110" y1="552" x2="566" y2="552" stroke="#D9A100" stroke-width="2" marker-end="url(#sqm)"/>
+            <text x="340" y="545" text-anchor="middle" font-weight="600" font-family="JetBrains Mono, monospace" font-size="11.5">POST /api/groups/{id}/quotes · Bearer</text>
+            <line x1="570" y1="584" x2="786" y2="584" stroke="currentColor" marker-end="url(#sq)"/>
+            <text x="680" y="577" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11">sub w GroupParticipants?</text>
+            <line x1="570" y1="616" x2="114" y2="616" stroke="currentColor" stroke-dasharray="6 4" marker-end="url(#sq)"/>
+            <text x="340" y="609" text-anchor="middle">201 · albo 404, gdy nie jesteś członkiem</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Żółte strzałki niosą token. Między API a Firebase nie ma strzałki: API sprawdza podpis tokenu kluczami publicznymi Google, które pobiera raz i trzyma w pamięci. Faza B dzieje się tylko raz w życiu konta; później klient od razu dostaje 200 z <code>GET /api/me</code>.</figcaption>
+    </figure>
+
+    <h3>Co jest w ID tokenie</h3>
+    <div class="pair">
+      <pre class="snippet" aria-label="Przykładowa zawartość ID tokenu"><span class="c">// środkowa część tokenu po zdekodowaniu</span>
+{
+  "iss": "https://securetoken.google.com/sharbo-1",
+  "aud": "sharbo-1",
+  "sub": "x7KpQ2mZ9vRt...",   <span class="c">// UID = Users.Id</span>
+  "email": "ola@example.com",
+  "auth_time": 1763200000,
+  "exp": 1763203600         <span class="c">// ważny 1 h</span>
+}</pre>
+      <dl class="gloss">
+        <div><dt><code>sub</code></dt><dd>UID z Firebase. API używa go jako <code>Users.Id</code> i szuka po nim członkostwa w grupie.</dd></div>
+        <div><dt><code>email</code></dt><dd>Zapisywany w profilu przy <code>POST /api/me</code>. Klient nie wysyła go osobno.</dd></div>
+        <div><dt><code>iss</code>, <code>aud</code></dt><dd>Muszą wskazywać projekt <code>sharbo-1</code>. Token z innego projektu dostaje 401.</dd></div>
+        <div><dt><code>exp</code></dt><dd>Token żyje godzinę. SDK w kliencie sam pobiera nowy przy użyciu refresh tokenu.</dd></div>
+      </dl>
+    </div>
+
+    <h3>Endpointy konta i odpowiedzi</h3>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Zapytanie</th><th>Kiedy</th><th>Odpowiedzi</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET /api/me</code></td><td>Po każdym logowaniu i starcie aplikacji</td><td><div class="codes"><span><b>200</b> profil</span><span><b>404</b> brak profilu, pokaż ekran nicku</span><span><b>401</b> brak lub zły token</span></div></td></tr>
+          <tr><td><code>POST /api/me</code></td><td>Raz, po pierwszym logowaniu. Body: <code>{ "nickname": "Ola" }</code></td><td><div class="codes"><span><b>201</b> profil</span><span><b>409</b> profil już istnieje</span><span><b>400</b> pusty nick, dłuższy niż 50 znaków albo token bez e-maila</span><span><b>401</b></span></div></td></tr>
+          <tr><td><code>GET /api/groups</code></td><td>Lista grup użytkownika, np. po starcie aplikacji</td><td><div class="codes"><span><b>200</b> tylko grupy, do których należysz</span><span><b>401</b></span></div></td></tr>
+          <tr><td><code>/api/groups/{id}/…</code></td><td>Wszystko w grupie, np. <code>POST /api/groups/{id}/quotes</code></td><td><div class="codes"><span><b>2xx</b> gotowe</span><span><b>404</b> grupa nie istnieje albo nie jesteś jej członkiem</span><span><b>401</b></span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Zasady dla klientów</h3>
+    <div class="pair">
+      <ul class="rules">
+        <li>Rejestracja i logowanie idą wyłącznie przez SDK Firebase. W API nie ma endpointu do logowania i hasło nigdy do niego nie trafia.</li>
+        <li>Przed każdym zapytaniem pobierz token przez <code>getIdToken()</code> i nie zapisuj go samodzielnie. SDK zwróci ważny token i w razie potrzeby sam go odświeży.</li>
+        <li>Na <b>401</b> wymuś nowy token przez <code>getIdToken(true)</code> i powtórz zapytanie raz. Drugie 401 oznacza koniec sesji: wyloguj użytkownika.</li>
+        <li>Wylogowanie to <code>signOut()</code> w SDK. API nie trzyma sesji, więc nie ma czego zamykać po jego stronie.</li>
+        <li>Na <b>404</b> z <code>GET /api/me</code> pokaż ekran wyboru nicku i wyślij <code>POST /api/me</code>. To jedyny moment, w którym API zakłada konto w bazie.</li>
+      </ul>
+      <pre class="snippet" aria-label="Przykład dla aplikacji webowej"><span class="c">// web, po zalogowaniu przez Firebase SDK</span>
+<span class="k">const</span> token = <span class="k">await</span> auth.currentUser.getIdToken();
+<span class="k">const</span> me = <span class="k">await</span> fetch(`${API}/api/me`, {
+  headers: { Authorization: `Bearer ${token}` },
+});
+
+<span class="k">if</span> (me.status === 404) {
+  <span class="c">// pierwsze wejście: zapytaj o nick</span>
+  <span class="k">await</span> fetch(`${API}/api/me`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ nickname }),
+  });
+}</pre>
+    </div>
   </section>
 
   <section id="model">
@@ -902,11 +1059,13 @@ footer { border-top: 1px solid var(--line); padding-block: 1.5rem 3rem; color: v
         </ul>
       </li>
       <li>
-        <div class="road-head"><span class="eyebrow">Faza 2</span><h3>Auth i uprawnienia</h3><span class="pill">Zaplanowane</span></div>
+        <div class="road-head"><span class="eyebrow">Faza 2</span><h3>Auth i uprawnienia</h3><span class="pill wip">W toku</span></div>
         <ul>
-          <li>Weryfikacja Firebase ID tokenu; bieżący użytkownik z tokenu zamiast wpisanego na sztywno ID w serwisach.</li>
-          <li>Dostęp do danych grupy tylko dla jej członków, z uwzględnieniem ról.</li>
-          <li>Profil użytkownika zakładany po pierwszym logowaniu; koniec publicznej listy użytkowników; usunięcie kolumny z hasłem.</li>
+          <li><span class="st ok">gotowe</span>Weryfikacja Firebase ID tokenu kluczami publicznymi; z API usunięte SDK Firebase i klucz serwisowy.</li>
+          <li><span class="st ok">gotowe</span>Profil zakładany po pierwszym logowaniu (<code>GET</code> i <code>POST /api/me</code>); koniec publicznej listy użytkowników; usunięta kolumna z hasłem.</li>
+          <li><span class="st ok">gotowe</span>Każdy endpoint wymaga tokenu. Użytkownik widzi tylko swoje grupy (<code>GET /api/groups</code>) i działa tylko w nich: grupy, uczestnicy, cytaty, memy i sytuacje. Cudza grupa odpowiada 404.</li>
+          <li>Role: zarządzanie grupą (nazwa, usuwanie, członkowie, role) tylko dla Admina lub Moderatora; edycja i usuwanie cudzych wpisów tylko przez Moderatora lub Admina. Teraz może to każdy członek.</li>
+          <li>Później: dezaktywacja konta przez <code>DELETE /api/me</code>. Profil i wpisy zostają w bazie, konto jest oznaczone jako nieaktywne.</li>
         </ul>
       </li>
       <li>

@@ -11,8 +11,9 @@ public sealed class SituationRepository(SharboDbContext dbContext) : ISituationR
             .Where(s => s.CreatedBy.GroupId == groupId)
             .ToListAsync(cancellationToken);
 
-    public async Task<Situation?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
-        => await dbContext.Situations.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    public async Task<Situation?> GetByIdAsync(Guid groupId, Guid id, CancellationToken cancellationToken)
+        => await dbContext.Situations
+            .FirstOrDefaultAsync(s => s.Id == id && s.CreatedBy.GroupId == groupId, cancellationToken);
 
     public async Task<Guid?> AddAsync(Situation situation, CancellationToken cancellationToken)
     {

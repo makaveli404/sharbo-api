@@ -1,118 +1,117 @@
-﻿using SharboAPI.Domain.Models;
-using SharboAPI.Application.Abstractions.Services;
+﻿using FluentValidation;
 using SharboAPI.Application.Abstractions.Repositories;
+using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Common;
-using SharboAPI.Application.DTO.Meme;
 using SharboAPI.Application.Common.Errors;
-using Microsoft.AspNetCore.Http;
-using FluentValidation;
+using SharboAPI.Application.DTO.Meme;
+using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Application.Services;
 
 public sealed class MemeService(
-	IMemeRepository memeRepository, 
+	IMemeRepository memeRepository,
 	IGroupParticipantRepository groupParticipantRepository,
-	IValidator<CreateMemeRequest> createMemeRequestValidator, 
-	IValidator<UpdateMemeRequest> updateMemeRequestValidator, 
-	IHttpContextAccessor httpContextAccessor) : IMemeService
+	IValidator<CreateMemeRequest> createMemeRequestValidator,
+	IValidator<UpdateMemeRequest> updateMemeRequestValidator,
+	ICurrentUser currentUser) : IMemeService
 {
-    public async Task<Result<IEnumerable<MemeResult>>> GetAllForGroupAsync(Guid groupId, CancellationToken cancellationToken)
-    {
-        var memesForGroup = await memeRepository.GetAllByGroupIdAsync(groupId, cancellationToken);
-        var memeResults = memesForGroup.Select(meme => new MemeResult(
-            meme.Id,
-            meme.ImagePath,
-            meme.Text,
-            meme.CreatedById,
-            meme.LastModifiedById,
-            meme.CreationDate,
-            meme.LastModificationDate));
+	public async Task<Result<IEnumerable<MemeResult>>> GetAllForGroupAsync(Guid groupId, CancellationToken cancellationToken)
+	{
+		if (await GetCurrentParticipantAsync(groupId, cancellationToken) is null)
+		{
+			return Result.Failure<IEnumerable<MemeResult>>(GroupNotFound(groupId));
+		}
 
-		return Result.Success(memeResults);
-    }
+		var memes = await memeRepository.GetAllByGroupIdAsync(groupId, cancellationToken);
+		return Result.Success(memes.Select(ToMemeResult));
+	}
 
-    public async Task<Result<MemeResult?>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
-    {
-		var meme = await memeRepository.GetByIdAsync(id, cancellationToken);
+	public async Task<Result<MemeResult?>> GetByIdAsync(Guid groupId, Guid memeId, CancellationToken cancellationToken)
+	{
+		if (await GetCurrentParticipantAsync(groupId, cancellationToken) is null)
+		{
+			return Result.Failure<MemeResult?>(GroupNotFound(groupId));
+		}
 
-        if (meme is null)
-        {
-			return Result.Failure<MemeResult?>(Error.NotFound($"No meme with ID: { id } found"));
-        }
+		var meme = await memeRepository.GetByIdAsync(groupId, memeId, cancellationToken);
 
-		var memeResult = new MemeResult(
-            meme.Id,
-            meme.ImagePath,
-            meme.Text,
-            meme.CreatedById,
-            meme.LastModifiedById,
-            meme.CreationDate,
-            meme.LastModificationDate);
+		return meme is null
+			? Result.Failure<MemeResult?>(MemeNotFound(memeId))
+			: Result.Success<MemeResult?>(ToMemeResult(meme));
+	}
 
-		return Result.Success<MemeResult?>(memeResult);
-    }
-
-	public async Task<Result<Guid?>> AddAsync(CreateMemeRequest request, CancellationToken cancellationToken)
+	public async Task<Result<Guid?>> AddAsync(Guid groupId, CreateMemeRequest request, CancellationToken cancellationToken)
 	{
 		await createMemeRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
 
-		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-		var requestingUserId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2"; 
-
-		var groupParticipant = await groupParticipantRepository
-			.GetByUserIdAndGroupIdAsync(requestingUserId, request.GroupId, cancellationToken);
-
+		var groupParticipant = await GetCurrentParticipantAsync(groupId, cancellationToken);
 		if (groupParticipant is null)
 		{
-			return Result.Failure<Guid?>(Error.NotFound("No participant found"));
+			return Result.Failure<Guid?>(GroupNotFound(groupId));
 		}
 
-		var meme = Meme.Create(
-			groupParticipant.Id,
-			request.ImagePath,
-			request.Text
-		);
-        
+		var meme = Meme.Create(groupParticipant.Id, request.ImagePath, request.Text);
 		var id = await memeRepository.AddAsync(meme, cancellationToken);
+
 		return Result.Success(id);
 	}
-    
-	public async Task<Result> UpdateAsync(Guid id, Guid groupId, UpdateMemeRequest request, CancellationToken cancellationToken)
-    {
-        await updateMemeRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
 
-        // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-        var requestingUserId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
+	public async Task<Result> UpdateAsync(Guid memeId, Guid groupId, UpdateMemeRequest request, CancellationToken cancellationToken)
+	{
+		await updateMemeRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
 
-        var groupParticipant = await groupParticipantRepository
-            .GetByUserIdAndGroupIdAsync(requestingUserId, groupId, cancellationToken);
-        if (groupParticipant is null)
-        {
-            return Result.Failure<Result>(Error.NotFound("No participant found"));
-        }
+		var groupParticipant = await GetCurrentParticipantAsync(groupId, cancellationToken);
+		if (groupParticipant is null)
+		{
+			return Result.Failure(GroupNotFound(groupId));
+		}
 
-        var meme = await memeRepository.GetByIdAsync(id, cancellationToken);
-        if (meme is null)
-        {
-            return Result.Failure<Result>(Error.NotFound($"No meme with ID: { id } found"));
-        }
+		var meme = await memeRepository.GetByIdAsync(groupId, memeId, cancellationToken);
+		if (meme is null)
+		{
+			return Result.Failure(MemeNotFound(memeId));
+		}
 
-        meme.UpdateText(groupParticipant.Id, request.Text);
+		meme.UpdateText(groupParticipant.Id, request.Text);
 
-        await memeRepository.SaveChangesAsync(cancellationToken);
-        return Result.Success();
-    }
+		await memeRepository.SaveChangesAsync(cancellationToken);
+		return Result.Success();
+	}
 
-    public async Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken)
-    {
-        var meme = await memeRepository.GetByIdAsync(id, cancellationToken);
+	public async Task<Result> DeleteAsync(Guid groupId, Guid memeId, CancellationToken cancellationToken)
+	{
+		if (await GetCurrentParticipantAsync(groupId, cancellationToken) is null)
+		{
+			return Result.Failure(GroupNotFound(groupId));
+		}
 
-        if (meme is null)
-        {
-            return Result.Failure<Result>(Error.NotFound($"No meme with ID: { id } found"));
-        }
+		var meme = await memeRepository.GetByIdAsync(groupId, memeId, cancellationToken);
+		if (meme is null)
+		{
+			return Result.Failure(MemeNotFound(memeId));
+		}
 
-        await memeRepository.DeleteAsync(meme, cancellationToken);
-        return Result.Success();
-    }
+		await memeRepository.DeleteAsync(meme, cancellationToken);
+		return Result.Success();
+	}
+
+	/// <summary>
+	/// The current user's participant in the group, or null when they are not a member (or the group does not exist;
+	/// both are reported as "not found" so the API does not reveal other groups).
+	/// </summary>
+	private Task<GroupParticipant?> GetCurrentParticipantAsync(Guid groupId, CancellationToken cancellationToken)
+		=> groupParticipantRepository.GetByUserIdAndGroupIdAsync(currentUser.UserId, groupId, cancellationToken);
+
+	private static Error GroupNotFound(Guid groupId) => Error.NotFound($"No group with ID: { groupId } found");
+
+	private static Error MemeNotFound(Guid memeId) => Error.NotFound($"No meme with ID: { memeId } found");
+
+	private static MemeResult ToMemeResult(Meme meme) => new(
+		meme.Id,
+		meme.ImagePath,
+		meme.Text,
+		meme.CreatedById,
+		meme.LastModifiedById,
+		meme.CreationDate,
+		meme.LastModificationDate);
 }

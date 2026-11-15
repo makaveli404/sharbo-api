@@ -490,3 +490,6 @@ CLAUDE.local.md
 .idea/**/dataSources/
 .idea/**/dataSources*.xml
 .idea/**/httpRequests/
+
+# Shared Firebase test accounts for the dev project (credentials, never commit)
+test-accounts.json

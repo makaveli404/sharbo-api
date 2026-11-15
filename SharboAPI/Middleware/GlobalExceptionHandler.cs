@@ -1,7 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using SharboAPI.Application.Common.Exceptions;
 
 namespace SharboAPI.Middleware;
 
@@ -16,7 +15,6 @@ internal sealed class GlobalExceptionHandler(IProblemDetailsService problemDetai
 		{
 			BadHttpRequestException => StatusCodes.Status400BadRequest,
 			ApplicationException => StatusCodes.Status400BadRequest,
-			FirebaseException => StatusCodes.Status409Conflict,
 			ValidationException => StatusCodes.Status409Conflict,
 			_ => StatusCodes.Status500InternalServerError
 		};

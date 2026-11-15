@@ -14,7 +14,7 @@ public static class QuoteEndpoint
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
         return TypedResults.Ok(result.Value);
@@ -23,7 +23,7 @@ public static class QuoteEndpoint
     private static async Task<IResult> GetById(Guid groupId, Guid quoteId, IQuoteService quoteService,
         CancellationToken cancellationToken)
     {
-        var result = await quoteService.GetByIdAsync(quoteId, cancellationToken);
+        var result = await quoteService.GetByIdAsync(groupId, quoteId, cancellationToken);
 
         if (result.IsFailure)
         {
@@ -36,14 +36,14 @@ public static class QuoteEndpoint
     private static async Task<IResult> Create(Guid groupId, CreateQuoteRequest request,
         IQuoteService quoteService, CancellationToken cancellationToken)
     {
-        var result = await quoteService.AddAsync(request, cancellationToken);
+        var result = await quoteService.AddAsync(groupId, request, cancellationToken);
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
-        return TypedResults.Created($"{request}/{result}", result);
+        return TypedResults.Created($"/api/groups/{groupId}/quotes/{result.Value}", result.Value);
     }
 
     private static async Task<IResult> Update(Guid groupId, Guid quoteId, UpdateQuoteRequest request,
@@ -53,7 +53,7 @@ public static class QuoteEndpoint
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
         return TypedResults.NoContent();
@@ -62,11 +62,11 @@ public static class QuoteEndpoint
     private static async Task<IResult> Delete(Guid groupId, Guid quoteId, IQuoteService quoteService,
         CancellationToken cancellationToken)
     {
-        var result = await quoteService.DeleteAsync(quoteId, cancellationToken);
+        var result = await quoteService.DeleteAsync(groupId, quoteId, cancellationToken);
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
         return TypedResults.NoContent();

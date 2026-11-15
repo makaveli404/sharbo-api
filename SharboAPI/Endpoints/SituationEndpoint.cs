@@ -14,7 +14,7 @@ public static class SituationEndpoint
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
         return TypedResults.Ok(result.Value);
@@ -23,7 +23,7 @@ public static class SituationEndpoint
     private static async Task<IResult> GetById(Guid groupId, Guid situationId, ISituationService situationService,
         CancellationToken cancellationToken)
     {
-        var result = await situationService.GetByIdAsync(situationId, cancellationToken);
+        var result = await situationService.GetByIdAsync(groupId, situationId, cancellationToken);
 
         if (result.IsFailure)
         {
@@ -36,14 +36,14 @@ public static class SituationEndpoint
     private static async Task<IResult> Create(Guid groupId, CreateSituationRequest request, 
         ISituationService situationService, CancellationToken cancellationToken)
     {
-        var result = await situationService.AddAsync(request, cancellationToken);
+        var result = await situationService.AddAsync(groupId, request, cancellationToken);
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
-        return TypedResults.Created($"{request}/{result}", result);
+        return TypedResults.Created($"/api/groups/{groupId}/situations/{result.Value}", result.Value);
     }
 
     private static async Task<IResult> Update(Guid groupId, Guid situationId, UpdateSituationRequest request,
@@ -53,7 +53,7 @@ public static class SituationEndpoint
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
         return TypedResults.NoContent();
@@ -62,11 +62,11 @@ public static class SituationEndpoint
     private static async Task<IResult> Delete(Guid groupId, Guid situationId, ISituationService situationService,
         CancellationToken cancellationToken)
     {
-        var result = await situationService.DeleteAsync(situationId, cancellationToken);
+        var result = await situationService.DeleteAsync(groupId, situationId, cancellationToken);
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
         return TypedResults.NoContent();

@@ -8,6 +8,6 @@ public interface IGroupParticipantRepository
 	Task<List<GroupParticipant>?> GetByGroupIdAsync(Guid groupId, CancellationToken cancellationToken);
 	Task<GroupParticipant?> GetByUserIdAndGroupIdAsync(string userId, Guid groupId, CancellationToken cancellationToken);
 	Task<Guid?> AddAsync(GroupParticipant groupParticipant, CancellationToken cancellationToken);
-	Task DeleteAsync(Guid[] id, CancellationToken cancellationToken);
+	Task DeleteAsync(Guid groupId, Guid[] ids, CancellationToken cancellationToken);
 	Task SaveChangesAsync(CancellationToken cancellationToken);
 }

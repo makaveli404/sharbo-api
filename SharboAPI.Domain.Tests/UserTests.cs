@@ -9,7 +9,6 @@ public class UserTests
 		string id = "01K31H597YSPQHJ1FB3JA253DJ";
 		string nickname = "TestUser";
 		string email = "testuser@example.com";
-		string password = "123456789";
 
 		var expectedUser = new
 		{
@@ -18,7 +17,7 @@ public class UserTests
 		};
 
 		// Act
-		var user = User.Create(id, nickname, email, password);
+		var user = User.Create(id, nickname, email);
 
 		// Assert
 		user.Id.Should().NotBe(string.Empty);
@@ -32,10 +31,9 @@ public class UserTests
 		string id = "01K31H597YSPQHJ1FB3JA253DJ";
 		string? nickname = null;
 		string email = "testuser@example.com";
-		string password = "123456789";
 
 		// Act
-		var act = () => User.Create(id, nickname, email, password);
+		var act = () => User.Create(id, nickname, email);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>();
@@ -48,10 +46,24 @@ public class UserTests
 		string id = "01K31H597YSPQHJ1FB3JA253DJ";
 		string nickname = "TestUser";
 		string? email = null;
-		string password = "123456789";
 
 		// Act
-		var act = () => User.Create(id, nickname, email, password);
+		var act = () => User.Create(id, nickname, email);
+
+		// Assert
+		act.Should().Throw<ArgumentNullException>();
+	}
+
+	[Fact]
+	public void Create_ShouldThrowException_WhenProviderIdIsNullOrEmpty()
+	{
+		// Arrange
+		string? id = null;
+		string nickname = "TestUser";
+		string email = "testuser@example.com";
+
+		// Act
+		var act = () => User.Create(id!, nickname, email);
 
 		// Assert
 		act.Should().Throw<ArgumentNullException>();

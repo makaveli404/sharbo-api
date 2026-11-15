@@ -13,7 +13,7 @@ public static class MemeEndpoints
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
 		return TypedResults.Ok(result.Value);
@@ -22,7 +22,7 @@ public static class MemeEndpoints
 	private static async Task<IResult> GetById(Guid groupId, Guid memeId, IMemeService memeService, 
 		CancellationToken cancellationToken)
 	{
-		var result = await memeService.GetByIdAsync(memeId, cancellationToken);
+		var result = await memeService.GetByIdAsync(groupId, memeId, cancellationToken);
 
         if (result.IsFailure)
         {
@@ -35,14 +35,14 @@ public static class MemeEndpoints
 	private static async Task<IResult> Create(Guid groupId, CreateMemeRequest request, IMemeService memeService, 
 		CancellationToken cancellationToken)
 	{
-		var result = await memeService.AddAsync(request, cancellationToken);
+		var result = await memeService.AddAsync(groupId, request, cancellationToken);
 
 		if (result.IsFailure)
 		{
-			return TypedResults.BadRequest();
+			return TypedResults.NotFound();
 		}
 
-		return TypedResults.Created($"{request}/{result}", result);
+		return TypedResults.Created($"/api/groups/{groupId}/memes/{result.Value}", result.Value);
 	}
 
 	private static async Task<IResult> Update(Guid groupId, Guid memeId, UpdateMemeRequest request, 
@@ -52,7 +52,7 @@ public static class MemeEndpoints
 
         if (result.IsFailure)
         {
-			return TypedResults.BadRequest();
+			return TypedResults.NotFound();
         }
 
 		return TypedResults.NoContent();
@@ -61,11 +61,11 @@ public static class MemeEndpoints
     private static async Task<IResult> Delete(Guid groupId, Guid memeId, IMemeService memeService, 
 		CancellationToken cancellationToken)
     {
-        var result = await memeService.DeleteAsync(memeId, cancellationToken);
+        var result = await memeService.DeleteAsync(groupId, memeId, cancellationToken);
 
         if (result.IsFailure)
         {
-            return TypedResults.BadRequest();
+            return TypedResults.NotFound();
         }
 
         return TypedResults.NoContent();

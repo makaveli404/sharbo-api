@@ -2,11 +2,15 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using SharboAPI.Application.Extensions;
+using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Endpoints;
+using SharboAPI.Extensions;
 using Serilog;
 using SharboAPI.Infrastructure;
 using SharboAPI.Infrastructure.Extensions;
+using SharboAPI.Infrastructure.Seeding;
 using SharboAPI.Middleware;
+using SharboAPI.Services;
 
 // Bootstrap logger: catches failures that happen before the configured logger is built.
 Log.Logger = new LoggerConfiguration()
@@ -24,6 +28,8 @@ try
 
 	builder.Services.AddInfrastructure(configuration);
 	builder.Services.AddApplication();
+	builder.Services.AddFirebaseAuthentication(configuration, builder.Environment);
+	builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 	builder.Services.AddOpenApi();
 
 	builder.Host.UseSerilog((context, config) =>
@@ -42,33 +48,58 @@ try
 			Version = "v1",
 			Description = "Sharbo API"
 		});
+
+		// Lets Swagger UI send a Firebase ID token ("Authorize" button).
+		c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+		{
+			Type = SecuritySchemeType.Http,
+			Scheme = "bearer",
+			BearerFormat = "JWT",
+			Description = "Firebase ID token"
+		});
+		c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+		{
+			[new OpenApiSecuritySchemeReference("Bearer", document)] = []
+		});
 	});
 
 	var app = builder.Build();
 
-	// Outside Development a missing or invalid Firebase key stops startup here, before migrations run.
-	app.Services.InitializeFirebase(required: !app.Environment.IsDevelopment(), app.Logger);
-
 	app.UseExceptionHandler();
 
-	app.MapGroupEndpoints();
-	app.MapUserEndpoints();
-	app.MapMemeEndpoints();
-	app.MapSituationEndpoints();
-	app.MapQuoteEndpoints();
-
+	// Swagger runs before authentication: the UI and its JSON must load without a token so you can click "Authorize".
 	if (app.Environment.IsDevelopment())
 	{
-		app.MapOpenApi();
 		app.UseSwagger();
 		app.UseSwaggerUI();
 	}
+
+	// Every endpoint below requires a valid Firebase ID token (fallback policy in AddFirebaseAuthentication).
+	app.UseAuthentication();
+	app.UseAuthorization();
+
+	if (app.Environment.IsDevelopment())
+	{
+		app.MapOpenApi().AllowAnonymous();
+	}
+
+	app.MapGroupEndpoints();
+	app.MapMeEndpoints();
+	app.MapMemeEndpoints();
+	app.MapSituationEndpoints();
+	app.MapQuoteEndpoints();
 
 	using var scope = app.Services.CreateScope();
 	ApplyMigration<SharboDbContext>(scope);
 
 	var seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
 	await seeder.Seed();
+
+	// Demo groups, entries and test-user profiles for local development (turn off with Seed:DevData=false).
+	if (app.Environment.IsDevelopment() && configuration.GetValue("Seed:DevData", true))
+	{
+		await scope.ServiceProvider.GetRequiredService<DevDataSeeder>().SeedAsync();
+	}
 
 	app.UseSerilogRequestLogging();
 

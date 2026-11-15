@@ -1,40 +1,56 @@
 ﻿using SharboAPI.Application.Abstractions.Repositories;
+using SharboAPI.Application.Abstractions.Services;
+using SharboAPI.Application.Common.Errors;
 using SharboAPI.Application.DTO.Quote;
 using SharboAPI.Application.Services;
-using Microsoft.AspNetCore.Http;
 using FluentValidation;
 using FluentValidation.Results;
 
 namespace SharboAPI.Application.Tests.Services;
 
+// xUnit creates a new instance per test, so every test gets fresh mocks.
 public class QuoteServiceTests
 {
+    private const string CurrentUserId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
+
+    private readonly Mock<IQuoteRepository> _quoteRepositoryMock = new();
+    private readonly Mock<IGroupParticipantRepository> _groupParticipantRepositoryMock = new();
+    private readonly Mock<IValidator<CreateQuoteRequest>> _createValidatorMock = new();
+    private readonly Mock<IValidator<UpdateQuoteRequest>> _updateValidatorMock = new();
+    private readonly Mock<ICurrentUser> _currentUserMock = new();
+    private readonly QuoteService _quoteService;
+
+    public QuoteServiceTests()
+    {
+        _currentUserMock.Setup(mock => mock.UserId).Returns(CurrentUserId);
+
+        _createValidatorMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<CreateQuoteRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        _updateValidatorMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<UpdateQuoteRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _quoteService = new QuoteService(
+            _quoteRepositoryMock.Object,
+            _groupParticipantRepositoryMock.Object,
+            _createValidatorMock.Object,
+            _updateValidatorMock.Object,
+            _currentUserMock.Object);
+    }
+
+    #region GetAllForGroupAsync
+
     [Fact]
     public async Task GetAllForGroupAsync_ForGroupId_ReturnsSucceededResultWithEmptyResultArray()
     {
         // Arrange
         Guid groupId = Guid.NewGuid();
-        Quote[] expectedQuoteResults = [];
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        quoteRepositoryMock
-            .Setup(mock => mock.GetAllByGroupIdAsync(groupId, CancellationToken.None))
-            .ReturnsAsync(expectedQuoteResults);
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetAllByGroupIdAsyncToReturn(groupId, []);
 
         // Act
-        var result = await quoteService.GetAllForGroupAsync(groupId, CancellationToken.None);
+        var result = await _quoteService.GetAllForGroupAsync(groupId, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -46,451 +62,366 @@ public class QuoteServiceTests
     {
         // Arrange
         Guid groupId = Guid.NewGuid();
-        Quote[] expectedQuoteResults = [
-            GetQuoteData(),
-            GetQuoteData(),
-            GetQuoteData()
-        ];
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        quoteRepositoryMock
-            .Setup(mock => mock.GetAllByGroupIdAsync(groupId, CancellationToken.None))
-            .ReturnsAsync(expectedQuoteResults);
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetAllByGroupIdAsyncToReturn(groupId, [GetQuoteData(), GetQuoteData(), GetQuoteData()]);
 
         // Act
-        var result = await quoteService.GetAllForGroupAsync(groupId, CancellationToken.None);
+        var result = await _quoteService.GetAllForGroupAsync(groupId, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value
-            .Count()
-            .Should()
-            .Be(3);
+        result.Value.Should().HaveCount(3);
     }
+
+    [Fact]
+    public async Task GetAllForGroupAsync_ForGroupId_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+
+        // Act
+        var result = await _quoteService.GetAllForGroupAsync(groupId, CancellationToken.None);
+
+        // Assert
+        AssertGroupNotFound(result, groupId);
+        _quoteRepositoryMock.Verify(
+            mock => mock.GetAllByGroupIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    #endregion
+
+    #region GetByIdAsync
 
     [Fact]
     public async Task GetByIdAsync_ForQuoteId_ReturnsFailuredResult_WhenNoQuoteWithGivenIdFound()
     {
         // Arrange
+        Guid groupId = Guid.NewGuid();
         Guid quoteId = Guid.Parse("27c82825-1d93-4210-8a63-d43e3c7c46d4");
-        Quote? expectedQuoteResult = null;
-        string expectedErrorMessage = "No quote with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found";
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
-
-        SetupGetByIdAsyncToReturnQuoteResult(quoteRepositoryMock, expectedQuoteResult);
+        SetupCurrentUserAsMemberOf(groupId);
 
         // Act
-        var result = await quoteService.GetByIdAsync(quoteId, CancellationToken.None);
+        var result = await _quoteService.GetByIdAsync(groupId, quoteId, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedErrorMessage);
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+        result.Error.Message.Should().Be("No quote with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found");
     }
 
     [Fact]
-    public async void GetByIdAsync_ForQuoteId_ReturnsSucceededResultWithQuoteResult()
+    public async Task GetByIdAsync_ForQuoteId_ReturnsSucceededResultWithQuoteResult()
     {
         // Arrange
-        Guid quoteId = Guid.NewGuid();
-        string text = "quote text";
-        Quote expectedQuoteResult = GetQuoteData(text: text);
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
-
-        SetupGetByIdAsyncToReturnQuoteResult(quoteRepositoryMock, expectedQuoteResult);
+        Guid groupId = Guid.NewGuid();
+        Quote quote = GetQuoteData(text: "quote text");
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(groupId, quote);
 
         // Act
-        var result = await quoteService.GetByIdAsync(quoteId, CancellationToken.None);
+        var result = await _quoteService.GetByIdAsync(groupId, quote.Id, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeOfType<QuoteResult?>();
-        result.Value.Text.Should().Be(text);
+        result.Value!.Id.Should().Be(quote.Id);
+        result.Value.Text.Should().Be("quote text");
     }
+
+    [Fact]
+    public async Task GetByIdAsync_ForQuoteId_ReturnsNotFoundResult_WhenQuoteBelongsToAnotherGroup()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        Guid otherGroupId = Guid.NewGuid();
+        Quote quote = GetQuoteData();
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(otherGroupId, quote);
+
+        // Act
+        var result = await _quoteService.GetByIdAsync(groupId, quote.Id, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ForQuoteId_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        Quote quote = GetQuoteData();
+        SetupGetByIdAsyncToReturn(groupId, quote);
+
+        // Act
+        var result = await _quoteService.GetByIdAsync(groupId, quote.Id, CancellationToken.None);
+
+        // Assert
+        AssertGroupNotFound(result, groupId);
+        _quoteRepositoryMock.Verify(
+            mock => mock.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    #endregion
+
+    #region AddAsync
 
     [Fact]
     public async Task AddAsync_ForCreateQuoteRequest_ThrowsArgumentException_WhenValidationFailed()
     {
-        // Arrange 
-        CreateQuoteRequest request = GetCreateQuoteRequest();
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        validatorForCreateQuoteRequestMock
-            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<CreateQuoteRequest>>(), CancellationToken.None))
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        SetupCurrentUserAsMemberOf(groupId);
+        _createValidatorMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<CreateQuoteRequest>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ArgumentException());
 
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
-
         // Act
-        var result = async () => await quoteService.AddAsync(request, CancellationToken.None);
+        var act = async () => await _quoteService.AddAsync(groupId, GetCreateQuoteRequest(), CancellationToken.None);
 
         // Assert
-        await result
-            .Should()
-            .ThrowAsync<ArgumentException>();
+        await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
-    public async Task AddAsync_ForCreateQuoteRequest_ReturnsFailuredResult_WhenNoGroupParticipantForRequestingUserId()
+    public async Task AddAsync_ForCreateQuoteRequest_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
     {
-        // Arrange 
-        CreateQuoteRequest request = GetCreateQuoteRequest();
-        GroupParticipant? groupParticipantResult = null;
-        string expectedFailureMessage = "No participant found";
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupCreateValidatorMockToReturnValidationResult(validatorForCreateQuoteRequestMock);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
+        // Arrange
+        Guid groupId = Guid.NewGuid();
 
         // Act
-        var result = await quoteService.AddAsync(request, CancellationToken.None);
+        var result = await _quoteService.AddAsync(groupId, GetCreateQuoteRequest(), CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedFailureMessage);
+        AssertGroupNotFound(result, groupId);
+        _quoteRepositoryMock.Verify(mock => mock.AddAsync(It.IsAny<Quote>(), It.IsAny<CancellationToken>()), Times.Never);
     }
-
 
     [Fact]
     public async Task AddAsync_ForCreateQuoteRequest_ReturnsQuoteId_WhenQuoteSuccessfullyCreated()
     {
-        // Arrange 
+        // Arrange
+        Guid groupId = Guid.NewGuid();
         Guid createdQuoteId = Guid.NewGuid();
-        CreateQuoteRequest request = GetCreateQuoteRequest();
-        GroupParticipant groupParticipantResult = GetGroupParticipantData();
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupCreateValidatorMockToReturnValidationResult(validatorForCreateQuoteRequestMock);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-
-        quoteRepositoryMock
-            .Setup(mock => mock.AddAsync(It.IsAny<Quote>(), CancellationToken.None))
+        GroupParticipant participant = SetupCurrentUserAsMemberOf(groupId);
+        _quoteRepositoryMock
+            .Setup(mock => mock.AddAsync(It.IsAny<Quote>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(createdQuoteId);
 
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
-
         // Act
-        var result = await quoteService.AddAsync(request, CancellationToken.None);
+        var result = await _quoteService.AddAsync(groupId, GetCreateQuoteRequest(), CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().Be(createdQuoteId);
+        _quoteRepositoryMock.Verify(
+            mock => mock.AddAsync(It.Is<Quote>(q => q.CreatedById == participant.Id), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
+
+    [Fact]
+    public async Task AddAsync_ForCreateQuoteRequest_LooksUpParticipantForCurrentUser()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        SetupCurrentUserAsMemberOf(groupId);
+
+        // Act
+        await _quoteService.AddAsync(groupId, GetCreateQuoteRequest(), CancellationToken.None);
+
+        // Assert
+        _groupParticipantRepositoryMock.Verify(
+            mock => mock.GetByUserIdAndGroupIdAsync(CurrentUserId, groupId, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    #endregion
+
+    #region UpdateAsync
 
     [Fact]
     public async Task UpdateAsync_ForUpdateQuoteRequest_ThrowsArgumentException_WhenValidationFailed()
     {
-        // Arrange 
-        Guid quoteId = Guid.NewGuid();
+        // Arrange
         Guid groupId = Guid.NewGuid();
-        UpdateQuoteRequest request = GetUpdateQuoteRequest();
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        validatorForUpdateQuoteRequestMock
-            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<UpdateQuoteRequest>>(), CancellationToken.None))
+        SetupCurrentUserAsMemberOf(groupId);
+        _updateValidatorMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<UpdateQuoteRequest>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ArgumentException());
 
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
-
         // Act
-        var result = async () => await quoteService.UpdateAsync(quoteId, groupId, request, CancellationToken.None);
+        var act = async () => await _quoteService.UpdateAsync(Guid.NewGuid(), groupId, GetUpdateQuoteRequest(),
+            CancellationToken.None);
 
         // Assert
-        await result
-            .Should()
-            .ThrowAsync<ArgumentException>();
+        await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
-    public async Task UpdateAsync_ForUpdateQuoteRequest_ReturnsFailuredResult_WhenNoGroupParticipantForRequestingUserId()
+    public async Task UpdateAsync_ForUpdateQuoteRequest_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
     {
-        // Arrange 
-        Guid quoteId = Guid.NewGuid();
+        // Arrange
         Guid groupId = Guid.NewGuid();
-        UpdateQuoteRequest request = GetUpdateQuoteRequest();
-        GroupParticipant? groupParticipantResult = null;
-        string expectedFailureMessage = "No participant found";
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupUpdateValidatorMockToReturnValidationResult(validatorForUpdateQuoteRequestMock);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
+        Quote quote = GetQuoteData();
+        SetupGetByIdAsyncToReturn(groupId, quote);
 
         // Act
-        var result = await quoteService.UpdateAsync(quoteId, groupId, request, CancellationToken.None);
+        var result = await _quoteService.UpdateAsync(quote.Id, groupId, GetUpdateQuoteRequest(), CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedFailureMessage);
+        AssertGroupNotFound(result, groupId);
+        _quoteRepositoryMock.Verify(mock => mock.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task UpdateAsync_ForQuoteId_ReturnsFailuredResult_WhenNoQuoteForGivenIdFound()
     {
-        // Arrange 
-        Guid quoteId = Guid.Parse("27c82825-1d93-4210-8a63-d43e3c7c46d4");
+        // Arrange
         Guid groupId = Guid.NewGuid();
-        UpdateQuoteRequest request = GetUpdateQuoteRequest();
-        GroupParticipant groupParticipantResult = GetGroupParticipantData();
-        Quote? quoteResult = null;
-        string expectedFailureMessage = "No quote with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found";
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupUpdateValidatorMockToReturnValidationResult(validatorForUpdateQuoteRequestMock);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-        SetupGetByIdAsyncToReturnQuoteResult(quoteRepositoryMock, quoteResult);
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
+        Guid quoteId = Guid.Parse("27c82825-1d93-4210-8a63-d43e3c7c46d4");
+        SetupCurrentUserAsMemberOf(groupId);
 
         // Act
-        var result = await quoteService.UpdateAsync(quoteId, groupId, request, CancellationToken.None);
+        var result = await _quoteService.UpdateAsync(quoteId, groupId, GetUpdateQuoteRequest(), CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedFailureMessage);
+        result.Error.Message.Should().Be("No quote with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found");
     }
 
     [Fact]
     public async Task UpdateAsync_ForUpdateQuoteRequest_ReturnsSucceededResult_WhenQuoteSuccessfullyUpdated()
     {
-        // Arrange 
-        Guid quoteId = Guid.NewGuid();
+        // Arrange
         Guid groupId = Guid.NewGuid();
-        UpdateQuoteRequest request = GetUpdateQuoteRequest();
-        GroupParticipant groupParticipantResult = GetGroupParticipantData();
-        Quote quoteResult = GetQuoteData();
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupUpdateValidatorMockToReturnValidationResult(validatorForUpdateQuoteRequestMock);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-        SetupGetByIdAsyncToReturnQuoteResult(quoteRepositoryMock, quoteResult);
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
+        Quote quote = GetQuoteData();
+        GroupParticipant participant = SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(groupId, quote);
 
         // Act
-        var result = await quoteService.UpdateAsync(quoteId, groupId, request, CancellationToken.None);
+        var result = await _quoteService.UpdateAsync(quote.Id, groupId, GetUpdateQuoteRequest("new text"),
+            CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        quoteRepositoryMock
-            .Verify(mock => mock.SaveChangesAsync(CancellationToken.None), Times.Once());
+        quote.Text.Should().Be("new text");
+        quote.LastModifiedById.Should().Be(participant.Id);
+        _quoteRepositoryMock.Verify(mock => mock.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    #endregion
+
+    #region DeleteAsync
 
     [Fact]
     public async Task DeleteAsync_ForGivenId_ReturnsFailuredResult_WhenNoQuoteWithGivenIdFound()
     {
         // Arrange
+        Guid groupId = Guid.NewGuid();
         Guid quoteId = Guid.Parse("27c82825-1d93-4210-8a63-d43e3c7c46d4");
-        Quote? quoteResult = null;
-        string expectedFailureMessage = "No quote with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found";
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        quoteRepositoryMock
-            .Setup(mock => mock.GetByIdAsync(quoteId, CancellationToken.None))
-            .ReturnsAsync(quoteResult);
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
+        SetupCurrentUserAsMemberOf(groupId);
 
         // Act
-        var result = await quoteService.DeleteAsync(quoteId, CancellationToken.None);
+        var result = await _quoteService.DeleteAsync(groupId, quoteId, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedFailureMessage);
+        result.Error.Message.Should().Be("No quote with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found");
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ForGivenId_ReturnsNotFoundResult_WhenQuoteBelongsToAnotherGroup()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        Quote quote = GetQuoteData();
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(Guid.NewGuid(), quote);
+
+        // Act
+        var result = await _quoteService.DeleteAsync(groupId, quote.Id, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+        _quoteRepositoryMock.Verify(mock => mock.DeleteAsync(It.IsAny<Quote>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ForGivenId_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        Quote quote = GetQuoteData();
+        SetupGetByIdAsyncToReturn(groupId, quote);
+
+        // Act
+        var result = await _quoteService.DeleteAsync(groupId, quote.Id, CancellationToken.None);
+
+        // Assert
+        AssertGroupNotFound(result, groupId);
+        _quoteRepositoryMock.Verify(mock => mock.DeleteAsync(It.IsAny<Quote>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task DeleteAsync_ForGivenId_ReturnsSuccessResult_WhenQuoteSuccessfullyDeleted()
     {
         // Arrange
-        Guid quoteId = Guid.NewGuid();
-        Quote? quoteResult = GetQuoteData();
-
-        var quoteRepositoryMock = CreateQuoteRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var validatorForCreateQuoteRequestMock = CreateValidatorForCreateQuoteRequestMock();
-        var validatorForUpdateQuoteRequestMock = CreateValidatorForUpdateQuoteRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        quoteRepositoryMock
-            .Setup(mock => mock.GetByIdAsync(quoteId, CancellationToken.None))
-            .ReturnsAsync(quoteResult);
-
-        var quoteService = new QuoteService(
-            quoteRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            validatorForCreateQuoteRequestMock.Object,
-            validatorForUpdateQuoteRequestMock.Object,
-            httpContextAccessorMock.Object);
+        Guid groupId = Guid.NewGuid();
+        Quote quote = GetQuoteData();
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(groupId, quote);
 
         // Act
-        var result = await quoteService.DeleteAsync(quoteId, CancellationToken.None);
+        var result = await _quoteService.DeleteAsync(groupId, quote.Id, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        quoteRepositoryMock
-            .Verify(mock => mock.DeleteAsync(quoteResult, CancellationToken.None), Times.Once());
+        _quoteRepositoryMock.Verify(mock => mock.DeleteAsync(quote, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    #endregion
 
     #region Test_Factory_Methods
 
-    private static Mock<IValidator<CreateQuoteRequest>> CreateValidatorForCreateQuoteRequestMock() => new();
-    private static Mock<IValidator<UpdateQuoteRequest>> CreateValidatorForUpdateQuoteRequestMock() => new();
-    private static Mock<IQuoteRepository> CreateQuoteRepositoryMock() => new();
-    private static Mock<IGroupParticipantRepository> CreateGroupParticipantRepositoryMock() => new();
-    private static Mock<IHttpContextAccessor> CreateHttpContextAccessorMock() => new();
+    /// <summary>
+    /// Makes the current user a participant of <paramref name="groupId"/>. Without this call the user is not a member of any group.
+    /// </summary>
+    private GroupParticipant SetupCurrentUserAsMemberOf(Guid groupId)
+    {
+        var participant = GroupParticipant.Create(groupId, CurrentUserId);
+        _groupParticipantRepositoryMock
+            .Setup(mock => mock.GetByUserIdAndGroupIdAsync(CurrentUserId, groupId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(participant);
 
-    private static void SetupGetByIdAsyncToReturnQuoteResult(Mock<IQuoteRepository> mock,
-                                                             Quote? expectedQuoteResult)
-        => mock
-            .Setup(mock => mock.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None))
-            .ReturnsAsync(expectedQuoteResult);
+        return participant;
+    }
 
-    private static void SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(Mock<IGroupParticipantRepository> mock,
-                                                                                      GroupParticipant? groupParticipantResult)
-        => mock
-            .Setup(mock => mock.GetByUserIdAndGroupIdAsync(It.IsAny<string>(), It.IsAny<Guid>(), CancellationToken.None))
-            .ReturnsAsync(groupParticipantResult);
+    private void SetupGetAllByGroupIdAsyncToReturn(Guid groupId, Quote[] quotes)
+        => _quoteRepositoryMock
+            .Setup(mock => mock.GetAllByGroupIdAsync(groupId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(quotes);
 
-    private void SetupCreateValidatorMockToReturnValidationResult(Mock<IValidator<CreateQuoteRequest>> mock,
-                                                                  ValidationResult? result = null)
-        => mock
-            .Setup(mock => mock.ValidateAsync(It.IsAny<CreateQuoteRequest>(), CancellationToken.None))
-            .ReturnsAsync(result ?? new ValidationResult());
+    /// <summary>
+    /// Stores <paramref name="quote"/> in <paramref name="groupId"/>; looking it up with any other group returns null.
+    /// </summary>
+    private void SetupGetByIdAsyncToReturn(Guid groupId, Quote quote)
+        => _quoteRepositoryMock
+            .Setup(mock => mock.GetByIdAsync(groupId, quote.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(quote);
 
-    private static void SetupUpdateValidatorMockToReturnValidationResult(Mock<IValidator<UpdateQuoteRequest>> mock,
-                                                                         ValidationResult? result = null)
-        => mock
-            .Setup(mock => mock.ValidateAsync(It.IsAny<UpdateQuoteRequest>(), CancellationToken.None))
-            .ReturnsAsync(result ?? new ValidationResult());
+    private static void AssertGroupNotFound(Application.Common.Result result, Guid groupId)
+    {
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+        result.Error.Message.Should().Be($"No group with ID: {groupId} found");
+    }
 
-    private static CreateQuoteRequest GetCreateQuoteRequest(string text = "quote text") => new(Guid.NewGuid(), text);
+    private static CreateQuoteRequest GetCreateQuoteRequest(string text = "quote text") => new(text);
     private static UpdateQuoteRequest GetUpdateQuoteRequest(string text = "quote text") => new(text);
 
-    private static Quote GetQuoteData(Guid? CreatedById = null, string text = "test text")
-        => Quote.Create(CreatedById ?? Guid.NewGuid(), text);
-
-    private static GroupParticipant GetGroupParticipantData(string userId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2",
-                                                            List<GroupParticipantRole>? roles = null)
-        => GroupParticipant.Create(userId, roles ?? []);
+    private static Quote GetQuoteData(Guid? createdById = null, string text = "test text")
+        => Quote.Create(createdById ?? Guid.NewGuid(), text);
 
     #endregion
 }

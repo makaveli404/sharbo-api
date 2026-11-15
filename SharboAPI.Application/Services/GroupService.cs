@@ -14,28 +14,30 @@ public sealed class GroupService(
 	IGroupRepository groupRepository,
 	IRoleRepository roleRepository,
 	IValidator<CreateGroupRequest> createGroupRequestValidator,
-	IValidator<UpdateGroupRequest> updateGroupRequestValidator) : IGroupService
+	IValidator<UpdateGroupRequest> updateGroupRequestValidator,
+	ICurrentUser currentUser) : IGroupService
 {
+	public async Task<Result<List<GroupResult>>> GetMineAsync(CancellationToken cancellationToken)
+	{
+		var groups = await groupRepository.GetAllByUserIdAsync(currentUser.UserId, cancellationToken);
+		return Result.Success(groups.Select(ToGroupResult).ToList());
+	}
+
 	public async Task<Result<GroupResult?>> GetById(Guid id, CancellationToken cancellationToken)
 	{
-		var group = await groupRepository.GetById(id, cancellationToken);
-		if (group is null)
-		{
-			return Result.Failure<GroupResult?>(Error.NotFound("Group not found"));
-		}
+		var group = await GetGroupOfCurrentUserAsync(id, cancellationToken);
 
-		var groupResult = new GroupResult(group.Id, group.Name, group.ImagePath, group.CreatedById, CreateGroupParticipantsResult(group));
-		return Result.Success<GroupResult?>(groupResult);
+		return group is null
+			? Result.Failure<GroupResult?>(GroupNotFound(id))
+			: Result.Success<GroupResult?>(ToGroupResult(group));
 	}
 
 	public async Task<Result<Guid?>> AddAsync(CreateGroupRequest createGroupRequest, CancellationToken cancellationToken)
 	{
 		await createGroupRequestValidator.ValidateAndThrowAsync(createGroupRequest, cancellationToken);
 
-		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-		var createdById = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
+		var createdById = currentUser.UserId;
 
-		// Add creator to group and assign admin role
 		var adminRole = await roleRepository.GetByRoleTypeAsync(RoleType.Admin, cancellationToken);
 		var moderatorRole = await roleRepository.GetByRoleTypeAsync(RoleType.Moderator, cancellationToken);
 		var participantRole = await roleRepository.GetByRoleTypeAsync(RoleType.Participant, cancellationToken);
@@ -45,22 +47,22 @@ public sealed class GroupService(
 			return Result.Failure<Guid?>(Error.NotFound("Roles not found"));
 		}
 
-		var admin = GroupParticipantRole.Create(adminRole!);
-		var moderator = GroupParticipantRole.Create(moderatorRole!);
-		var participant = GroupParticipantRole.Create(participantRole!);
-
+		// The creator joins as Admin; other invited users join as Participants (each once, never the creator twice).
 		List<GroupParticipant> participants =
 		[
-			GroupParticipant.Create(createdById, [admin, moderator, participant])
+			GroupParticipant.Create(createdById, [
+				GroupParticipantRole.Create(adminRole),
+				GroupParticipantRole.Create(moderatorRole),
+				GroupParticipantRole.Create(participantRole)
+			])
 		];
 
-		// Add participants (if chosen) to group and assign participant role
-		if (createGroupRequest.Participants is not null)
-		{
-			createGroupRequest.Participants.ForEach(userId =>
-				participants.Add(GroupParticipant.Create(userId, [participant]))
-			);
-		}
+		var invitedUserIds = (createGroupRequest.Participants ?? [])
+			.Where(userId => !string.IsNullOrWhiteSpace(userId) && userId != createdById)
+			.Distinct();
+
+		participants.AddRange(invitedUserIds.Select(userId =>
+			GroupParticipant.Create(userId, [GroupParticipantRole.Create(participantRole)])));
 
 		var group = Group.Create(createGroupRequest.Name, createdById, createGroupRequest.ImagePath, participants);
 
@@ -71,49 +73,57 @@ public sealed class GroupService(
 	public async Task<Result<GroupResult?>> UpdateAsync(Guid groupId, UpdateGroupRequest updatedGroupRequest,
 		CancellationToken cancellationToken)
 	{
-		var group = await groupRepository.GetById(groupId, cancellationToken);
-
-		if (group is null)
-		{
-			return Result.Failure<GroupResult?>(Error.NotFound("Group not found"));
-		}
-
 		await updateGroupRequestValidator.ValidateAndThrowAsync(updatedGroupRequest, cancellationToken);
 
-		// TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-		var modifiedBy = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
+		var group = await GetGroupOfCurrentUserAsync(groupId, cancellationToken);
+		if (group is null)
+		{
+			return Result.Failure<GroupResult?>(GroupNotFound(groupId));
+		}
 
-		group.Update(updatedGroupRequest.Name, modifiedBy, updatedGroupRequest.ImagePath);
+		group.Update(updatedGroupRequest.Name, currentUser.UserId, updatedGroupRequest.ImagePath);
 
 		await groupRepository.SaveChangesAsync(cancellationToken);
-
-		var groupResult = new GroupResult(group.Id, group.Name, group.ImagePath, group.CreatedById, CreateGroupParticipantsResult(group));
-		return Result.Success<GroupResult?>(groupResult);
+		return Result.Success<GroupResult?>(ToGroupResult(group));
 	}
-
 
 	public async Task<Result> DeleteAsync(Guid id, CancellationToken cancellationToken)
 	{
-		await groupRepository.DeleteAsync(id, cancellationToken);
+		var group = await GetGroupOfCurrentUserAsync(id, cancellationToken);
+		if (group is null)
+		{
+			return Result.Failure(GroupNotFound(id));
+		}
+
+		await groupRepository.DeleteAsync(group, cancellationToken);
 		return Result.Success();
 	}
 
-	private ICollection<GroupParticipantResult> CreateGroupParticipantsResult(Group group)
+	/// <summary>
+	/// The group, or null when it does not exist or the current user is not its member
+	/// (both are reported as "not found" so the API does not reveal other groups).
+	/// </summary>
+	private async Task<Group?> GetGroupOfCurrentUserAsync(Guid groupId, CancellationToken cancellationToken)
 	{
-		var groupParticipantsResult = new List<GroupParticipantResult>();
+		var group = await groupRepository.GetById(groupId, cancellationToken);
+		var userId = currentUser.UserId;
 
-		foreach (var groupParticipant in group.GroupParticipants)
-		{
-			groupParticipantsResult.Add(new GroupParticipantResult(
-					groupParticipant.Id,
-					groupParticipant.UserId,
-					groupParticipant.GroupParticipantRoles
-						.Select(r => r.Role.RoleType.ToString())
-						.ToList()
-				)
-			);
-		}
-
-		return groupParticipantsResult;
+		return group is not null && group.GroupParticipants.Any(p => p.UserId == userId)
+			? group
+			: null;
 	}
+
+	private static Error GroupNotFound(Guid groupId) => Error.NotFound($"No group with ID: { groupId } found");
+
+	private static GroupResult ToGroupResult(Group group) => new(
+		group.Id,
+		group.Name,
+		group.ImagePath,
+		group.CreatedById,
+		group.GroupParticipants
+			.Select(p => new GroupParticipantResult(
+				p.Id,
+				p.UserId,
+				p.GroupParticipantRoles.Select(r => r.Role.RoleType.ToString()).ToList()))
+			.ToList());
 }

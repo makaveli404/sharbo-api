@@ -37,11 +37,11 @@ public class GroupParticipantRepository(SharboDbContext context) : IGroupPartici
 		return result.Entity?.Id;
 	}
 
-	public async Task DeleteAsync(Guid[] id, CancellationToken cancellationToken)
-	{
-		await context.GroupParticipants.Where(g => id.Contains(g.Id)).ExecuteDeleteAsync(cancellationToken);
-		await context.SaveChangesAsync(cancellationToken);
-	}
+	// Only participants of the given group are deleted; IDs from other groups are ignored.
+	public async Task DeleteAsync(Guid groupId, Guid[] ids, CancellationToken cancellationToken)
+		=> await context.GroupParticipants
+			.Where(g => g.GroupId == groupId && ids.Contains(g.Id))
+			.ExecuteDeleteAsync(cancellationToken);
 	
 	public async Task SaveChangesAsync(CancellationToken cancellationToken)
 	{

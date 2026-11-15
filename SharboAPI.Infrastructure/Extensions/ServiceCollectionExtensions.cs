@@ -5,7 +5,7 @@ using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Services;
 using SharboAPI.Infrastructure.Repositories;
-using SharboAPI.Infrastructure.Services;
+using SharboAPI.Infrastructure.Seeding;
 
 namespace SharboAPI.Infrastructure.Extensions;
 
@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
 			options.UseNpgsql(connectionString,
 				npgsql => npgsql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 		services.AddTransient<Seeder>();
+		services.AddTransient<DevDataSeeder>();
 
 		return services;
 	}
@@ -38,9 +39,6 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IMemeRepository, MemeRepository>();
 		services.AddScoped<ISituationRepository, SituationRepository>();
 		services.AddScoped<IQuoteRepository, QuoteRepository>();
-		services.AddScoped<IFirebaseService, FirebaseService>();
-		services.AddScoped<IAuthenticationService, AuthenticationService>();
-		services.AddFirebase(configuration);
 
 		return services;
 	}

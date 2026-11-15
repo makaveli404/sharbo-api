@@ -11,8 +11,9 @@ public class QuoteRepository(SharboDbContext dbContext) : IQuoteRepository
             .Where(q => q.CreatedBy.GroupId == groupId)
             .ToListAsync(cancellationToken);
 
-    public async Task<Quote?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
-        => await dbContext.Quotes.FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
+    public async Task<Quote?> GetByIdAsync(Guid groupId, Guid id, CancellationToken cancellationToken)
+        => await dbContext.Quotes
+            .FirstOrDefaultAsync(q => q.Id == id && q.CreatedBy.GroupId == groupId, cancellationToken);
 
     public async Task<Guid?> AddAsync(Quote quote, CancellationToken cancellationToken)
     {

@@ -5,11 +5,18 @@ using SharboAPI.Application.DTO.GroupParticipant;
 
 namespace SharboAPI.Endpoints;
 
+// Every operation is limited to groups the signed-in user belongs to; other groups answer 404.
 public static class GroupEndpoints
 {
 	public static void MapGroupEndpoints(this IEndpointRouteBuilder routes)
 	{
 		MapGroupsApi(routes);
+	}
+
+	private static async Task<IResult> GetMyGroups(IGroupService groupService, CancellationToken cancellationToken)
+	{
+		var result = await groupService.GetMineAsync(cancellationToken);
+		return TypedResults.Ok(result.Value);
 	}
 
 	private static async Task<IResult> GetGroupById(Guid id, IGroupService groupService,
@@ -29,13 +36,13 @@ public static class GroupEndpoints
 		CancellationToken cancellationToken)
 	{
 		var result = await groupService.AddAsync(createGroupRequest, cancellationToken);
-		
+
 		if (result.IsFailure)
 		{
 			return TypedResults.BadRequest();
 		}
 
-		return TypedResults.Created($"{createGroupRequest}/{result}", result);
+		return TypedResults.Created($"/api/groups/{result.Value}", result.Value);
 	}
 
 	private static async Task<IResult> UpdateGroup(Guid id, UpdateGroupRequest updatedGroupRequest,
@@ -46,16 +53,22 @@ public static class GroupEndpoints
 
 		if (result.IsFailure)
 		{
-			return TypedResults.Ok();
+			return TypedResults.NotFound();
 		}
 
-		return TypedResults.Ok(result);
+		return TypedResults.Ok(result.Value);
 	}
 
 	private static async Task<IResult> DeleteGroup(Guid id, IGroupService groupService,
 		CancellationToken cancellationToken)
 	{
-		await groupService.DeleteAsync(id, cancellationToken);
+		var result = await groupService.DeleteAsync(id, cancellationToken);
+
+		if (result.IsFailure)
+		{
+			return TypedResults.NotFound();
+		}
+
 		return TypedResults.NoContent();
 	}
 
@@ -64,33 +77,40 @@ public static class GroupEndpoints
 		CancellationToken cancellationToken)
 	{
 		var result = await groupParticipantService.AddAsync(id, userId, cancellationToken);
-		if (result.IsSuccess)
+
+		if (result.IsFailure)
 		{
-			return TypedResults.Ok(result);
+			return TypedResults.NotFound();
+		}
+
+		return TypedResults.Ok(result.Value);
+	}
+
+	private static async Task<IResult> RemoveParticipants(Guid id, [FromQuery] Guid[] participantId,
+		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
+	{
+		var result = await groupParticipantService.DeleteAsync(id, participantId, cancellationToken);
+
+		if (result.IsFailure)
+		{
+			return TypedResults.NotFound();
 		}
 
 		return TypedResults.Ok();
 	}
 
-	private static async Task<IResult> RemoveParticipants([FromQuery] Guid[] participantId,
-		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
-	{
-		await groupParticipantService.DeleteAsync(participantId, cancellationToken);
-		return TypedResults.Ok();
-	}
-
 	private static async Task<IResult> UpdateRoles(
-		Guid id, 
+		Guid id,
 		Guid participantId,
 		UpdateGroupParticipantRolesRequest updateGroupParticipantRolesRequest,
 		IGroupParticipantService groupParticipantService, CancellationToken cancellationToken)
 	{
-		var result = await groupParticipantService.UpdateRolesAsync(participantId, updateGroupParticipantRolesRequest,
-			cancellationToken);
+		var result = await groupParticipantService.UpdateRolesAsync(id, participantId,
+			updateGroupParticipantRolesRequest, cancellationToken);
 
 		if (result.IsFailure)
 		{
-			return TypedResults.BadRequest();
+			return TypedResults.NotFound();
 		}
 
 		return TypedResults.NoContent();
@@ -113,6 +133,7 @@ public static class GroupEndpoints
 	{
 		var group = routes.MapGroup("/api/groups");
 
+		group.MapGet("/", GetMyGroups);
 		group.MapPost("/", CreateGroup);
 		group.MapGet("/{id:guid}", GetGroupById);
 		group.MapPut("/{id:guid}/update", UpdateGroup);
