@@ -7,13 +7,14 @@ namespace SharboAPI.Infrastructure.Repositories;
 public sealed class GroupRepository(SharboDbContext context) : IGroupRepository
 {
 	public async Task<Group?> GetById(Guid id, CancellationToken cancellationToken)
-	{
-		return await context.Groups
-			.Include(g => g.GroupParticipants)
-			.ThenInclude(g => g.GroupParticipantRoles)
-			.ThenInclude(g => g.Role)
+		=> await WithParticipants()
 			.FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
-	}
+
+	public async Task<List<Group>> GetAllByUserIdAsync(string userId, CancellationToken cancellationToken)
+		=> await WithParticipants()
+			.Where(g => g.GroupParticipants.Any(p => p.UserId == userId))
+			.OrderBy(g => g.Name)
+			.ToListAsync(cancellationToken);
 
 	public async Task<Guid?> AddAsync(Group group, CancellationToken cancellationToken)
 	{
@@ -22,21 +23,18 @@ public sealed class GroupRepository(SharboDbContext context) : IGroupRepository
 		return result.Entity?.Id;
 	}
 
-	public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+	public async Task DeleteAsync(Group group, CancellationToken cancellationToken)
 	{
-		var group = await GetById(id, cancellationToken);
-
-		if (group is null)
-		{
-			return;
-		}
-
 		context.Groups.Remove(group);
 		await context.SaveChangesAsync(cancellationToken);
 	}
-	public async Task<bool> IsExistById(Guid id, CancellationToken cancellationToken)
-		=> await GetById(id, cancellationToken) is not null;
 
 	public async Task SaveChangesAsync(CancellationToken cancellationToken)
 		=> await context.SaveChangesAsync(cancellationToken);
+
+	private IQueryable<Group> WithParticipants()
+		=> context.Groups
+			.Include(g => g.GroupParticipants)
+			.ThenInclude(p => p.GroupParticipantRoles)
+			.ThenInclude(r => r.Role);
 }

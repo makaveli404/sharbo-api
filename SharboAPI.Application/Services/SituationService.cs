@@ -1,75 +1,53 @@
-﻿using SharboAPI.Domain.Models;
+﻿using FluentValidation;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Common;
 using SharboAPI.Application.Common.Errors;
 using SharboAPI.Application.DTO.Situation;
-using Microsoft.AspNetCore.Http;
-using FluentValidation;
+using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Application.Services;
 
 public sealed class SituationService(
-    ISituationRepository situationRepository, 
+    ISituationRepository situationRepository,
     IGroupParticipantRepository groupParticipantRepository,
-    IGroupRepository groupRepository,
     IValidator<CreateSituationRequest> createSituationRequestValidator,
     IValidator<UpdateSituationRequest> updateSituationRequestValidator,
-    IHttpContextAccessor httpContextAccessor) : ISituationService
+    ICurrentUser currentUser) : ISituationService
 {
     public async Task<Result<IEnumerable<SituationResult>>> GetAllForGroupAsync(Guid groupId, CancellationToken cancellationToken)
     {
-        var situations = await situationRepository.GetAllByGroupIdAsync(groupId, cancellationToken);
-        var situationsResult = situations?.Select(situation => new SituationResult(
-            situation.Id,
-            situation.Text,
-            situation.CreatedById,
-            situation.LastModifiedById,
-            situation.CreationDate,
-            situation.LastModificationDate
-        )) ?? [];
-
-        return Result.Success(situationsResult);
-    }
-
-    public async Task<Result<SituationResult?>> GetByIdAsync(Guid situationId, CancellationToken cancellationToken)
-    {
-        var situation = await situationRepository.GetByIdAsync(situationId, cancellationToken);
-
-        if (situation is null)
+        if (await GetCurrentParticipantAsync(groupId, cancellationToken) is null)
         {
-            return Result.Failure<SituationResult?>(Error.NotFound($"No situation with ID: { situationId } found"));
+            return Result.Failure<IEnumerable<SituationResult>>(GroupNotFound(groupId));
         }
 
-        var situationResult = new SituationResult(
-            situation.Id,
-            situation.Text,
-            situation.CreatedById,
-            situation.LastModifiedById,
-            situation.CreationDate,
-            situation.LastModificationDate);
+        var situations = await situationRepository.GetAllByGroupIdAsync(groupId, cancellationToken);
+        return Result.Success(situations.Select(ToSituationResult));
+    }
 
-        return Result.Success<SituationResult?>(situationResult);
+    public async Task<Result<SituationResult?>> GetByIdAsync(Guid groupId, Guid situationId, CancellationToken cancellationToken)
+    {
+        if (await GetCurrentParticipantAsync(groupId, cancellationToken) is null)
+        {
+            return Result.Failure<SituationResult?>(GroupNotFound(groupId));
+        }
+
+        var situation = await situationRepository.GetByIdAsync(groupId, situationId, cancellationToken);
+
+        return situation is null
+            ? Result.Failure<SituationResult?>(SituationNotFound(situationId))
+            : Result.Success<SituationResult?>(ToSituationResult(situation));
     }
 
     public async Task<Result<Guid?>> AddAsync(Guid groupId, CreateSituationRequest request, CancellationToken cancellationToken)
     {
         await createSituationRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
 
-        if (!await groupRepository.IsExistById(groupId, cancellationToken))
-        {
-            return Result.Failure<Guid?>(Error.NotFound($"No group with ID: { groupId } found"));
-        }
-
-        // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-        var requestingUserId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
-
-        var groupParticipant = await groupParticipantRepository
-            .GetByUserIdAndGroupIdAsync(requestingUserId, groupId, cancellationToken);
-
+        var groupParticipant = await GetCurrentParticipantAsync(groupId, cancellationToken);
         if (groupParticipant is null)
         {
-            return Result.Failure<Guid?>(Error.NotFound("No participant found"));
+            return Result.Failure<Guid?>(GroupNotFound(groupId));
         }
 
         var situation = Situation.Create(groupParticipant.Id, request.Text);
@@ -77,44 +55,63 @@ public sealed class SituationService(
 
         return Result.Success(id);
     }
-    
-    public async Task<Result> UpdateAsync(Guid situationId, Guid groupId, UpdateSituationRequest request, 
+
+    public async Task<Result> UpdateAsync(Guid situationId, Guid groupId, UpdateSituationRequest request,
         CancellationToken cancellationToken)
     {
         await updateSituationRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
 
-        // TODO: Get user id from claim by HttpContextAccessor insted of creating placeholder manually
-        var requestingUserId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
-
-        var groupParticipant = await groupParticipantRepository
-            .GetByUserIdAndGroupIdAsync(requestingUserId, groupId, cancellationToken);
+        var groupParticipant = await GetCurrentParticipantAsync(groupId, cancellationToken);
         if (groupParticipant is null)
         {
-            return Result.Failure<Result>(Error.NotFound("No participant found"));
+            return Result.Failure(GroupNotFound(groupId));
         }
 
-        var situation = await situationRepository.GetByIdAsync(situationId, cancellationToken);
+        var situation = await situationRepository.GetByIdAsync(groupId, situationId, cancellationToken);
         if (situation is null)
         {
-            return Result.Failure<Result>(Error.NotFound($"No situation with ID: { situationId } found"));
+            return Result.Failure(SituationNotFound(situationId));
         }
 
         situation.UpdateText(groupParticipant.Id, request.Text);
-        
+
         await situationRepository.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 
-    public async Task<Result> DeleteAsync(Guid situationId, CancellationToken cancellationToken)
+    public async Task<Result> DeleteAsync(Guid groupId, Guid situationId, CancellationToken cancellationToken)
     {
-        var situation = await situationRepository.GetByIdAsync(situationId, cancellationToken);
+        if (await GetCurrentParticipantAsync(groupId, cancellationToken) is null)
+        {
+            return Result.Failure(GroupNotFound(groupId));
+        }
 
+        var situation = await situationRepository.GetByIdAsync(groupId, situationId, cancellationToken);
         if (situation is null)
         {
-            return Result.Failure(Error.NotFound($"No situation with ID: { situationId } found"));
+            return Result.Failure(SituationNotFound(situationId));
         }
 
         await situationRepository.DeleteAsync(situation, cancellationToken);
         return Result.Success();
     }
+
+    /// <summary>
+    /// The current user's participant in the group, or null when they are not a member (or the group does not exist;
+    /// both are reported as "not found" so the API does not reveal other groups).
+    /// </summary>
+    private Task<GroupParticipant?> GetCurrentParticipantAsync(Guid groupId, CancellationToken cancellationToken)
+        => groupParticipantRepository.GetByUserIdAndGroupIdAsync(currentUser.UserId, groupId, cancellationToken);
+
+    private static Error GroupNotFound(Guid groupId) => Error.NotFound($"No group with ID: { groupId } found");
+
+    private static Error SituationNotFound(Guid situationId) => Error.NotFound($"No situation with ID: { situationId } found");
+
+    private static SituationResult ToSituationResult(Situation situation) => new(
+        situation.Id,
+        situation.Text,
+        situation.CreatedById,
+        situation.LastModifiedById,
+        situation.CreationDate,
+        situation.LastModificationDate);
 }

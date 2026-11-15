@@ -11,8 +11,9 @@ public sealed class MemeRepository(SharboDbContext dbContext) : IMemeRepository
 			.Where(m => m.CreatedBy.GroupId == groupId)
 			.ToListAsync(cancellationToken);
 	
-	public async Task<Meme?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
-		=> await dbContext.Memes.FirstOrDefaultAsync(meme => meme.Id == id, cancellationToken);
+	public async Task<Meme?> GetByIdAsync(Guid groupId, Guid id, CancellationToken cancellationToken)
+		=> await dbContext.Memes
+			.FirstOrDefaultAsync(meme => meme.Id == id && meme.CreatedBy.GroupId == groupId, cancellationToken);
 
 	public async Task<Guid?> AddAsync(Meme meme, CancellationToken cancellationToken)
 	{

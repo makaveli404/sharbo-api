@@ -1,43 +1,56 @@
 ﻿using SharboAPI.Application.Abstractions.Repositories;
+using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Common.Errors;
 using SharboAPI.Application.DTO.Situation;
 using SharboAPI.Application.Services;
-using Microsoft.AspNetCore.Http;
 using FluentValidation;
 using FluentValidation.Results;
 
 namespace SharboAPI.Application.Tests.Services;
 
+// xUnit creates a new instance per test, so every test gets fresh mocks.
 public class SituationServiceTests
 {
+    private const string CurrentUserId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2";
+
+    private readonly Mock<ISituationRepository> _situationRepositoryMock = new();
+    private readonly Mock<IGroupParticipantRepository> _groupParticipantRepositoryMock = new();
+    private readonly Mock<IValidator<CreateSituationRequest>> _createValidatorMock = new();
+    private readonly Mock<IValidator<UpdateSituationRequest>> _updateValidatorMock = new();
+    private readonly Mock<ICurrentUser> _currentUserMock = new();
+    private readonly SituationService _situationService;
+
+    public SituationServiceTests()
+    {
+        _currentUserMock.Setup(mock => mock.UserId).Returns(CurrentUserId);
+
+        _createValidatorMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<CreateSituationRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        _updateValidatorMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<UpdateSituationRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _situationService = new SituationService(
+            _situationRepositoryMock.Object,
+            _groupParticipantRepositoryMock.Object,
+            _createValidatorMock.Object,
+            _updateValidatorMock.Object,
+            _currentUserMock.Object);
+    }
+
+    #region GetAllForGroupAsync
+
     [Fact]
     public async Task GetAllForGroupAsync_ForGroupId_ReturnsSucceededResultWithEmptyResultArray()
     {
         // Arrange
         Guid groupId = Guid.NewGuid();
-        Situation[] expectedSituationResults = [];
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        situationRepositoryMock
-            .Setup(mock => mock.GetAllByGroupIdAsync(groupId, CancellationToken.None))
-            .ReturnsAsync(expectedSituationResults);
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetAllByGroupIdAsyncToReturn(groupId, []);
 
         // Act
-        var result = await situationService.GetAllForGroupAsync(groupId, CancellationToken.None);
+        var result = await _situationService.GetAllForGroupAsync(groupId, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -49,522 +62,366 @@ public class SituationServiceTests
     {
         // Arrange
         Guid groupId = Guid.NewGuid();
-        Situation[] expectedSituationResults = [
-            GetSituationData(),    
-            GetSituationData(),    
-            GetSituationData()    
-        ];
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        situationRepositoryMock
-            .Setup(mock => mock.GetAllByGroupIdAsync(groupId, CancellationToken.None))
-            .ReturnsAsync(expectedSituationResults);
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetAllByGroupIdAsyncToReturn(groupId, [GetSituationData(), GetSituationData(), GetSituationData()]);
 
         // Act
-        var result = await situationService.GetAllForGroupAsync(groupId, CancellationToken.None);
+        var result = await _situationService.GetAllForGroupAsync(groupId, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value
-            .Count()
-            .Should()
-            .Be(3);
+        result.Value.Should().HaveCount(3);
     }
+
+    [Fact]
+    public async Task GetAllForGroupAsync_ForGroupId_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+
+        // Act
+        var result = await _situationService.GetAllForGroupAsync(groupId, CancellationToken.None);
+
+        // Assert
+        AssertGroupNotFound(result, groupId);
+        _situationRepositoryMock.Verify(
+            mock => mock.GetAllByGroupIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    #endregion
+
+    #region GetByIdAsync
 
     [Fact]
     public async Task GetByIdAsync_ForSituationId_ReturnsFailuredResult_WhenNoSituationWithGivenIdFound()
     {
         // Arrange
+        Guid groupId = Guid.NewGuid();
         Guid situationId = Guid.Parse("27c82825-1d93-4210-8a63-d43e3c7c46d4");
-        Situation? expectedSituationResult = null;
-        string expectedErrorMessage = "No situation with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found";
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
-
-        SetupGetByIdAsyncToReturnSituationResult(situationRepositoryMock, expectedSituationResult);
+        SetupCurrentUserAsMemberOf(groupId);
 
         // Act
-        var result = await situationService.GetByIdAsync(situationId, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedErrorMessage);
-    }
-
-    [Fact]
-    public async void GetByIdAsync_ForSituationId_ReturnsSucceededResultWithSituationResult()
-    {
-        // Arrange
-        Guid situationId = Guid.NewGuid();
-        string text = "situation text";
-        Situation expectedSituationResult = GetSituationData(text: text);
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
-
-        SetupGetByIdAsyncToReturnSituationResult(situationRepositoryMock, expectedSituationResult);
-
-        // Act
-        var result = await situationService.GetByIdAsync(situationId, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeOfType<SituationResult?>();
-        result.Value.Text.Should().Be(text);
-    }
-
-    [Fact]
-    public async Task AddAsync_ForCreateSituationRequest_ThrowsArgumentException_WhenValidationFailed()
-    {
-        // Arrange 
-        Guid groupId = Guid.NewGuid();
-        CreateSituationRequest request = GetCreateSituationRequest();
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        validatorForCreateSituationRequestMock
-            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<CreateSituationRequest>>(), CancellationToken.None))
-            .ThrowsAsync(new ArgumentException());
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
-
-        // Act
-        var result = async () => await situationService.AddAsync(groupId, request, CancellationToken.None);
-
-        // Assert
-        await result
-            .Should()
-            .ThrowAsync<ArgumentException>();
-    }
-
-    [Fact]
-    public async Task AddAsync_ForCreateSituationRequest_ReturnsFailuredResult_WhenNoGroupParticipantForRequestingUserId()
-    {
-        // Arrange 
-        Guid groupId = Guid.NewGuid();
-        CreateSituationRequest request = GetCreateSituationRequest();
-        GroupParticipant? groupParticipantResult = null;
-        string expectedFailureMessage = "No participant found";
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupCreateValidatorMockToReturnValidationResult(validatorForCreateSituationRequestMock);
-        SetupIsExistByIdToReturn(groupRepositoryMock, true);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
-
-        // Act
-        var result = await situationService.AddAsync(groupId, request, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedFailureMessage);
-    }
-
-    [Fact]
-    public async Task AddAsync_ForCreateSituationRequest_ReturnsNotFoundResult_WhenGroupDoesNotExist()
-    {
-        // Arrange 
-        Guid groupId = Guid.Parse("8f1e2a4b-3c5d-4e6f-9a7b-1c2d3e4f5a6b");
-        CreateSituationRequest request = GetCreateSituationRequest();
-        string expectedFailureMessage = "No group with ID: 8f1e2a4b-3c5d-4e6f-9a7b-1c2d3e4f5a6b found";
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupCreateValidatorMockToReturnValidationResult(validatorForCreateSituationRequestMock);
-        SetupIsExistByIdToReturn(groupRepositoryMock, false);
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
-
-        // Act
-        var result = await situationService.AddAsync(groupId, request, CancellationToken.None);
+        var result = await _situationService.GetByIdAsync(groupId, situationId, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Type.Should().Be(ErrorType.NotFound);
-        result.Error.Message.Should().Be(expectedFailureMessage);
-        situationRepositoryMock.Verify(mock => mock.AddAsync(It.IsAny<Situation>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.Error.Message.Should().Be("No situation with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found");
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ForSituationId_ReturnsSucceededResultWithSituationResult()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        Situation situation = GetSituationData(text: "situation text");
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(groupId, situation);
+
+        // Act
+        var result = await _situationService.GetByIdAsync(groupId, situation.Id, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Id.Should().Be(situation.Id);
+        result.Value.Text.Should().Be("situation text");
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ForSituationId_ReturnsNotFoundResult_WhenSituationBelongsToAnotherGroup()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        Guid otherGroupId = Guid.NewGuid();
+        Situation situation = GetSituationData();
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(otherGroupId, situation);
+
+        // Act
+        var result = await _situationService.GetByIdAsync(groupId, situation.Id, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ForSituationId_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        Situation situation = GetSituationData();
+        SetupGetByIdAsyncToReturn(groupId, situation);
+
+        // Act
+        var result = await _situationService.GetByIdAsync(groupId, situation.Id, CancellationToken.None);
+
+        // Assert
+        AssertGroupNotFound(result, groupId);
+        _situationRepositoryMock.Verify(
+            mock => mock.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    #endregion
+
+    #region AddAsync
+
+    [Fact]
+    public async Task AddAsync_ForCreateSituationRequest_ThrowsArgumentException_WhenValidationFailed()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        SetupCurrentUserAsMemberOf(groupId);
+        _createValidatorMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<CreateSituationRequest>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ArgumentException());
+
+        // Act
+        var act = async () => await _situationService.AddAsync(groupId, GetCreateSituationRequest(), CancellationToken.None);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task AddAsync_ForCreateSituationRequest_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+
+        // Act
+        var result = await _situationService.AddAsync(groupId, GetCreateSituationRequest(), CancellationToken.None);
+
+        // Assert
+        AssertGroupNotFound(result, groupId);
+        _situationRepositoryMock.Verify(mock => mock.AddAsync(It.IsAny<Situation>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task AddAsync_ForCreateSituationRequest_ReturnsSituationId_WhenSituationSuccessfullyCreated()
     {
-        // Arrange 
-        Guid createdSituationId = Guid.NewGuid();
+        // Arrange
         Guid groupId = Guid.NewGuid();
-        CreateSituationRequest request = GetCreateSituationRequest();
-        GroupParticipant groupParticipantResult = GetGroupParticipantData();
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupCreateValidatorMockToReturnValidationResult(validatorForCreateSituationRequestMock);
-        SetupIsExistByIdToReturn(groupRepositoryMock, true);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-
-        situationRepositoryMock
-            .Setup(mock => mock.AddAsync(It.IsAny<Situation>(), CancellationToken.None))
+        Guid createdSituationId = Guid.NewGuid();
+        GroupParticipant participant = SetupCurrentUserAsMemberOf(groupId);
+        _situationRepositoryMock
+            .Setup(mock => mock.AddAsync(It.IsAny<Situation>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(createdSituationId);
 
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
-
         // Act
-        var result = await situationService.AddAsync(groupId, request, CancellationToken.None);
+        var result = await _situationService.AddAsync(groupId, GetCreateSituationRequest(), CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().Be(createdSituationId);
+        _situationRepositoryMock.Verify(
+            mock => mock.AddAsync(It.Is<Situation>(q => q.CreatedById == participant.Id), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
+
+    [Fact]
+    public async Task AddAsync_ForCreateSituationRequest_LooksUpParticipantForCurrentUser()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        SetupCurrentUserAsMemberOf(groupId);
+
+        // Act
+        await _situationService.AddAsync(groupId, GetCreateSituationRequest(), CancellationToken.None);
+
+        // Assert
+        _groupParticipantRepositoryMock.Verify(
+            mock => mock.GetByUserIdAndGroupIdAsync(CurrentUserId, groupId, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    #endregion
+
+    #region UpdateAsync
 
     [Fact]
     public async Task UpdateAsync_ForUpdateSituationRequest_ThrowsArgumentException_WhenValidationFailed()
     {
-        // Arrange 
-        Guid situationId = Guid.NewGuid();
+        // Arrange
         Guid groupId = Guid.NewGuid();
-        UpdateSituationRequest request = GetUpdateSituationRequest();
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        validatorForUpdateSituationRequestMock
-            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<UpdateSituationRequest>>(), CancellationToken.None))
+        SetupCurrentUserAsMemberOf(groupId);
+        _updateValidatorMock
+            .Setup(mock => mock.ValidateAsync(It.IsAny<ValidationContext<UpdateSituationRequest>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ArgumentException());
 
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
-
         // Act
-        var result = async () => await situationService.UpdateAsync(situationId, groupId, request, CancellationToken.None);
+        var act = async () => await _situationService.UpdateAsync(Guid.NewGuid(), groupId, GetUpdateSituationRequest(),
+            CancellationToken.None);
 
         // Assert
-        await result
-            .Should()
-            .ThrowAsync<ArgumentException>();
+        await act.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
-    public async Task UpdateAsync_ForUpdateSituationRequest_ReturnsFailuredResult_WhenNoGroupParticipantForRequestingUserId()
+    public async Task UpdateAsync_ForUpdateSituationRequest_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
     {
-        // Arrange 
-        Guid situationId = Guid.NewGuid();
+        // Arrange
         Guid groupId = Guid.NewGuid();
-        UpdateSituationRequest request = GetUpdateSituationRequest();
-        GroupParticipant? groupParticipantResult = null;
-        string expectedFailureMessage = "No participant found";
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupUpdateValidatorMockToReturnValidationResult(validatorForUpdateSituationRequestMock);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
+        Situation situation = GetSituationData();
+        SetupGetByIdAsyncToReturn(groupId, situation);
 
         // Act
-        var result = await situationService.UpdateAsync(situationId, groupId, request, CancellationToken.None);
+        var result = await _situationService.UpdateAsync(situation.Id, groupId, GetUpdateSituationRequest(), CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedFailureMessage);
+        AssertGroupNotFound(result, groupId);
+        _situationRepositoryMock.Verify(mock => mock.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task UpdateAsync_ForSituationId_ReturnsFailuredResult_WhenNoSituationForGivenIdFound()
     {
-        // Arrange 
-        Guid situationId = Guid.Parse("27c82825-1d93-4210-8a63-d43e3c7c46d4");
+        // Arrange
         Guid groupId = Guid.NewGuid();
-        UpdateSituationRequest request = GetUpdateSituationRequest();
-        GroupParticipant groupParticipantResult = GetGroupParticipantData();
-        Situation? situationResult = null;
-        string expectedFailureMessage = "No situation with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found";
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupUpdateValidatorMockToReturnValidationResult(validatorForUpdateSituationRequestMock);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-        SetupGetByIdAsyncToReturnSituationResult(situationRepositoryMock, situationResult);
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
+        Guid situationId = Guid.Parse("27c82825-1d93-4210-8a63-d43e3c7c46d4");
+        SetupCurrentUserAsMemberOf(groupId);
 
         // Act
-        var result = await situationService.UpdateAsync(situationId, groupId, request, CancellationToken.None);
+        var result = await _situationService.UpdateAsync(situationId, groupId, GetUpdateSituationRequest(), CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedFailureMessage);
+        result.Error.Message.Should().Be("No situation with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found");
     }
 
     [Fact]
     public async Task UpdateAsync_ForUpdateSituationRequest_ReturnsSucceededResult_WhenSituationSuccessfullyUpdated()
     {
-        // Arrange 
-        Guid situationId = Guid.NewGuid();
+        // Arrange
         Guid groupId = Guid.NewGuid();
-        UpdateSituationRequest request = GetUpdateSituationRequest();
-        GroupParticipant groupParticipantResult = GetGroupParticipantData();
-        Situation situationResult = GetSituationData();
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        SetupUpdateValidatorMockToReturnValidationResult(validatorForUpdateSituationRequestMock);
-        SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(groupParticipantRepositoryMock, groupParticipantResult);
-        SetupGetByIdAsyncToReturnSituationResult(situationRepositoryMock, situationResult);
-
-        var situationService = new SituationService(
-            situationRepositoryMock.Object,
-            groupParticipantRepositoryMock.Object,
-            groupRepositoryMock.Object,
-            validatorForCreateSituationRequestMock.Object,
-            validatorForUpdateSituationRequestMock.Object,
-            httpContextAccessorMock.Object);
+        Situation situation = GetSituationData();
+        GroupParticipant participant = SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(groupId, situation);
 
         // Act
-        var result = await situationService.UpdateAsync(situationId, groupId, request, CancellationToken.None);
+        var result = await _situationService.UpdateAsync(situation.Id, groupId, GetUpdateSituationRequest("new text"),
+            CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        situationRepositoryMock
-            .Verify(mock => mock.SaveChangesAsync(CancellationToken.None), Times.Once());
+        situation.Text.Should().Be("new text");
+        situation.LastModifiedById.Should().Be(participant.Id);
+        _situationRepositoryMock.Verify(mock => mock.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    #endregion
+
+    #region DeleteAsync
 
     [Fact]
     public async Task DeleteAsync_ForGivenId_ReturnsFailuredResult_WhenNoSituationWithGivenIdFound()
     {
         // Arrange
+        Guid groupId = Guid.NewGuid();
         Guid situationId = Guid.Parse("27c82825-1d93-4210-8a63-d43e3c7c46d4");
-        Situation? situationResult = null;
-        string expectedFailureMessage = "No situation with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found";
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        situationRepositoryMock
-            .Setup(mock => mock.GetByIdAsync(situationId, CancellationToken.None))
-            .ReturnsAsync(situationResult);
-
-        var situationService = new SituationService(
-           situationRepositoryMock.Object,
-           groupParticipantRepositoryMock.Object,
-           groupRepositoryMock.Object,
-           validatorForCreateSituationRequestMock.Object,
-           validatorForUpdateSituationRequestMock.Object,
-           httpContextAccessorMock.Object);
+        SetupCurrentUserAsMemberOf(groupId);
 
         // Act
-        var result = await situationService.DeleteAsync(situationId, CancellationToken.None);
+        var result = await _situationService.DeleteAsync(groupId, situationId, CancellationToken.None);
 
         // Assert
         result.IsFailure.Should().BeTrue();
-        result.Error.Message.Should().Be(expectedFailureMessage);
+        result.Error.Message.Should().Be("No situation with ID: 27c82825-1d93-4210-8a63-d43e3c7c46d4 found");
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ForGivenId_ReturnsNotFoundResult_WhenSituationBelongsToAnotherGroup()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        Situation situation = GetSituationData();
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(Guid.NewGuid(), situation);
+
+        // Act
+        var result = await _situationService.DeleteAsync(groupId, situation.Id, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+        _situationRepositoryMock.Verify(mock => mock.DeleteAsync(It.IsAny<Situation>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ForGivenId_ReturnsNotFoundResult_WhenUserIsNotGroupMember()
+    {
+        // Arrange
+        Guid groupId = Guid.NewGuid();
+        Situation situation = GetSituationData();
+        SetupGetByIdAsyncToReturn(groupId, situation);
+
+        // Act
+        var result = await _situationService.DeleteAsync(groupId, situation.Id, CancellationToken.None);
+
+        // Assert
+        AssertGroupNotFound(result, groupId);
+        _situationRepositoryMock.Verify(mock => mock.DeleteAsync(It.IsAny<Situation>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task DeleteAsync_ForGivenId_ReturnsSuccessResult_WhenSituationSuccessfullyDeleted()
     {
         // Arrange
-        Guid situationId = Guid.NewGuid();
-        Situation? situationResult = GetSituationData();
-
-        var situationRepositoryMock = CreateSituationRepositoryMock();
-        var groupParticipantRepositoryMock = CreateGroupParticipantRepositoryMock();
-        var groupRepositoryMock = CreateGroupRepositoryMock();
-        var validatorForCreateSituationRequestMock = CreateValidatorForCreateSituationRequestMock();
-        var validatorForUpdateSituationRequestMock = CreateValidatorForUpdateSituationRequestMock();
-        var httpContextAccessorMock = CreateHttpContextAccessorMock();
-
-        situationRepositoryMock
-            .Setup(mock => mock.GetByIdAsync(situationId, CancellationToken.None))
-            .ReturnsAsync(situationResult);
-
-        var situationService = new SituationService(
-           situationRepositoryMock.Object,
-           groupParticipantRepositoryMock.Object,
-           groupRepositoryMock.Object,
-           validatorForCreateSituationRequestMock.Object,
-           validatorForUpdateSituationRequestMock.Object,
-           httpContextAccessorMock.Object);
+        Guid groupId = Guid.NewGuid();
+        Situation situation = GetSituationData();
+        SetupCurrentUserAsMemberOf(groupId);
+        SetupGetByIdAsyncToReturn(groupId, situation);
 
         // Act
-        var result = await situationService.DeleteAsync(situationId, CancellationToken.None);
+        var result = await _situationService.DeleteAsync(groupId, situation.Id, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        situationRepositoryMock
-            .Verify(mock => mock.DeleteAsync(situationResult, CancellationToken.None), Times.Once());
+        _situationRepositoryMock.Verify(mock => mock.DeleteAsync(situation, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    #endregion
 
     #region Test_Factory_Methods
 
-    private static Mock<IValidator<CreateSituationRequest>> CreateValidatorForCreateSituationRequestMock() => new();
-    private static Mock<IValidator<UpdateSituationRequest>> CreateValidatorForUpdateSituationRequestMock() => new();
-    private static Mock<ISituationRepository> CreateSituationRepositoryMock() => new();
-    private static Mock<IGroupParticipantRepository> CreateGroupParticipantRepositoryMock() => new();
-    private static Mock<IGroupRepository> CreateGroupRepositoryMock() => new();
+    /// <summary>
+    /// Makes the current user a participant of <paramref name="groupId"/>. Without this call the user is not a member of any group.
+    /// </summary>
+    private GroupParticipant SetupCurrentUserAsMemberOf(Guid groupId)
+    {
+        var participant = GroupParticipant.Create(groupId, CurrentUserId);
+        _groupParticipantRepositoryMock
+            .Setup(mock => mock.GetByUserIdAndGroupIdAsync(CurrentUserId, groupId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(participant);
 
-    private static void SetupIsExistByIdToReturn(Mock<IGroupRepository> mock, bool exists)
-        => mock
-            .Setup(mock => mock.IsExistById(It.IsAny<Guid>(), CancellationToken.None))
-            .ReturnsAsync(exists);
+        return participant;
+    }
 
-    private static Mock<IHttpContextAccessor> CreateHttpContextAccessorMock() => new();
+    private void SetupGetAllByGroupIdAsyncToReturn(Guid groupId, Situation[] situations)
+        => _situationRepositoryMock
+            .Setup(mock => mock.GetAllByGroupIdAsync(groupId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(situations);
 
-    private static void SetupGetByIdAsyncToReturnSituationResult(Mock<ISituationRepository> mock,
-                                                                 Situation? expectedSituationResult)
-        => mock
-            .Setup(mock => mock.GetByIdAsync(It.IsAny<Guid>(), CancellationToken.None))
-            .ReturnsAsync(expectedSituationResult);
+    /// <summary>
+    /// Stores <paramref name="situation"/> in <paramref name="groupId"/>; looking it up with any other group returns null.
+    /// </summary>
+    private void SetupGetByIdAsyncToReturn(Guid groupId, Situation situation)
+        => _situationRepositoryMock
+            .Setup(mock => mock.GetByIdAsync(groupId, situation.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(situation);
 
-    private static void SetupGetByUserIdAndGroupIdAsyncToReturnGroupParticipantResult(Mock<IGroupParticipantRepository> mock,
-                                                                                      GroupParticipant? groupParticipantResult)
-        => mock
-            .Setup(mock => mock.GetByUserIdAndGroupIdAsync(It.IsAny<string>(), It.IsAny<Guid>(), CancellationToken.None))
-            .ReturnsAsync(groupParticipantResult);
-
-    private void SetupCreateValidatorMockToReturnValidationResult(Mock<IValidator<CreateSituationRequest>> mock,
-                                                                  ValidationResult? result = null)
-        => mock
-            .Setup(mock => mock.ValidateAsync(It.IsAny<CreateSituationRequest>(), CancellationToken.None))
-            .ReturnsAsync(result ?? new ValidationResult());
-
-    private static void SetupUpdateValidatorMockToReturnValidationResult(Mock<IValidator<UpdateSituationRequest>> mock,
-                                                                     ValidationResult? result = null)
-        => mock
-            .Setup(mock => mock.ValidateAsync(It.IsAny<UpdateSituationRequest>(), CancellationToken.None))
-            .ReturnsAsync(result ?? new ValidationResult());
+    private static void AssertGroupNotFound(Application.Common.Result result, Guid groupId)
+    {
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.NotFound);
+        result.Error.Message.Should().Be($"No group with ID: {groupId} found");
+    }
 
     private static CreateSituationRequest GetCreateSituationRequest(string text = "situation text") => new(text);
     private static UpdateSituationRequest GetUpdateSituationRequest(string text = "situation text") => new(text);
 
-    private static Situation GetSituationData(Guid? CreatedById = null, string text = "test text")
-        => Situation.Create(CreatedById ?? Guid.NewGuid(), text);
-
-    private static GroupParticipant GetGroupParticipantData(string userId = "AJNQPMbMtHNRHuXLDVs19Lt5J1A2",
-                                                            List<GroupParticipantRole>? roles = null)
-        => GroupParticipant.Create(userId, roles ?? []);
+    private static Situation GetSituationData(Guid? createdById = null, string text = "test text")
+        => Situation.Create(createdById ?? Guid.NewGuid(), text);
 
     #endregion
 }
