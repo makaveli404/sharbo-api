@@ -8,6 +8,7 @@ using SharboAPI.Extensions;
 using Serilog;
 using SharboAPI.Infrastructure;
 using SharboAPI.Infrastructure.Extensions;
+using SharboAPI.Infrastructure.Seeding;
 using SharboAPI.Middleware;
 using SharboAPI.Services;
 
@@ -93,6 +94,12 @@ try
 
 	var seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
 	await seeder.Seed();
+
+	// Demo groups, entries and test-user profiles for local development (turn off with Seed:DevData=false).
+	if (app.Environment.IsDevelopment() && configuration.GetValue("Seed:DevData", true))
+	{
+		await scope.ServiceProvider.GetRequiredService<DevDataSeeder>().SeedAsync();
+	}
 
 	app.UseSerilogRequestLogging();
 
