@@ -1,85 +1,54 @@
+using FluentValidation;
 using SharboAPI.Application.Abstractions.Repositories;
 using SharboAPI.Application.Abstractions.Services;
 using SharboAPI.Application.Common;
 using SharboAPI.Application.Common.Errors;
 using SharboAPI.Application.DTO.User;
+using SharboAPI.Domain.Models;
 
 namespace SharboAPI.Application.Services;
 
-public sealed class UserService(IUserRepository userRepository, 
-	IAuthenticationService authenticationService, IFirebaseService firebaseService) : IUserService
+public sealed class UserService(
+	IUserRepository userRepository,
+	IValidator<CreateProfileRequest> createProfileRequestValidator,
+	ICurrentUser currentUser) : IUserService
 {
-	public async Task<Result<List<UserDetailsResult>>> GetAllAsync(CancellationToken cancellationToken)
+	public async Task<Result<UserDetailsResult>> GetCurrentAsync(CancellationToken cancellationToken)
 	{
-		var domainUsers = await userRepository.GetAllAsync(cancellationToken);
-		var firebaseUsers = await firebaseService.GetAllAsync([.. domainUsers], cancellationToken);
+		var user = await userRepository.GetByIdAsync(currentUser.UserId, cancellationToken);
 
-		var result = new List<UserDetailsResult>();
-
-		foreach (var domainUser in domainUsers)
-		{
-			var firebaseUser = firebaseUsers.FirstOrDefault(fu => fu.email == domainUser.Email);
-
-			if (string.IsNullOrWhiteSpace(firebaseUser.uid)
-			    || string.IsNullOrEmpty(firebaseUser.email) ||
-			    string.IsNullOrEmpty(domainUser.Email))
-			{
-				return Result.Failure<List<UserDetailsResult>>(Error.NotFound("No user found"));
-			}
-
-			result.Add(new UserDetailsResult(domainUser.Id, domainUser.Email, domainUser.Nickname));
-		}
-
-		return Result.Success(result);
+		return user is null
+			? Result.Failure<UserDetailsResult>(Error.NotFound("Profile not found"))
+			: Result.Success(ToResult(user));
 	}
 
-	public async Task<Result<UserDetailsResult>> GetByIdAsync(string id, CancellationToken cancellationToken)
+	/// <summary>
+	/// Creates the profile after the first sign-in. The ID and e-mail come from the token, only the nickname from the request.
+	/// </summary>
+	public async Task<Result<UserDetailsResult>> CreateCurrentAsync(CreateProfileRequest request,
+		CancellationToken cancellationToken)
 	{
-		var firebaseUser = await firebaseService.GetByIdAsync(id, cancellationToken);
+		await createProfileRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
 
-		if (string.IsNullOrWhiteSpace(firebaseUser.uid))
+		var userId = currentUser.UserId;
+
+		if (await userRepository.GetByIdAsync(userId, cancellationToken) is not null)
 		{
-			return Result.Failure<UserDetailsResult>(Error.NotFound("No user found"));
+			return Result.Failure<UserDetailsResult>(Error.Conflict("Profile already exists"));
 		}
 
-		var domainUser = await userRepository.GetByIdAsync(firebaseUser.uid, cancellationToken);
-
-		if (string.IsNullOrEmpty(domainUser?.Id))
+		var email = currentUser.Email;
+		if (email is null)
 		{
-			return Result.Failure<UserDetailsResult>(Error.NotFound("No user found"));
+			return Result.Failure<UserDetailsResult>(
+				Error.BadRequest("The sign-in token has no e-mail address; it is required to create a profile"));
 		}
 
-		var result = new UserDetailsResult(domainUser.Id.ToString(), domainUser.Email, domainUser.Nickname);
-		return Result.Success(result);
+		var user = User.Create(userId, request.Nickname, email);
+		await userRepository.AddAsync(user, cancellationToken);
+
+		return Result.Success(ToResult(user));
 	}
 
-	public async Task<Result<UserDetailsResult>> GetByEmailAsync(string userEmail, CancellationToken cancellationToken)
-	{
-		var domainUser = await userRepository.GetByEmailAsync(userEmail, cancellationToken);
-
-		if (string.IsNullOrEmpty(domainUser?.Email))
-		{
-			return Result.Failure<UserDetailsResult>(Error.NotFound("No user found"));
-		}
-
-		var firebaseUser = await firebaseService.GetByEmailAsync(userEmail, cancellationToken);
-
-		if (string.IsNullOrWhiteSpace(firebaseUser.uid) || string.IsNullOrEmpty(firebaseUser.email))
-		{
-			return Result.Failure<UserDetailsResult>(Error.NotFound("No user found"));
-		}
-
-		var result = new UserDetailsResult(domainUser.Id.ToString(), domainUser.Email, domainUser.Nickname);
-		return Result.Success(result);
-	}
-
-	public async Task<Result<string>> AddAsync(string nickname, string email, string password, CancellationToken cancellationToken)
-	{
-		var result = await authenticationService.RegisterAsync(nickname, email, password, cancellationToken);
-
-		return result.IsFailure
-			? Result.Failure<string>(result.Error)
-			: result;
-	}
-
+	private static UserDetailsResult ToResult(User user) => new(user.Id, user.Email, user.Nickname);
 }

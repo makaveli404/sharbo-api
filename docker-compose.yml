@@ -6,7 +6,6 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__SharboDbConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-sharbodb};Username=${POSTGRES_USER:-sharbo_user};Password=${POSTGRES_PASSWORD:-sharbo_dev}
-      Firebase__Credentials: ${FIREBASE_CREDENTIALS:-}
       Firebase__ProjectId: ${FIREBASE_PROJECT_ID:-}
     depends_on:
       db:
